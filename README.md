@@ -89,10 +89,12 @@ fysat/
 | `readers/fy2_csv.py` | ✅ | FY-2 CSVS V1.0 容器：2501×41260 定长记录，IR 10bit / VIS 6bit 位流解包 |
 | `export.py` | ✅ | 三种形式，8 项测试全绿 |
 | `render.py` | ✅ | 百分位/固定拉伸、伽马、色标、RGB 合成 |
-| `palettes.py` | ✅ | 增强红外色表 |
+| palettes.py | ✅ | 增强红外色表 |
+| calib.py | ✅ | 反射率线性/二次、普朗克正反演、LUT 定标（FY-4/FY-2）、微波 TB |
+| geo.py | ✅ | 粗网格双线性插值、标称投影正反算、等经纬重采样（全向量化） |
 | `cli.py` | ✅ | info / ls / vars / export / formats，支持 glob 批量导出 |
-| `readers/oneb.py` · `awx.py` | 🚧 | 队友开发中 |
-| `calib.py` · `geo.py` | 🚧 | 队友开发中（`test_geo.py` 尚有失败项） |
+| `readers/oneb.py` | ✅ | 1B 两种变体：FY-1D（28400B×4529，10bit 高位填零）/ NOAA-18（22016B×4538，大端 u16） |
+| `readers/awx.py` | ✅ | AWX 2.1：512×512 8bit，类别 1/2、RGB、定标表、定位块 |
 | GUI（PySide6） | ⬜ | 计划 M4 |
 | 制图工作台（matplotlib） | ⬜ | 计划 M5 |
 
