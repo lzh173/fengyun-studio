@@ -9,6 +9,25 @@
 
 ## 快速开始
 
+**图形界面**（双击即可）：
+
+```powershell
+E:\CODEX-NOworkspaces\fysat\bin\fysat-gui.cmd
+```
+
+**命令行**：
+
+```powershell
+E:\CODEX-NOworkspaces\fysat\bin\fysat.cmd --version
+E:\CODEX-NOworkspaces\fysat\bin\fysat.cmd info "Y:\download-data\xxx.HDF"
+```
+
+完整启动说明见 [RUNNING.md](RUNNING.md)。
+
+---
+
+以下是直接用 Python 的方式（等价）：
+
 ```powershell
 # 解释器（已内置 numpy/h5py/matplotlib/PIL/scipy/tifffile/pyyaml）
 E:\venv\fysat\Scripts\python.exe
