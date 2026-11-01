@@ -114,9 +114,12 @@ def cmd_export(args) -> int:
         deflate=not args.no_deflate,
     )
 
+    from .provenance import build_provenance
+
     out_path = Path(args.out)
     for name in names:
         var = ds.load(name)
+        opts.provenance = build_provenance(ds, variable=name, extra={"format": args.kind})
         if args.physical:
             from .render import display_array
 
@@ -155,6 +158,18 @@ def cmd_formats(_args) -> int:
     for k, v in KINDS.items():
         print(f"  {k}: 后缀 {v['ext']} | 无损={v['lossless']} | 可缩放={v['scale']}")
     return 0
+
+
+def cmd_gui(args) -> int:
+    """启动图形界面。"""
+    try:
+        from .gui.app import main as gui_main
+    except ImportError as exc:
+        print(f"GUI 不可用：{exc}\n请安装 PySide6：pip install PySide6-Essentials",
+              file=sys.stderr)
+        return 3
+    argv = ["fysat"] + ([args.file] if getattr(args, "file", None) else [])
+    return gui_main(argv)
 
 
 def build_parser() -> argparse.ArgumentParser:
@@ -196,6 +211,10 @@ def build_parser() -> argparse.ArgumentParser:
     pv.add_argument("file")
     pv.add_argument("--only2d", action="store_true", help="只显示二维变量")
     pv.set_defaults(func=cmd_vars)
+
+    pg = sub.add_parser("gui", help="启动图形界面")
+    pg.add_argument("file", nargs="?", help="启动后直接打开的产品文件")
+    pg.set_defaults(func=cmd_gui)
     return p
 
 

@@ -6,7 +6,9 @@ build-backend = "setuptools.build_meta"
 name = "fysat"
 version = "0.1.0"
 description = "风云卫星官方数据解码 · 分析 · 制图"
+readme = "README.md"
 requires-python = ">=3.10"
+license = { text = "AGPL-3.0-only" }
 dependencies = [
     "numpy>=1.24",
     "h5py>=3.8",
@@ -14,11 +16,17 @@ dependencies = [
     "pillow>=10",
     "tifffile>=2023.7",
     "pyyaml>=6",
+    "scipy>=1.10",          # nc3 读取器（NetCDF-3，scipy.io.netcdf_file）
 ]
 
 [project.optional-dependencies]
+# 许可证：PySide6 元包会连带安装 PySide6-Addons，
+# 其中包含 Qt Charts / DataVisualization / Quick3D / VirtualKeyboard 等
+# GPLv3-only 模块，与我们的 LGPLv3 方案冲突。
+# 因此**只声明 Essentials**，绝不要写成 "PySide6"。
+gui = ["PySide6-Essentials==6.12.0"]
+# netCDF4 是 GPL 兼容但未审计的可选依赖，仅在确实需要时启用
 nc3 = ["netCDF4>=1.6"]
-gui = ["PySide6>=6.6"]
 dev = ["pytest>=7", "ruff>=0.4"]
 
 [project.scripts]
