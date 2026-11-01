@@ -108,7 +108,23 @@
 2. **FY-3H GNOSO 是 NetCDF-3（CDF 魔数）** → 必须支持 NetCDF-3，`netCDF4` 依赖保留，不能省。
 3. **1B 有真样本了**（FY-1D + NOAA-18，两种不同的头结构）→ 1B 从"P3 无样本"升级为"可验证"。
 4. **AWX 有真样本**（22 个，含 `EVLD` 文件名头）→ AWX 读取器可立即开发验证。
-5. **仍然缺**：FY-3D（85 篇，文档量最大）、FY-3C（64 篇）、FY-4A（43 篇）、FY-3A/B（HDF4）、FY-3E、TanSat。
+5. 6. **FY-4B 的 L2 产品只有 JPG 快视图**（ASHI/CLOD/DUST/IFOG/MCPD/MCPH/MCPN/NATR/SNOW/STOM），
+   没有对应的 HDF5 原始产品 —— L2 数值解析只能用 FY-4B 的 FHS/ASHI 等少数 HDF5 件，
+   其余 L2 需另下单。
+7. **FY-4B 全分辨率有多档**：1000M（10992²，3 通道）、2000M、4000M（2748²，15 通道全）、
+   0500M（21984²，最重）。**只有 4000M 含全部 15 个通道（含 7 个红外）**，
+   1000M 仅 3 个可见光通道 —— 红外算法验证必须用 4000M 或 2000M。
+
+**已补齐（2026-11-01 批次 `C202611011426140096`）**
+
+| 文件 | 说明 |
+|---|---|
+| `FY3D_MERSI_GBAL_L1_..._1000M_MS.HDF`（206 MB） | **FY-3D 主力机型，85 篇文档**；15 变量，`EV_1KM_Emissive (4,2000,2048)`、GEO 网格 |
+| `FY3D_MERSI_ORBT_L2_CLM_...`（7 个） | 云掩膜 L2，`Cloud_Mask (6,2000,2048)` / `Cirrus_Mask` / `Cloud_Mask_QA` |
+| `FY3F_MERSI_GRAN_L1_..._1000M_V0.HDF`（206 MB） | 与用户示例图同源 |
+| `FY2H_CTA_MLT_NOM_20261101_0000.hdf`（21 MB） | FY-2H 云顶高度 |
+
+**仍然缺**：FY-3C（64 篇）、FY-4A 全圆盘（43 篇，只有 REGX 区域件）、FY-3A/B（HDF4）、FY-3E、TanSat CAPIX。
 
 ---
 
