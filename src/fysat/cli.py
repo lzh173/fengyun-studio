@@ -56,19 +56,28 @@ def cmd_ls(args) -> int:
     return 0
 
 
+def cmd_vars(args) -> int:
+    """列出可导出的变量（含推荐用于导出的二维变量）。"""
+    ds = open_file(args.file, load=False)
+    rows = []
+    for v in ds.variables.values():
+        ndim = len(v.shape)
+        rows.append((v.name, v.shape, str(v.dtype), v.unit, ndim))
+    if args.only2d:
+        rows = [r for r in rows if r[4] == 2]
+    rows.sort(key=lambda r: (-r[4], r[0]))
+    for name, shape, dtype, unit, _ in rows:
+        print(f"{name:44s} {str(shape):20s} {dtype:8s} {unit}")
+    print(f"\n共 {len(rows)} 个" + ("（仅二维）" if args.only2d else ""))
+    return 0
+
+
 def cmd_export(args) -> int:
     ds = open_file(args.file, load=False)
-    if args.var not in ds.variables:
-        names = ", ".join(list(ds.variables)[:12])
-        print(f"找不到变量 {args.var}；可选：{names} …", file=sys.stderr)
+    names = _resolve_vars(ds, args.var)
+    if not names:
+        print(f"找不到变量 {args.var}；可选：{', '.join(list(ds.variables)[:12])} …", file=sys.stderr)
         return 2
-    var = ds.load(args.var)
-    if args.physical:
-        from .render import display_array
-
-        data = display_array(var, physical=True)
-    else:
-        data = var.data
 
     opts = ExportOptions(
         kind=args.kind,
@@ -82,10 +91,41 @@ def cmd_export(args) -> int:
         scale=args.scale,
         deflate=not args.no_deflate,
     )
-    out = export(data, opts)
-    size_mb = out.stat().st_size / 1e6
-    print(f"已导出 {out}  ({size_mb:.2f} MB, {args.kind})")
+
+    out_path = Path(args.out)
+    for name in names:
+        var = ds.load(name)
+        if args.physical:
+            from .render import display_array
+
+            data = display_array(var, physical=True)
+        else:
+            data = var.data
+        target = out_path if len(names) == 1 else _numbered(out_path, name)
+        per = ExportOptions(**{**opts.__dict__, "path": target})
+        out = export(data, per)
+        print(f"已导出 {out}  ({out.stat().st_size/1e6:.2f} MB, {args.kind})")
     return 0
+
+
+def _resolve_vars(ds, spec: str) -> list[str]:
+    """支持精确名、唯一后缀、以及 glob 通配（如 'Data/NOMChannel*'）。"""
+    from fnmatch import fnmatchcase
+
+    if spec in ds.variables:
+        return [spec]
+    hits = [k for k in ds.variables if fnmatchcase(k, spec)]
+    if hits:
+        return hits
+    low = spec.lower().lstrip("/")
+    hits = [k for k in ds.variables
+            if k.lower().lstrip("/") == low or k.lower().lstrip("/").endswith("/" + low)]
+    return hits[:1]
+
+
+def _numbered(path: Path, name: str) -> Path:
+    safe = name.replace("/", "_").replace("\\", "_")
+    return path.with_name(f"{path.stem}_{safe}{path.suffix or '.png'}")
 
 
 def cmd_formats(_args) -> int:
@@ -129,6 +169,11 @@ def build_parser() -> argparse.ArgumentParser:
 
     pf = sub.add_parser("formats", help="列出可用导出形式")
     pf.set_defaults(func=cmd_formats)
+
+    pv = sub.add_parser("vars", help="列出可导出变量")
+    pv.add_argument("file")
+    pv.add_argument("--only2d", action="store_true", help="只显示二维变量")
+    pv.set_defaults(func=cmd_vars)
     return p
 
 
