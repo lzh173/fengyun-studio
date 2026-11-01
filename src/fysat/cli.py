@@ -50,10 +50,32 @@ def cmd_info(args) -> int:
 
 
 def cmd_ls(args) -> int:
-    for row in list_tree(args.file, max_items=args.limit):
+    for row in _list_tree(args.file, max_items=args.limit):
         shape = row.get("shape", "")
         print(f"{row['kind']:8s} {row['path']:52s} {str(shape):18s} {row.get('dtype','')}")
     return 0
+
+
+def _list_tree(path: str, max_items: int) -> list[dict]:
+    """按容器类型分派到各自的 list_tree；不支持时退化到通用概览。"""
+    import importlib
+
+    kind = sniff(path)
+    mod_name = {"netcdf4": "hdf5"}.get(kind, kind)
+    try:
+        mod = importlib.import_module(f".readers.{mod_name}", package="fysat")
+        fn = getattr(mod, "list_tree", None)
+        if fn is not None:
+            return fn(path, max_items=max_items)
+    except (ImportError, NotImplementedError):
+        pass
+    # 退化：用统一模型给出一级概览
+    ds = open_file(path, load=False)
+    rows = [{"path": f"<{ds.reader}> {ds.platform} {ds.instrument} {ds.level}", "kind": "meta"}]
+    for v in list(ds.variables.values())[:max_items]:
+        rows.append({"path": v.name, "kind": "variable", "shape": list(v.shape),
+                     "dtype": str(v.dtype)})
+    return rows
 
 
 def cmd_vars(args) -> int:
