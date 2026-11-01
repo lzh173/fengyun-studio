@@ -1,0 +1,44 @@
+# ---- Python ----
+__pycache__/
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.ruff_cache/
+
+# ---- 构建产物 / 运行产物 ----
+out/
+build/
+dist/
+*.spec
+
+# ---- 探针与临时脚本（团队约定：只进 src 与 tests）----
+scratch/
+
+# ---- 编辑器 / 系统 ----
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
+
+# ---- 大数据与样本（不入库）----
+*.hdf
+*.HDF
+*.h5
+*.H5
+*.nc
+*.NC
+*.dat
+*.DAT
+*.l1b
+*.L1B
+*.awx
+*.AWX
+*.svissr
+*.enp
+*.npz
+*.npy
+*.tif
+*.tiff
+*.png
+*.jpg
+!docs/**/*.png

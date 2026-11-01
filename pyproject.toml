@@ -1,0 +1,32 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fysat"
+version = "0.1.0"
+description = "风云卫星官方数据解码 · 分析 · 制图"
+requires-python = ">=3.10"
+dependencies = [
+    "numpy>=1.24",
+    "h5py>=3.8",
+    "matplotlib>=3.7",
+    "pillow>=10",
+    "tifffile>=2023.7",
+    "pyyaml>=6",
+]
+
+[project.optional-dependencies]
+nc3 = ["netCDF4>=1.6"]
+gui = ["PySide6>=6.6"]
+dev = ["pytest>=7", "ruff>=0.4"]
+
+[project.scripts]
+fysat = "fysat.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"

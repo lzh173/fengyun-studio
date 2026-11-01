@@ -1,0 +1,134 @@
+"""显示渲染：拉伸、上色、RGB 合成。纯数组运算，不依赖 Qt。"""
+from __future__ import annotations
+
+from dataclasses import dataclass
+
+import numpy as np
+
+
+@dataclass
+class Stretch:
+    """拉伸参数。method: percentile | minmax | fixed"""
+
+    method: str = "percentile"
+    pct: tuple[float, float] = (2.0, 98.0)
+    vmin: float | None = None
+    vmax: float | None = None
+    gamma: float = 1.0
+
+    def bounds(self, data: np.ndarray) -> tuple[float, float]:
+        if self.method == "fixed" and self.vmin is not None and self.vmax is not None:
+            return float(self.vmin), float(self.vmax)
+        valid = data[np.isfinite(data)]
+        if valid.size == 0:
+            return 0.0, 1.0
+        if self.method == "minmax":
+            lo, hi = float(np.min(valid)), float(np.max(valid))
+        else:
+            lo, hi = (float(v) for v in np.percentile(valid, self.pct))
+        if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
+            lo, hi = float(np.min(valid)), float(np.max(valid))
+            if hi <= lo:
+                d = max(abs(lo) * 1e-3, 0.5)
+                lo, hi = lo - d, hi + d
+        return lo, hi
+
+
+def display_array(var, physical: bool = True) -> np.ndarray:
+    """把 Variable 转成适合显示的 float32 数组：应用定标 + 把填充/越界置 NaN。
+
+    拉伸区间与直方图都应基于这个数组算，否则 65535 之类的填充值会把整幅图压黑。
+    """
+    if physical and (var.scale_factor is not None or var.add_offset is not None):
+        arr = var.physical()
+    else:
+        arr = var.data.astype(np.float32, copy=True)
+    bad = var.mask()
+    if bad.any():
+        arr = np.where(bad, np.float32("nan"), arr)
+    return arr
+
+
+def stretch(data: np.ndarray, st: Stretch | None = None) -> np.ndarray:
+    """把任意量纲的数据拉到 0..1（NaN → 0）。"""
+    st = st or Stretch()
+    lo, hi = st.bounds(data)
+    v = np.nan_to_num(np.asarray(data, dtype=np.float32), nan=lo)
+    v = np.clip(v, lo, hi)
+    out = (v - lo) / (hi - lo) if hi > lo else np.zeros_like(v)
+    if st.gamma and st.gamma != 1.0:
+        out = np.power(out, 1.0 / st.gamma)
+    return out.astype(np.float32, copy=False)
+
+
+def apply_cmap(gray01: np.ndarray, cmap: str = "gray") -> np.ndarray:
+    """0..1 灰度 → uint8 RGB。"""
+    import matplotlib
+
+    cm = matplotlib.colormaps[cmap]
+    rgba = cm(np.asarray(gray01, dtype=np.float32))
+    return (rgba[..., :3] * 255.0 + 0.5).astype(np.uint8)
+
+
+def composite(r: np.ndarray, g: np.ndarray, b: np.ndarray,
+              st: Stretch | None = None,
+              weights: tuple[float, float, float] = (1.0, 1.0, 1.0)) -> np.ndarray:
+    """三通道合成 uint8 RGB。输入可以是 DN 或物理量，会被独立拉伸。"""
+    st = st or Stretch()
+    chans = []
+    for arr, w in zip((r, g, b), weights):
+        chans.append(np.clip(stretch(arr, st) * float(w), 0.0, 1.0))
+    rgb = np.dstack(chans)
+    return (rgb * 255.0 + 0.5).astype(np.uint8)
+
+
+def rgb_bands(ds, names: tuple[str, str, str], physical: bool = True) -> np.ndarray:
+    """从 SatDataset 取三个变量合成 RGB（名称需完全匹配或唯一后缀匹配）。"""
+    arrs = []
+    for name in names:
+        v = ds.variables.get(name) or _match(ds, name)
+        if v is None:
+            raise KeyError(f"找不到通道 {name}；可用: {list(ds.variables)[:10]}")
+        if v.data.size == 0:
+            v = ds.load(v.name)
+        arrs.append(display_array(v, physical=physical))
+    return composite(*arrs)
+
+
+def _match(ds, name: str):
+    """宽松匹配：忽略大小写与路径，允许唯一后缀。"""
+    low = name.lower().lstrip("/")
+    for k, v in ds.variables.items():
+        if k.lower().lstrip("/").endswith(low) or k.lower() == low:
+            return v
+    return None
+
+
+# 内置配色（供 GUI 下拉框使用）
+COLORMAPS = [
+    "gray", "turbo", "inferno", "magma", "plasma", "viridis", "jet",
+    "RdYlBu_r", "coolwarm", "terrain", "ocean", "afmhot", "gist_earth",
+]
+
+# 常见 RGB 配方（通道名按产品定义替换；此处给通名，后续由产品 YAML 落地）
+PRESETS = {
+    "true_color": {"label": "真彩色", "bands": ("b3", "b2", "b1"),
+                   "desc": "R=0.65µm G=0.55µm B=0.47µm"},
+    "sandwich": {"label": "三明治", "bands": ("vis", "ir", "ir"),
+                 "desc": "R=可见光 G/B=红外，兼顾云顶纹理与地表"},
+    "day_night": {"label": "昼夜微光", "bands": ("ir", "vis", "vis"),
+                  "desc": "夜间用红外补可见光"},
+    "fire": {"label": "火点", "bands": ("b24", "b2", "ir"),
+             "desc": "R=3.7µm G=0.87µm B=11µm"},
+    "dust": {"label": "沙尘", "bands": ("ir_split", "b2", "ir"),
+             "desc": "R=11-12µm 差值 G=0.87µm B=11µm"},
+    "convection": {"label": "对流", "bands": ("wv_ir", "ir", "vis"),
+                   "desc": "R=6.2-10.8 差值 G=10.8 B=可见光"},
+}
+
+
+def describe_presets() -> str:
+    lines = ["内置 RGB 组合："]
+    for k, v in PRESETS.items():
+        lines.append(f"  {k:12s} {v['label']:6s} {v['desc']}")
+    return "\n".join(lines)

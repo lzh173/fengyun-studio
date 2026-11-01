@@ -1,0 +1,2434 @@
+{
+ "total": 267,
+ "by_family": {
+  "其他": 25,
+  "FY-2(AWX)": 2,
+  "FY-2": 5,
+  "FY-3C": 64,
+  "FY-3D": 85,
+  "FY-4A": 43,
+  "FY-4B": 38,
+  "NOAA": 1,
+  "TANSAT": 3,
+  "FY-1": 1
+ },
+ "by_format": {
+  "HDF5": 18,
+  "HDF4": 6,
+  "AWX": 4,
+  "S-VISSR": 9,
+  "1B/LRIT": 13,
+  "其他/自定义": 164,
+  "NetCDF": 72
+ },
+ "by_level": {
+  "—": 138,
+  "L1": 65,
+  "L2": 64
+ },
+ "rows": [
+  {
+   "file": "index.md",
+   "folder": "数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5/HDF4/AWX/S-VISSR/1B/LRIT",
+   "sds": 0,
+   "kb": 30
+  },
+  {
+   "file": "_report.md",
+   "folder": "数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF4/AWX/1B/LRIT",
+   "sds": 0,
+   "kb": 2
+  },
+  {
+   "file": "AWX_File_Format_Specification_Version_2.1_EN.md",
+   "folder": "FY-2 Data Format",
+   "fam": "FY-2(AWX)",
+   "lv": "—",
+   "fmt": "AWX/S-VISSR/1B/LRIT",
+   "sds": 0,
+   "kb": 50
+  },
+  {
+   "file": "FY-2_CSV_File_Format_Specification_Version_2.0_EN.md",
+   "folder": "FY-2 Data Format",
+   "fam": "FY-2",
+   "lv": "—",
+   "fmt": "S-VISSR",
+   "sds": 0,
+   "kb": 15
+  },
+  {
+   "file": "FY-2_HDF5.0_File_Format_Specification_Version_3.0_EN.md",
+   "folder": "FY-2 Data Format",
+   "fam": "FY-2",
+   "lv": "—",
+   "fmt": "HDF5/S-VISSR",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY2VISSR2.0_EN.md",
+   "folder": "FY-2 Data Format",
+   "fam": "FY-2",
+   "lv": "—",
+   "fmt": "S-VISSR",
+   "sds": 0,
+   "kb": 55
+  },
+  {
+   "file": "FY-3_L1_Product_Format.md",
+   "folder": "FY-3A-B数据格式说明",
+   "fam": "其他",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 804,
+   "kb": 307
+  },
+  {
+   "file": "FY-3_L2_L3_Product_Format.md",
+   "folder": "FY-3A-B数据格式说明",
+   "fam": "其他",
+   "lv": "L2",
+   "fmt": "HDF5",
+   "sds": 189,
+   "kb": 741
+  },
+  {
+   "file": "FY-3_Satellite_Orbital_Parameters.md",
+   "folder": "FY-3A-B数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 6
+  },
+  {
+   "file": "hdf50_userguid.md",
+   "folder": "FY-3A-B数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5/HDF4",
+   "sds": 0,
+   "kb": 35
+  },
+  {
+   "file": "HDF_Format_Description.md",
+   "folder": "FY-3A-B数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 5
+  },
+  {
+   "file": "FY-3C_Product_Instruction_ENGIN_SAOD_L0.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 6
+  },
+  {
+   "file": "FY-3C_Product_Instruction_ERBM_FTS_ORBT.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 38,
+   "kb": 14
+  },
+  {
+   "file": "FY-3C_Product_Instruction_ERM_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 48,
+   "kb": 18
+  },
+  {
+   "file": "FY-3C_Product_Instruction_ERM_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 44,
+   "kb": 17
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_ADP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_AMP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 2
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_ARP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_ATP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 2
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_EDP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 2
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_L1_Data_AE.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_L1_Data_IE.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3C_Product_Instruction_GNOS_L1_Data_PO.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "1B/LRIT",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_IRAS_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 36,
+   "kb": 17
+  },
+  {
+   "file": "FY-3C_Product_Instruction_IRAS_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 82,
+   "kb": 31
+  },
+  {
+   "file": "FY-3C_Product_Instruction_IRAS_OLR_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 6
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_L1_Data_1KM.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 14
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_L1_Data_1KM_GEO.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 26,
+   "kb": 12
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_L1_Data_250M.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 13
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_L1_Data_250M_GEO.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 6
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 134,
+   "kb": 41
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_NVI_0.05D_TD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 13
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_PAD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MERSI_TPW_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 9
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWHS_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 34,
+   "kb": 16
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWHS_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 46,
+   "kb": 24
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWHS_RDT.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_CLW_ORBT_Asc.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_CLW_ORBT_Desc.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_L1_Data_Asc.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 14
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_L1_Data_Asc_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 62,
+   "kb": 25
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_L1_Data_Desc.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 14
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_L1_Data_Desc_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 62,
+   "kb": 25
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_LST_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 12
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_SIC_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 9
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_SST_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 7
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_SWE_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_SWS_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_TPW_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 6
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWRI_VSM_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 7
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWTS_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 30,
+   "kb": 15
+  },
+  {
+   "file": "FY-3C_Product_Instruction_MWTS_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 36,
+   "kb": 22
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SBUS_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 34,
+   "kb": 18
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SBUS_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 44,
+   "kb": 19
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SEM_HEP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SEM_L1_Data_HEP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SEM_L1_Data_RDP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SEM_RDP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SEM_SPP.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3C_Product_Instruction_SIM_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 46,
+   "kb": 19
+  },
+  {
+   "file": "FY-3C_Product_Instruction_TOU_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 26,
+   "kb": 14
+  },
+  {
+   "file": "FY-3C_Product_Instruction_TOU_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 32,
+   "kb": 15
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_AOS_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 22,
+   "kb": 11
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_CLA_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_CLT_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_GFR.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 2,
+   "kb": 7
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_L1_Data.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 18,
+   "kb": 12
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_L1_Data_GEO.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 14
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_L1_Data_OBC.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 64,
+   "kb": 23
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_LST_AD_Day.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_LST_AD_Night.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_OLR_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 7
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_SST_AD_Day.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 26,
+   "kb": 12
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_SST_AD_Night.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 12
+  },
+  {
+   "file": "FY-3C_Product_Instruction_VIRR_TPW_AD.md",
+   "folder": "FY-3C数据格式说明",
+   "fam": "FY-3C",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_HIRAS_L1C_product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_MWHS-II_L1C_product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_MWRI_Accending_CRM_LEVEL_2_DATASETS_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "L2",
+   "fmt": "其他/自定义",
+   "sds": 100,
+   "kb": 36
+  },
+  {
+   "file": "FY-3D_MWRI_Decengding_CRM_LEVEL_2_DATASETS_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "L2",
+   "fmt": "其他/自定义",
+   "sds": 100,
+   "kb": 36
+  },
+  {
+   "file": "FY-3D_MWTS-II_L1C_product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY3D_GNOS_Electron_Density_Profile_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY3D_MERSI-II_5-min_granule_cloud_amount_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 16,
+   "kb": 10
+  },
+  {
+   "file": "FY3D_MERSI-II_5KM_global_10-day_cloud_amount_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY3D_MERSI-II_5KM_global_daily_cloud_amount_fomat.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 9
+  },
+  {
+   "file": "FY3D_MERSI-II_5KM_global_monthly_cloud_amount_product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 8
+  },
+  {
+   "file": "FY3D_MWRI_Cloud_Liquid_Water_Monthly_Product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 2,
+   "kb": 6
+  },
+  {
+   "file": "FY3D_SEM_High_Energy_Particle_Product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY3D_SEM_Radiation_Dose_Product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY3D_SEM_Surface_Potential_Product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "MWRI_Cloud_liquid_Water_Ascending_Orbit_Product_format-revised.md",
+   "folder": "FY-3D Data Format",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 9
+  },
+  {
+   "file": "MWRI_Cloud_liquid_Water_Descending_Orbit_Product_format-revised.md",
+   "folder": "FY-3D Data Format",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 9
+  },
+  {
+   "file": "MWRI_L1C_Ascending_product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "其他",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "MWRI_L1C_Descending_product_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "其他",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "MWTSMWHS_Merged_Atmospheric_Temperature_and_Humidity_profilesStability_index_Geopotential_height_format.md",
+   "folder": "FY-3D Data Format",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 37,
+   "kb": 31
+  },
+  {
+   "file": "FY-3D_L1_Data_Instruction_MERSI-II_1KM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 18
+  },
+  {
+   "file": "FY-3D_L1_Data_Instruction_MERSI-II_1KM_GEO.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 13
+  },
+  {
+   "file": "FY-3D_L1_Data_Instruction_MERSI-II_250M.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 32,
+   "kb": 20
+  },
+  {
+   "file": "FY-3D_L1_Data_Instruction_MWHS-II.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 32,
+   "kb": 20
+  },
+  {
+   "file": "FY-3D_L1_Data_Instruction_MWRI_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 18
+  },
+  {
+   "file": "FY-3D_L1_Data_Instruction_MWRI_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 18
+  },
+  {
+   "file": "FY-3D_L1_Data_Instruction_MWTS-II.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 32,
+   "kb": 19
+  },
+  {
+   "file": "FY-3D_Product_Instruction_GNOS_ATP.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_Product_Instruction_GNOS_EDP.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3D_Product_Instruction_GNOS_WAP.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3D_Product_Instruction_HIRAS_DAS.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_CLA_5KM_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 9
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_CLA_5KM_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_CLA_5KM_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_CLA_GRAN.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 16,
+   "kb": 10
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_CLM_GRAN.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_GFR_1KM_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "HDF5",
+   "sds": 2,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_LSR_1KM_GRAN.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_LSR_250M_GRAN.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 10
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_LSR_5KM_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_NVI_1KM_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 13
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_NVI_250M_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 13
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_NVI_5KM_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 13
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_NVI_5KM_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 24,
+   "kb": 13
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_OLR_5KM_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_OLR_5KM_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_OLR_5KM_FD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_OLR_5KM_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_PWV_5KM_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_PWV_5KM_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MERSI-II_PWV_5KM_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 9
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWHS-II_MRR.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 14,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWHS_DAS.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_CLW_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 2,
+   "kb": 6
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_CLW_ORBT_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_CLW_ORBT_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_DAS_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_DAS_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_LST_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 32,
+   "kb": 13
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_LST_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 12
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_LST_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 28,
+   "kb": 12
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_MRR_AD_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_MRR_AD_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_MRR_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_MRR_ORBT_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_MRR_ORBT_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SIC_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 12,
+   "kb": 9
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SIC_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SIC_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 4,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SST_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SST_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SST_ORBT_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 14,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SST_ORBT_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 14,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SST_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWE_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWE_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWE_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWS_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWS_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWS_ORBT_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 16,
+   "kb": 9
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWS_ORBT_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 16,
+   "kb": 9
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_SWS_TD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 6,
+   "kb": 7
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_TPW_AD.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 8,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_TPW_AM.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 2,
+   "kb": 6
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_TPW_ORBT_Asc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWRI_TPW_ORBT_Desc.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 10,
+   "kb": 8
+  },
+  {
+   "file": "FY-3D_Product_Instruction_MWTS_DAS.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 4
+  },
+  {
+   "file": "FY-3D_Product_Instruction_SEM_EPP.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3D_Product_Instruction_SEM_RDP.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3D_Product_Instruction_SEM_SPP.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 3
+  },
+  {
+   "file": "FY-3D_Product_Instruction_TSHS_AVP.md",
+   "folder": "FY-3D数据格式说明",
+   "fam": "FY-3D",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 76,
+   "kb": 25
+  },
+  {
+   "file": "FY-4A_AGRI_L2_ACI_NOM_1000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_AMV_NOM_48KM_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 15
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CFR_NOM_4000M_0865E_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CFR_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CIX_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CLM_NOM_4000M_0865E_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CLM_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CLP_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CLT_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CTH_NOM_4000M_0865E_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CTH_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CTP_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_CTT_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_DLR_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_DSD_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4A_AGRI_L2_FHS_NOM_2000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 12
+  },
+  {
+   "file": "FY-4A_AGRI_L2_FOG_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_LPW_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4A_AGRI_L2_LSE_NOM_12000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4A_AGRI_L2_LST_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_OLR_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_QPE_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_RSR_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_AGRI_L2_SSI_NOM_4000M_V1.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 11
+  },
+  {
+   "file": "FY-4A_AGRI_L2_SST_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 11
+  },
+  {
+   "file": "FY-4A_AGRI_L2_TBB_NOM_4000M_0865E_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 13
+  },
+  {
+   "file": "FY-4A_AGRI_L2_TBB_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 13
+  },
+  {
+   "file": "FY-4A_AGRI_L2_TFP_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4A_AGRI_L2_ULR_NOM_4000M_V1.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4A_GIIRS_L2_AVP_NUL_16KM_V2.0.2.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 23
+  },
+  {
+   "file": "FY-4A_GIIRS_L2_AVP_NUL_16KM_V2.0.2_478.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 23
+  },
+  {
+   "file": "FY-4A_LMI_L2_LMIE_NUL_7800M_V2.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 12
+  },
+  {
+   "file": "FY-4A_LMI_L2_LMIG_NUL_7800M_V2.0.1.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 12
+  },
+  {
+   "file": "FY4A_AGRI_L1_1KM_V3.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 17
+  },
+  {
+   "file": "FY4A_AGRI_L1_2KM_V3.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 24
+  },
+  {
+   "file": "FY4A_AGRI_L1_4KM_V3.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 34
+  },
+  {
+   "file": "FY4A_AGRI_L1_500M_V3.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 14
+  },
+  {
+   "file": "FY4A_AGRI_L1_GEO_V3.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 13
+  },
+  {
+   "file": "FY4A_AGRI_REGX_L1_1KM_HDF_V4.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 17
+  },
+  {
+   "file": "FY4A_AGRI_REGX_L1_2KM_HDF_V4.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 24
+  },
+  {
+   "file": "FY4A_AGRI_REGX_L1_4KM_HDF_V4.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 35
+  },
+  {
+   "file": "FY4A_AGRI_REGX_L1_500M_HDF_V4.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 14
+  },
+  {
+   "file": "FY4A_AGRI_REGX_L1_GEO_HDF_V4.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "FY-4A",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 13
+  },
+  {
+   "file": "FY4_AGRI_L1_HRIT_V1.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "其他",
+   "lv": "L1",
+   "fmt": "1B/LRIT",
+   "sds": 0,
+   "kb": 7
+  },
+  {
+   "file": "FY4_GIIRS_L1_HDF_V4.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "其他",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 0,
+   "kb": 27
+  },
+  {
+   "file": "FY4_GIIRS_L1_HRIT_V1.0.md",
+   "folder": "FY-4A数据格式说明",
+   "fam": "其他",
+   "lv": "L1",
+   "fmt": "1B/LRIT",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4B_AGRI_L2_AMV_NOM_48KM_V1.0.2.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 15
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CFR_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CLM_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CLP_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 11
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CLT_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 11
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CSR_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 15
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CTH_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CTP_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4B_AGRI_L2_CTT_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4B_AGRI_L2_DLR_4000M_V1.0.2.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4B_AGRI_L2_DSD_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4B_AGRI_L2_FHS_NOM_2000M_V1.0.2.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 12
+  },
+  {
+   "file": "FY-4B_AGRI_L2_LDA_NOM_4000M_V2.0.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 12
+  },
+  {
+   "file": "FY-4B_AGRI_L2_LSA_4000M_V1.1.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4B_AGRI_L2_LST_4000M_V1.0.2.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4B_AGRI_L2_OCA_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 11
+  },
+  {
+   "file": "FY-4B_AGRI_L2_OLR_4000M_V1.0.2.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4B_AGRI_L2_QPE_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 9
+  },
+  {
+   "file": "FY-4B_AGRI_L2_RSR_4000M_V1.0.3.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4B_AGRI_L2_SNC_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4B_AGRI_L2_SSR_4000M_V1.0.2.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 13
+  },
+  {
+   "file": "FY-4B_AGRI_L2_SST_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "FY-4B_AGRI_L2_TBB_4000M_V1.0.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 14
+  },
+  {
+   "file": "FY-4B_AGRI_L2_TFP_4000M_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 13
+  },
+  {
+   "file": "FY-4B_AGRI_L2_ULR_4000M_V1.0.2.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 8
+  },
+  {
+   "file": "FY-4B_GIIRS_L1_v1.1_Release_20220609.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L1",
+   "fmt": "HDF5",
+   "sds": 89,
+   "kb": 33
+  },
+  {
+   "file": "FY-4B_GIIRS_L2_AII_12KM_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 16
+  },
+  {
+   "file": "FY-4B_GIIRS_L2_AVP_12KM_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 23
+  },
+  {
+   "file": "FY-4B_GIIRS_L2_OZP_12KM_V1.0.1.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L2",
+   "fmt": "NetCDF",
+   "sds": 0,
+   "kb": 16
+  },
+  {
+   "file": "FY-4B_REGX_GHI_0250M.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 39,
+   "kb": 20
+  },
+  {
+   "file": "FY-4B_REGX_GHI_0500M.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 69,
+   "kb": 29
+  },
+  {
+   "file": "FY-4B_REGX_GHI_2000M.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 75,
+   "kb": 31
+  },
+  {
+   "file": "FY-4B_REGX_GHI_GEO.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "—",
+   "fmt": "其他/自定义",
+   "sds": 27,
+   "kb": 16
+  },
+  {
+   "file": "FY4B_AGRI_DISK_L1_1KM_HDF_V1.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 45,
+   "kb": 23
+  },
+  {
+   "file": "FY4B_AGRI_DISK_L1_2KM_HDF_V1.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 75,
+   "kb": 32
+  },
+  {
+   "file": "FY4B_AGRI_DISK_L1_4KM_HDF_V1.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 116,
+   "kb": 46
+  },
+  {
+   "file": "FY4B_AGRI_DISK_L1_500M_HDF_V1.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 33,
+   "kb": 19
+  },
+  {
+   "file": "FY4B_AGRI_DISK_L1_GEO_HDF_V1.0.md",
+   "folder": "FY-4B数据格式说明",
+   "fam": "FY-4B",
+   "lv": "L1",
+   "fmt": "其他/自定义",
+   "sds": 29,
+   "kb": 16
+  },
+  {
+   "file": "eos_1b_format.md",
+   "folder": "其他卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF4/1B/LRIT",
+   "sds": 0,
+   "kb": 27
+  },
+  {
+   "file": "gms_1b_format.md",
+   "folder": "其他卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "S-VISSR",
+   "sds": 0,
+   "kb": 11
+  },
+  {
+   "file": "noaa_1b_format.md",
+   "folder": "其他卫星数据格式说明",
+   "fam": "NOAA",
+   "lv": "—",
+   "fmt": "1B/LRIT",
+   "sds": 0,
+   "kb": 40
+  },
+  {
+   "file": "Tan1_CAPIX_1a_PIX_V2.0_.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5",
+   "sds": 100,
+   "kb": 27
+  },
+  {
+   "file": "Tan1_CAPIX_1b_SCI_0250M_V2.0.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5",
+   "sds": 23,
+   "kb": 10
+  },
+  {
+   "file": "Tan1_CAPIX_1b_SCI_1000M_V2.0.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5",
+   "sds": 32,
+   "kb": 12
+  },
+  {
+   "file": "Tan1_CAPIX_1b_SCI_GEO1K_V2.0.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5",
+   "sds": 36,
+   "kb": 13
+  },
+  {
+   "file": "Tan1_CAPIX_1b_SCI_GEOQK_V2.0.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5",
+   "sds": 36,
+   "kb": 13
+  },
+  {
+   "file": "Tan1_CAPIX_1b_SCI_OBC_V2.0_.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5",
+   "sds": 122,
+   "kb": 33
+  },
+  {
+   "file": "TanSat_ACGS_L1A_SAM_V2.0_.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "TANSAT",
+   "lv": "L1",
+   "fmt": "HDF5/1B/LRIT",
+   "sds": 164,
+   "kb": 39
+  },
+  {
+   "file": "TanSat_ACGS_L1B_CAL_V2.0_.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "TANSAT",
+   "lv": "L1",
+   "fmt": "HDF5/1B/LRIT",
+   "sds": 168,
+   "kb": 40
+  },
+  {
+   "file": "TanSat_ACGS_L1B_SCI_V2.0_.md",
+   "folder": "碳卫星数据格式说明",
+   "fam": "TANSAT",
+   "lv": "L1",
+   "fmt": "HDF5/1B/LRIT",
+   "sds": 293,
+   "kb": 69
+  },
+  {
+   "file": "fy1_02_1b_format.md",
+   "folder": "风云一号数据格式说明",
+   "fam": "FY-1",
+   "lv": "—",
+   "fmt": "1B/LRIT",
+   "sds": 0,
+   "kb": 10
+  },
+  {
+   "file": "hdf43_userguid.md",
+   "folder": "风云一号数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5/HDF4",
+   "sds": 0,
+   "kb": 66
+  },
+  {
+   "file": "fy2_01_1b_format.md",
+   "folder": "风云二号数据格式说明",
+   "fam": "FY-2",
+   "lv": "—",
+   "fmt": "S-VISSR",
+   "sds": 0,
+   "kb": 28
+  },
+  {
+   "file": "fy2_02_1b_format.md",
+   "folder": "风云二号数据格式说明",
+   "fam": "FY-2",
+   "lv": "—",
+   "fmt": "HDF5/S-VISSR",
+   "sds": 0,
+   "kb": 36
+  },
+  {
+   "file": "hdf50_userguid.md",
+   "folder": "风云二号数据格式说明",
+   "fam": "其他",
+   "lv": "—",
+   "fmt": "HDF5/HDF4",
+   "sds": 0,
+   "kb": 35
+  },
+  {
+   "file": "VISSR_AVHRR_Distribution_Format_AWX2.1.md",
+   "folder": "风云二号数据格式说明",
+   "fam": "FY-2(AWX)",
+   "lv": "—",
+   "fmt": "AWX/S-VISSR/1B/LRIT",
+   "sds": 0,
+   "kb": 46
+  }
+ ]
+}
