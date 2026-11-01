@@ -59,8 +59,8 @@ fysat/
 │  ├─ export.py             三种导出形式
 │  ├─ render.py             拉伸 / 上色 / RGB 合成
 │  ├─ palettes.py           业务配色（增强红外等）
-│  ├─ calib.py              定标（队友实现中）
-│  ├─ geo.py                定位与重采样（队友实现中）
+│  ├─ calib.py              定标：反射率/普朗克/LUT/微波
+│  ├─ geo.py                定位：粗网格插值/标称投影/重采样
 │  ├─ readers/
 │  │  ├─ __init__.py        按容器类型分派
 │  │  ├─ hdf5.py            HDF5 + NetCDF-4 通用读取（CF 约定驱动）
