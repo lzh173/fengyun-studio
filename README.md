@@ -37,11 +37,15 @@ python -m fysat.cli formats
 
 | kind | 名称 | 特点 | 实测（FY-4B 10992×10992） |
 |---|---|---|---|
-| `tiff` | TIFF 全画质 | 保留原始位深与波段数，Deflate 无损 | 16 位 DN → 56 MB；RGB → 167 MB |
+| `tiff` | TIFF 全画质 | 保留原始位深与波段数，Deflate 无损 | 16 位 DN → 59 MB；RGB → 167 MB |
 | `png_full` | PNG 全画质 | 原始分辨率，16 位灰度无损 | 51 MB（16 位）/ 158 MB（RGB） |
 | `png_compressed` | PNG 压缩强度可调 | `--level 0..9` + `--scale` | level 0 = 346 MB，level 9 = 148 MB |
 
 **PNG 本身无损**，"压缩强度"只影响编码时间与体积；要减小体积又不想改像素，调 `--level`。
+
+> **无损性已用真实数据验收**：FY-4B CH02（10992×10992 = 1.2 亿像素）经三种路径导出后回读，
+> TIFF 与 PNG 全画质均**字节级完全一致（最大差异 0）**。
+> 注意：HDF5/NetCDF 常用大端 `>u2`，早期版本会把它误当浮点重拉伸（曾实测 76.5% 像素被破坏），已修复并加回归测试。
 
 相关代码：[src/fysat/export.py](src/fysat/export.py)，测试：[tests/test_export.py](tests/test_export.py)（8 项全绿）
 
