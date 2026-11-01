@@ -84,3 +84,39 @@ def test_nan_handling(tmp_path):
     from PIL import Image
     arr = np.asarray(Image.open(out))
     assert arr.min() == 0 and arr.max() > 0, "NaN 应被安全处理"
+
+
+# ---- 大端数据（HDF5/NetCDF 常见 '>u2'）不得被误解释 ----
+
+BIG_ENDIAN = np.array([[76, 72, 78], [0, 65535, 1023]], dtype=">u2")
+
+
+def test_bigendian_tiff_is_exact(tmp_path):
+    """'>u2' 必须按无符号 16 位处理，不能因 dtype 不等于 np.uint16 而走浮点重拉伸。"""
+    import tifffile
+
+    out = export(BIG_ENDIAN, ExportOptions(kind="tiff", path=tmp_path / "be.tif"))
+    back = tifffile.imread(str(out))
+    assert np.array_equal(np.asarray(back, dtype=np.uint16),
+                          np.asarray(BIG_ENDIAN, dtype=np.uint16)), \
+        f"大端数据导出后不一致: {back.reshape(-1)}"
+
+
+def test_bigendian_png_full_is_exact(tmp_path):
+    from PIL import Image
+
+    out = export(BIG_ENDIAN, ExportOptions(kind="png_full", path=tmp_path / "be.png"))
+    back = np.asarray(Image.open(out), dtype=np.uint16)
+    assert np.array_equal(back, np.asarray(BIG_ENDIAN, dtype=np.uint16)), \
+        f"大端数据 PNG 导出后不一致: {back.reshape(-1)}"
+
+
+def test_bigendian_survives_prepare_array():
+    """直接检查 prepare_array，确保没有被转成 float 再量化。"""
+    from fysat.export import ExportOptions, prepare_array
+
+    out, mode = prepare_array(BIG_ENDIAN, ExportOptions(kind="tiff", path="x"), "tiff")
+    assert mode == "I;16"
+    assert out.dtype.kind == "u" and out.dtype.itemsize == 2
+    assert np.array_equal(np.asarray(out, dtype=np.uint16),
+                          np.asarray(BIG_ENDIAN, dtype=np.uint16))

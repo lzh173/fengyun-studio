@@ -112,6 +112,22 @@ def _apply_cmap(gray8: np.ndarray, cmap: str) -> np.ndarray:
     return rgba[..., :3]
 
 
+def _is_u16(arr: np.ndarray) -> bool:
+    """判断是否为 16 位无符号整数，**忽略字节序**。
+
+    HDF5/NetCDF 里常见大端 dtype（'>u2'），直接用 arr.dtype == np.uint16 会判 False，
+    导致数组被当成浮点重新拉伸、字节序也被误解释。
+    """
+    return arr.dtype.kind == "u" and arr.dtype.itemsize == 2
+
+
+def _native(arr: np.ndarray) -> np.ndarray:
+    """转成本机字节序的视图/副本，保留位深。"""
+    if arr.dtype.isnative:
+        return arr
+    return arr.astype(arr.dtype.newbyteorder("="))
+
+
 def prepare_array(data: np.ndarray, opts: ExportOptions, kind: ExportKind) -> tuple[np.ndarray, str]:
     """把物理量/ DN 转成要写出的数组。
 
@@ -122,11 +138,11 @@ def prepare_array(data: np.ndarray, opts: ExportOptions, kind: ExportKind) -> tu
     is_rgb = arr.ndim == 3 and arr.shape[-1] in (3, 4)
 
     if kind == "tiff":
-        # 全画质：能保留原位深就保留
+        # 全画质：能保留原位深就保留（大端也保留，TIFF 支持 >u2）
         if is_rgb:
             return arr, "RGB"
-        if arr.dtype == np.uint16:
-            return arr, "I;16"
+        if _is_u16(arr):
+            return _native(arr), "I;16"
         if arr.dtype in (np.float32, np.float64):
             return arr.astype(np.float32), "F"
         if arr.dtype == np.uint8:
@@ -136,11 +152,11 @@ def prepare_array(data: np.ndarray, opts: ExportOptions, kind: ExportKind) -> tu
     if kind == "png_full":
         # 16 位无损（彩色则原样传递；PIL 不支持 16 位 RGB PNG，见 _write_png）
         if is_rgb:
-            if arr.dtype in (np.uint8, np.uint16):
-                return arr, "RGB"
+            if arr.dtype in (np.uint8, np.uint16) or _is_u16(arr):
+                return _native(arr), "RGB"
             return _to_uint16(arr.astype(np.float32), *_range_of(arr, opts)), "RGB"
-        if arr.dtype == np.uint16:
-            return arr, "I;16"
+        if _is_u16(arr):
+            return _native(arr), "I;16"
         return _to_uint16(arr.astype(np.float32), *_range_of(arr, opts)), "I;16"
 
     # png_compressed：8 位彩色，便于分享
