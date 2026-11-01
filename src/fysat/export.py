@@ -62,6 +62,7 @@ class ExportOptions:
     scale: float = 1.0               # 仅 png_compressed 生效
     deflate: bool = True             # 仅 tiff：无损压缩
     bigtiff: bool = False
+    provenance: dict[str, str] | None = None   # 溯源元数据（默认自动生成）
 
     def resolved_path(self) -> Path:
         p = Path(self.path)
@@ -185,11 +186,20 @@ def _resize(arr: np.ndarray, scale: float) -> np.ndarray:
 
     h, w = arr.shape[:2]
     size = (max(1, int(w * scale)), max(1, int(h * scale)))
-    if arr.ndim == 2:
-        im = Image.fromarray(arr)
-        return np.asarray(im.resize(size, Image.LANCZOS))
-    im = Image.fromarray(arr)
-    return np.asarray(im.resize(size, Image.LANCZOS))
+
+    # PIL 只接受整型数组；浮点（physical() 之后常见）会抛
+    # TypeError: Cannot handle this data type: (1, 1, N), |u1
+    a = arr
+    if a.dtype.kind == "f":
+        lo, hi = float(np.nanmin(a)), float(np.nanmax(a))
+        if not np.isfinite(lo) or not np.isfinite(hi) or hi <= lo:
+            lo, hi = 0.0, lo + 1.0
+        a = _to_uint16(a, lo, hi)
+    elif a.dtype.kind in ("i", "u") and a.dtype.itemsize > 2:
+        lo, hi = float(a.min()), float(a.max())
+        a = _to_uint16(a.astype(np.float32), lo, hi if hi > lo else lo + 1)
+
+    return np.asarray(Image.fromarray(a).resize(size, Image.LANCZOS))
 
 
 def export(data: np.ndarray, opts: ExportOptions) -> Path:
@@ -205,21 +215,33 @@ def export(data: np.ndarray, opts: ExportOptions) -> Path:
     if kind == "png_compressed":
         arr = _resize(arr, opts.scale)
 
+    prov = opts.provenance
+    if prov is None:
+        from .provenance import build_provenance
+
+        prov = build_provenance()
+
     if kind == "tiff":
-        _write_tiff(arr, mode, path, deflate=opts.deflate, bigtiff=opts.bigtiff)
+        _write_tiff(arr, mode, path, deflate=opts.deflate, bigtiff=opts.bigtiff, prov=prov)
     else:
         level = opts.compress_level if kind == "png_compressed" else KINDS["png_full"]["compress"]
         level = int(np.clip(level, 0, 9))
-        _write_png(arr, mode, path, level)
+        _write_png(arr, mode, path, level, prov=prov)
 
     return path
 
 
-def _write_tiff(arr: np.ndarray, mode: str, path: Path, deflate: bool = True, bigtiff: bool = False) -> None:
+def _write_tiff(arr: np.ndarray, mode: str, path: Path, deflate: bool = True,
+                bigtiff: bool = False, prov: dict[str, str] | None = None) -> None:
+    """写 TIFF。溯源信息写进 ImageDescription（tifffile 用 description 参数）。"""
     import tifffile
+
+    from .provenance import as_text
 
     compression = "deflate" if deflate else None
     kwargs: dict = {"compression": compression, "bigtiff": bigtiff, "metadata": None}
+    if prov:
+        kwargs["description"] = as_text(prov)
     if arr.dtype.kind == "f":
         kwargs["photometric"] = "minisblack" if arr.ndim == 2 else "rgb"
     elif arr.ndim == 3 and arr.shape[-1] in (3, 4):
@@ -229,8 +251,11 @@ def _write_tiff(arr: np.ndarray, mode: str, path: Path, deflate: bool = True, bi
     tifffile.imwrite(str(path), arr, **kwargs)
 
 
-def _write_png(arr: np.ndarray, mode: str, path: Path, level: int) -> None:
+def _write_png(arr: np.ndarray, mode: str, path: Path, level: int,
+               prov: dict[str, str] | None = None) -> None:
     from PIL import Image
+
+    from .provenance import as_png_text
 
     if mode == "RGB":
         if arr.dtype == np.uint16:       # PIL 不支持 16 位 RGB PNG，降为 8 位
@@ -245,7 +270,14 @@ def _write_png(arr: np.ndarray, mode: str, path: Path, level: int) -> None:
         im = Image.fromarray(_to_uint16(arr, lo, hi))
     else:                                # I;16
         im = Image.fromarray(arr.astype(np.uint16))
-    im.save(str(path), format="PNG", compress_level=level, optimize=False)
+    pnginfo = None
+    if prov:
+        from PIL import PngImagePlugin
+
+        pnginfo = PngImagePlugin.PngInfo()
+        for k, v in as_png_text(prov).items():
+            pnginfo.add_text(k, v)
+    im.save(str(path), format="PNG", compress_level=level, optimize=False, pnginfo=pnginfo)
 
 
 def describe_kinds() -> str:
