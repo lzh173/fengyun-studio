@@ -46,7 +46,28 @@ def _scalar(v: Any) -> float | None:
         return None
 
 
+def _any_attr(v: Any) -> Any:
+    """把 HDF5 属性转成 Python 值：bytes→str，数值数组保持数组，不要退化成字符串。
+
+    早期实现把所有 ndarray 都 _as_str 成首元素文本，导致 Effect_Center_WaveLength
+    这类逐通道波长表丢失，渲染时按通道取中心波长会拿不到数据。
+    """
+    if isinstance(v, bytes):
+        return v.decode("utf-8", "replace").strip()
+    if isinstance(v, np.ndarray):
+        if v.dtype.kind == "S" or v.dtype == object:      # 字节串数组
+            flat = [_as_str(x) for x in v.reshape(-1)]
+            return flat[0] if len(flat) == 1 else flat
+        if v.size == 1:
+            return v.reshape(-1)[0].item()
+        return v                                          # 数值数组原样保留
+    if isinstance(v, (np.generic,)):
+        return v.item()
+    return v
+
+
 def _as_str(v: Any) -> str:
+    """转成字符串（只用于确实该是文本的字段）。"""
     if v is None:
         return ""
     if isinstance(v, bytes):
@@ -122,7 +143,7 @@ def read(path: str | Path, load: bool = True, max_vars: int | None = None) -> Sa
     with h5py.File(p, "r") as f:
         attrs = {}
         for k, v in f.attrs.items():
-            attrs[k] = _as_str(v) if isinstance(v, (bytes, np.ndarray)) else v
+            attrs[k] = _any_attr(v)
         ds_out.attrs = attrs
 
         datasets = _collect(f)

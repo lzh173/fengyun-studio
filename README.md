@@ -82,16 +82,17 @@ fysat/
 
 | 模块 | 状态 | 说明 |
 |---|---|---|
-| `model.py` | ✅ | `Variable.physical()` 处理 scale/offset/fill/valid_range；`load()` 支持按需读取 |
+| `model.py` | ✅ | `Variable.physical()` 处理 scale/offset/fill/valid_range；`load()` 按 reader 动态分派（支持非 HDF5 容器） |
 | `detect.py` | ✅ | HDF5/HDF4/NC3/NC4/AWX/1B/JPEG/PNG/TIFF 魔数识别 + 文件名解析 |
 | `readers/hdf5.py` | ✅ | 通用 CF 读取，自动识别 `GEO/Latitude` 等经纬度网格；实测 FY-4B/FY-3H/FY-2G |
+| `readers/nc3.py` | ✅ | NetCDF-3 经典格式（仅用 scipy）；GNOSO 29 变量全读出 |
+| `readers/fy2_csv.py` | ✅ | FY-2 CSVS V1.0 容器：2501×41260 定长记录，IR 10bit / VIS 6bit 位流解包 |
 | `export.py` | ✅ | 三种形式，8 项测试全绿 |
 | `render.py` | ✅ | 百分位/固定拉伸、伽马、色标、RGB 合成 |
 | `palettes.py` | ✅ | 增强红外色表 |
-| `cli.py` | ✅ | info / ls / export / formats |
+| `cli.py` | ✅ | info / ls / vars / export / formats，支持 glob 批量导出 |
 | `readers/oneb.py` · `awx.py` | 🚧 | 队友开发中 |
-| `readers/nc3.py` · `fy2_csv.py` | 🚧 | 队友开发中 |
-| `calib.py` · `geo.py` | 🚧 | 队友开发中 |
+| `calib.py` · `geo.py` | 🚧 | 队友开发中（`test_geo.py` 尚有失败项） |
 | GUI（PySide6） | ⬜ | 计划 M4 |
 | 制图工作台（matplotlib） | ⬜ | 计划 M5 |
 
