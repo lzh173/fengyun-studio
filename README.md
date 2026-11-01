@@ -135,6 +135,25 @@ python scripts/regress_samples.py              # 扫描 Y:\download-data 全部�
 
 ---
 
+## 许可证
+
+本项目以 **AGPL-3.0-only** 开源，另附 AGPLv3 §7 允许范围内的署名与修改标记条款。
+
+- 软件许可证全文：[LICENSE](LICENSE)
+- 依赖许可证汇总与 LGPLv3 合规清单：[LICENSES.md](LICENSES.md)
+- §7 附加条款：[docs/licenses/FYSAT-ADDITIONAL-TERMS.md](docs/licenses/FYSAT-ADDITIONAL-TERMS.md)
+- 导出数据署名（请求性，非软件许可条款）：[docs/licenses/FYSAT-OUTPUT-ATTRIBUTION-1.0.md](docs/licenses/FYSAT-OUTPUT-ATTRIBUTION-1.0.md)
+- 第三方版权声明：[THIRD_PARTY_NOTICES.md](THIRD_PARTY_NOTICES.md)
+
+**导出数据自带溯源**：所有 TIFF / PNG 默认写入 `software` / `software_version` /
+`license` / `source_url` / `modified` / `commit` / `generated_at` 等元数据
+（TIFF 写在 ImageDescription，PNG 写在 tEXt 的 `fysat.*` 键），
+可用 `fysat.provenance.read_tiff_provenance / read_png_provenance` 读回。
+
+> GUI 使用 PySide6（LGPLv3，动态链接）。**不要**把它改成裸 `PySide6` 元包依赖——
+> 那会拉入含 GPL-only 模块的 PySide6-Addons。合规约束已固化为
+> `tests/test_license_compliance.py` 的自动测试。
+
 ## 开发约定
 
 - 中文界面与文档；代码注释可为中文
