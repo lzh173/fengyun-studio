@@ -446,7 +446,12 @@ class FigureBench(QtWidgets.QWidget):
             return
 
         images = [n for n, c in self._classes.items() if c.is_image]
-        vis = [n for n in images if "refsb" in n.lower()]
+        # 真彩色 b1-b4（0.47/0.55/0.65/0.87µm）在 **EV_250_Aggr.1KM_RefSB**，
+        # 而 EV_1KM_RefSB 是 b5-b19（1.38µm 起全在短波红外），
+        # 拿它做真彩色会得到一片青/黄绿的错误图像。
+        vis = [n for n in images if "EV_250" in n and "refsb" in n.lower()]
+        if not vis:
+            vis = [n for n in images if "refsb" in n.lower()]
         ther = [n for n in images if "emissive" in n.lower()]
 
         for cmb in (self.cmb_vis_r, self.cmb_vis_g, self.cmb_vis_b):
@@ -599,7 +604,7 @@ class FigureBench(QtWidgets.QWidget):
                 ds,
                 thermal_var=thermal_var, thermal_band=band,
                 visible_vars=vis_names if spec.layout == "double" else None,
-                visible_bands=(0, 1, 2),
+                visible_bands=(2, 1, 0),   # b3/b2/b1 = 0.65/0.55/0.47µm
                 region_px=region,
                 max_cells=200_000,
             )
@@ -714,7 +719,8 @@ class FigureBench(QtWidgets.QWidget):
             thermal, visible = pipeline.build_layers(
                 ds, thermal_var=thermal_var, thermal_band=band,
                 visible_vars=vis_names if spec.layout == "double" else None,
-                visible_bands=(0, 1, 2), region_px=region, max_cells=400_000)
+                visible_bands=(2, 1, 0),   # b3/b2/b1 = 0.65/0.55/0.47µm
+                region_px=region, max_cells=400_000)
             out = render_science_figure(thermal.__dict__, visible, spec)
         except Exception as exc:                # noqa: BLE001
             QtWidgets.QMessageBox.critical(self, "导出失败", str(exc))

@@ -15,6 +15,7 @@
 """
 from __future__ import annotations
 
+import sys
 from pathlib import Path
 
 import numpy as np
@@ -471,6 +472,19 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # 画布的叠加层（海岸线/经纬网）与四角角标
         self._ensure_overlays()
+
+        # **把数据集传播到其它工作台**。
+        # 早期版本只更新了 inspector，切到分析/制图工作台是全黑的，
+        # 因为它们的 set_dataset 从未被调用。
+        for target in (getattr(self, "workspace", None),
+                       getattr(self, "figurebench", None)):
+            if target is None or not hasattr(target, "set_dataset"):
+                continue
+            try:
+                target.set_dataset(ds)
+            except Exception as exc:            # noqa: BLE001
+                print(f"[warn] 向 {type(target).__name__} 传递数据集失败: {exc}",
+                      file=sys.stderr)
 
         # 自动显示第一个可成像变量
         from .varcatalog import classify_dataset
