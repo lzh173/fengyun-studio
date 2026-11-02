@@ -1,0 +1,243 @@
+# FY-3D/E/F/G/H MERSI-II L1 250M（轨道产品，4 个反射通道 + b24/b25 单独数据集）
+#
+# 证据链
+# ------
+# 文档：D:\desktop_dp\temp\nsmc-doc\md\数据格式说明\FY-3D数据格式说明\
+#       FY-3D_L1_Data_Instruction_MERSI-II_250M.md
+#   - SDS1..SDS4  EV_250_RefSB_b1 .. _b4（各为单独数据集，非通道栈）
+#   - SDS5        EV_250_Emissive_b24   Slope=0.01  valid_range=[0,25000]  band_name="Band 24"
+#   - SDS6        EV_250_Emissive_b25   Slope=0.01  valid_range=[0,25000]  band_name="Band 25"
+#   - SDS12       IR_Cal_Coeff          band_name="20 – 25"
+#   - SDS13       VIS_Cal_Ceff（注意：250M 文档里拼写是 "Ceff"，不是 "Coeff"）
+#   - SDS14/15    Latitude / Longitude  "Latitude for Every twenty Pixels"，units=degree
+#   - SDS16       QA_Frame_Flag         valid_range=[0,65535]
+#   - 每个反射通道 Slope=1.0 valid_range=[0,4095] units="none"
+#
+# 真实样本
+#   Y:\download-data\FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf
+#   （tests/test_calib.py 用它断言 EV_250_Emissive_b24 的 Slope=0.01、
+#     FillValue=65535、valid_range=(0,25000)、波长 10.7342 µm，亮温实测 187.28~311.78 K）
+#
+# 与 1000M 产品的关键差异
+#   * 250M 的反射通道是 **4 个独立数据集**（EV_250_RefSB_b1..b4），不是 [4,H,W] 通道栈
+#   * 形态尺寸 [4, 8000, 8192]，单幅 6560 万像元（实测 n_valid = 65,464,000）
+#   * 定标系数表名在 250M 文档里写作 VIS_Cal_Ceff，实测文件里是 VIS_Cal_Coeff → 两者都认
+product: FY3_MERSI_L1_0250M
+title: FY-3 系列 MERSI-II L1 250M 轨道产品
+platform: FY-3
+instrument: MERSI
+level: L1
+container: hdf5
+verified: true
+
+match:
+  filename: '^FY3[CDEFGH]_MERSI_.*_L1_.*0250M.*\.(HDF|hdf)$'
+  container: hdf5
+
+evidence:
+  document: "D:\\desktop_dp\\temp\\nsmc-doc\\md\\数据格式说明\\FY-3D数据格式说明\\FY-3D_L1_Data_Instruction_MERSI-II_250M.md"
+  document_lines:
+    - "L66-70 SDS1~SDS4 EV_250_RefSB_b1..b4（各自独立数据集）"
+    - "L70-71 SDS5~SDS6 EV_250_Emissive_b24/b25 Slope=0.01 valid_range=[0,25000]"
+    - "L77 SDS12 IR_Cal_Coeff band_name='20 – 25'"
+    - "L78 SDS13 VIS_Cal_Ceff（文档拼写 Ceff）"
+    - "L79-80 SDS14/15 Latitude/Longitude 'for Every twenty Pixels' units=degree"
+    - "L81 SDS16 QA_Frame_Flag valid_range=[0,65535]"
+  samples:
+    - "Y:\\download-data\\FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf"
+  tests:
+    - "tests/test_calib.py::test_metadata_matches_official_granule"
+    - "tests/test_calib.py::test_fy3h_b24_brightness_temperature_range（实测 187.28~311.78 K）"
+    - "tests/test_calib.py::test_fy3h_b24_fill_becomes_nan（n_valid=65,464,000, n_nan=72,000）"
+
+geolocation:
+  method: latlon_grid
+  lat:
+    - /GEO/Latitude
+    - /Geolocation/Latitude
+  lon:
+    - /GEO/Longitude
+    - /Geolocation/Longitude
+  # 文档 L79-80 / L393-L424：250M 是「每隔**20**像元」的抽点经纬度，
+  # 属性 Line_number / Pixel_number 明写 "0,20,40....."，形状 [400,409]。
+  # 400×20=8000 ✓、409×20=8180≈8192 ✓，与 250M 的 [8000,8192] 自洽。
+  # 注意 1KM 产品是每隔 5 像元（不是 20），两个档位不同。
+  step: 20
+  notes:
+    - "250M 全幅 (8000, 8192)，粗网格每 20 像元一点，形状 [400,409]（文档 L393/L409）"
+    - "60 MB 量级的经纬度插值请用 geo.sample_latlon_grid（自动抽稀）"
+
+fields:
+  # ---------------- 250m 反射通道，各为独立数据集 ----------------
+  # 文档 L164-L235：EV_250_RefSB_b1..b4 各为 uint16 [8000,8192] 独立数据集，
+  # 属性 FillValue=65535 / Intercept=0.0 / Slope=1.0 / valid_range=[0,4095] /
+  # band_name="Band 1".."Band 4" / units="none"
+  #
+  # 定标系数表：文档 L373 写的是 **VIS_Cal_Ceff**（[19,3]，band_name="1-19"）。
+  # 注意这里是 Ceff 不是 Coeff —— 与其他产品的 VIS_Cal_Coeff 拼写不同。
+  # 两个名都作为候选，优先文档写法。
+  - name: EV_250_RefSB_b1
+    path: /Data/EV_250_RefSB_b1
+    kind: reflective
+    unit: '%'
+    label: 250m 反射通道 b1 (0.47 µm)
+    bands: [1]
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      dead: 65533
+      saturated: 65534
+    calib:
+      method: vis_poly
+      coeff:
+        - /Calibration/VIS_Cal_Ceff[0]
+        - /Calibration/VIS_Cal_Coeff[0]
+      coeff_row: fixed
+    notes:
+      - "单通道数据集，band_axis 为 None；coeff_row=fixed 且行号写在 coeff 路径里"
+      - "系数表文档名为 VIS_Cal_Ceff（拼写 Ceff），实测文件常见 VIS_Cal_Coeff，两者都试"
+
+  - name: EV_250_RefSB_b2
+    path: /Data/EV_250_RefSB_b2
+    kind: reflective
+    unit: '%'
+    label: 250m 反射通道 b2 (0.55 µm)
+    bands: [2]
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      dead: 65533
+      saturated: 65534
+    calib:
+      method: vis_poly
+      # b2 → 系数表第 1 行（0 起算）
+      coeff:
+        - /Calibration/VIS_Cal_Ceff[1]
+        - /Calibration/VIS_Cal_Coeff[1]
+      coeff_row: fixed
+
+  - name: EV_250_RefSB_b3
+    path: /Data/EV_250_RefSB_b3
+    kind: reflective
+    unit: '%'
+    label: 250m 反射通道 b3 (0.65 µm)
+    bands: [3]
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      dead: 65533
+      saturated: 65534
+    calib:
+      method: vis_poly
+      coeff:
+        - /Calibration/VIS_Cal_Ceff[2]
+        - /Calibration/VIS_Cal_Coeff[2]
+      coeff_row: fixed
+
+  - name: EV_250_RefSB_b4
+    path: /Data/EV_250_RefSB_b4
+    kind: reflective
+    unit: '%'
+    label: 250m 反射通道 b4 (0.865 µm)
+    bands: [4]
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      dead: 65533
+      saturated: 65534
+    calib:
+      method: vis_poly
+      coeff: /Calibration/VIS_Cal_Coeff[3]
+      coeff_row: fixed
+
+  # ---------------- 250m 发射通道，独立数据集 ----------------
+  - name: EV_250_Emissive_b24
+    path: /Data/EV_250_Emissive_b24
+    kind: thermal
+    unit: K
+    label: 250m 发射通道 b24 (10.7 µm)
+    bands: [24]
+    dn:
+      valid_range: [0, 25000]
+      fill: 65535
+      dead: 65533
+      saturated: 65534
+    calib:
+      method: mersi_planck
+    notes:
+      - 实测属性：Slope=0.01、Intercept=0、FillValue=65535、valid_range=[0,25000]
+      - 中心波长 10.7342 µm，取自文件全局属性 Effect_Center_WaveLength 第 24 项
+      - 实测亮温 187.28~311.78 K，中位数 285~295 K（tests/test_calib.py 断言）
+    display:
+      cmap: turbo
+      range: [180, 320]
+
+  - name: EV_250_Emissive_b25
+    path: /Data/EV_250_Emissive_b25
+    kind: thermal
+    unit: K
+    label: 250m 发射通道 b25 (12.0 µm)
+    bands: [25]
+    dn:
+      valid_range: [0, 25000]
+      fill: 65535
+      dead: 65533
+      saturated: 65534
+    calib:
+      method: mersi_planck
+    notes:
+      - 中心波长约 12.0 µm，与 b24 配合可做分裂窗亮温差
+
+  # ---------------- 定位 ----------------
+  - name: Latitude
+    path:
+      - /GEO/Latitude
+      - /Geolocation/Latitude
+    kind: table
+    unit: degree
+    required: false
+    notes:
+      - "文档 L393 [400,409]，每 20 像元一点，FillValue=65535.0，valid_range [-90,90]"
+
+  - name: Longitude
+    path:
+      - /GEO/Longitude
+      - /Geolocation/Longitude
+    kind: table
+    unit: degree
+    required: false
+    notes:
+      - "文档 L409 [400,409]，每 20 像元一点，valid_range [-180,180]"
+
+  - name: QA_Frame_Flag
+    path:
+      - /QA/QA_Frame_Flag
+      - /QA_Fields/QA_Frame_Flag
+    kind: flag
+    unit: '1'
+    required: false
+    calib:
+      method: flag
+    notes:
+      - "文档 L426-L450：uint64 [200]，每帧 64 位质量码"
+      - "Bit0~24：通道 1~25 的帧线质量（0 好 / 1 坏）"
+      - "Bit25：总体预处理（0 成功 / 1 失败）"
+      - "Bit26：反射波段定标（0 成功 / 1 失败）；Bit27：反射定标源（0 正常 / 1 降级）"
+      - "Bit29：发射波段定标（0 成功 / 1 失败）；Bit30：发射定标源（0 正常 / 1 降级）"
+      - "Bit31：发射定标降级原因（1=月亮污染）；Bit32：BB 饱和"
+      - "Bit33：定位（0 成功 / 1 失败）；Bit34：定位数据源（0 GPS / 1 IOE）"
+      - "Bit35：黑体污染；Bit36：冷空污染；Bit37：时间码错误"
+
+display:
+  primary: EV_250_Emissive_b24
+  cmap: turbo
+  stretch: [2, 98]
+
+pending_verification:
+  - "250M 文档 L373 把系数表写作 VIS_Cal_Ceff（拼写 Ceff，[19,3]，band_name=1-19），而实测文件多为 VIS_Cal_Coeff；定义已同时给两个候选路径，但尚未确认真实 250M 文件里到底是哪个名字。"
+  - "EV_250_RefSB_b1..b4 与 19 行系数表的行对应关系：按 band_name=1-19 推断 b1→row0 … b4→row3，尚未用白天景样本逐通道复核。"
+  - "EV_250_Emissive_b24/b25 的中心波长依赖全局属性 Effect_Center_WaveLength 取第 24/25 项；若某颗卫星属性只有 24 项会错位，需按文件实际长度校验。"
+  - "QA_Frame_Flag 文档写 uint64 但 valid_range 写 [0,65535]，位定义却到 Bit64 —— 三处自相矛盾；本定义只按 bit 语义注释，未做位解析。"
+
+notes:
+  - "250M 产品的 4 个反射通道在文件里是独立数据集，与 1000M 的通道栈形态不同，这是两代分辨率档位最容易搞混的地方。"

@@ -1,0 +1,246 @@
+# FY-2G CSV L1 数据集容器（压缩 S-VISSR，CSVS V1.0）
+#
+# 证据链
+# ------
+# 字节级结构由 28 个真实样本反推并与官方文档互验，已固化在
+# src/fysat/readers/fy2_csv.py 的模块文档里（含逐字节段表）：
+#
+#   文件 = N 个定长 41260 字节记录首尾相接
+#   103,191,260 B = 2501 × 41260 B（全部 28 个样本都是这个尺寸）
+#   记录 0 为元数据记录，记录 1..2500 各为一条扫描行
+#
+#   段表（偏移相对记录起点）：
+#       0      2   记录号    u16 BE
+#       2      1   质量码    u8（0 = 正常）
+#       3   2293   DOC 段     段标志 00 01 + 2291 B
+#    2296   2866   IR1        段标志 00 02 + 2291 × 10 bit
+#    5162   2866   IR2        段标志 00 03
+#    8028   2866   IR3        段标志 00 04
+#   10894   2866   IR4        段标志 00 05
+#   13760   6875   VIS1       段标志 00 06 + 9164 × 6 bit
+#   20635   6875   VIS2       段标志 00 07
+#   27510   6875   VIS3       段标志 00 08
+#   34385   6875   VIS4       段标志 00 09
+#   41260   ── 记录结束
+#
+#   2293 + 4×2866 + 4×6875 = 41257 ✓（文档 Table 4.19/4.21/4.22/4.23 一致）
+#
+# 真实样本
+#   Y:\download-data\**\FY2G_CSV_MLT_NUL_*.DAT（28 个，103 MB/个）
+#
+# 已通过的真实样本回归（tests/test_fy2_csv.py）
+#   test_sample_container_geometry     size == 103_191_260，2501 条记录
+#   test_sample_full_disc_structure    IR1 (2500,2291) uint16 值域 0~1023；
+#                                      VIS1 (2500,9164) uint8 值域 0~63；
+#                                      四角为太空（DN≥990）；圆盘面积 1e6~4e6 像元
+#   test_sample_line_meta_matches_header  逐行 DOC 首末时刻与元数据记录一致
+#   test_sample_nav_grid              简化映射块 25 组齐全，纬度 60→-60、经度 45→165
+#   test_cli_info                      fysat info 能显示 fy2_csv / IR1 (2500, 2291)
+#
+# 重要：这个容器**没有定标表**
+#   DOC 定标块 2 里本应有 64 级 VIS 反照率表与 1024 级 IR 亮温表，
+#   但业务文件里这两张表**全为 0**（实测 4 个 VIS + 4 个 IR 全零）。
+#   因此只能输出原始 DN，无法从容器内推得亮温/反照率。
+#   同理容器**没有 DN 填充值**（Table 4.19~4.23 未定义，实测也无哨兵值），
+#   不要臆造填充值；无效行由 line_quality / picture_flag / scan_count 标识。
+product: FY2G_CSV_L1
+title: FY-2G CSV（压缩 S-VISSR）L1 扫描行数据集
+platform: FY-2G
+instrument: VISSR
+level: L1
+container: fy2_csv
+verified: true
+
+match:
+  filename: '^FY2[A-H]_CSV_.*\.(DAT|dat)$'
+  container: fy2_csv
+
+evidence:
+  document: "D:\\desktop_dp\\temp\\nsmc-doc\\md\\数据格式说明\\FY-2 Data Format\\FY-2_CSV_File_Format_Specification_Version_2.0_EN.md"
+  document_lines:
+    - "L34 每条记录 41,260 字节（330,080 bits），全圆盘 2,501 条记录"
+    - "L36 除 2 字节记录号 + 1 字节质量码外，含 DOC/IR1-IR4/VIS1-VIS4 共 9 个段"
+    - "Table 4.19（L43）DOC 18344 bits / IR 各 22928 bits / VIS 各 55000 bits"
+    - "Table 4.21（L213-216）DOC 段 2293 字节 = 2 字节段标志 + 2291 字节"
+    - "Table 4.22（L226-229）IR 段 2866 字节 = 2 字节标志 + 2291 个 10 bit + 2 bit 填充"
+    - "Table 4.23（L238-241）VIS 段 6875 字节 = 2 字节标志 + 9164 个 6 bit"
+    - "L248 段号：DOC=1, IR1=2, IR2=3, IR3=4, IR4=5, VIS1=6, VIS2=7, VIS3=8, VIS4=9"
+    - "Table 4.20（L57-93）元数据记录结构"
+    - "L191-205 行综合质量码的 Bit0~Bit7 定义"
+  implementation: "src/fysat/readers/fy2_csv.py 模块文档（由 28 个真实样本反推并逐字节核对）"
+  samples:
+    - "Y:\\download-data\\**\\FY2G_CSV_MLT_NUL_*.DAT（28 个，103 MB/个）"
+  tests:
+    - "tests/test_fy2_csv.py::test_sample_container_geometry（size=103,191,260）"
+    - "tests/test_fy2_csv.py::test_sample_full_disc_structure"
+    - "tests/test_fy2_csv.py::test_sample_line_meta_matches_header"
+    - "tests/test_fy2_csv.py::test_sample_nav_grid"
+
+geolocation:
+  method: auto
+  notes:
+    - "读取器 fy2_csv 自带 DOC 简化映射块解析：25×25 网格点（纬度 60°N→60°S、经度 45°E→165°E，步长 5°），每点给 (行号, 像素号)，kind=glt"
+    - "可见光像素号 = 红外像素号 × 4"
+
+fields:
+  - name: IR1
+    path: IR1
+    kind: dn
+    unit: DN
+    label: 红外通道 1（10 bit，2291 像元/行）
+    channel: IR1
+    dn:
+      valid_range: [0, 1023]
+      # 容器未定义填充值（文档 Table 4.19~4.23 未给，实测也无哨兵），
+      # 显式声明以便不做 FY-3 的 65535/65534/65533 兜底。
+      no_fill_value: true
+    calib:
+      method: raw_dn
+    notes:
+      - "10 bit 量化，值域 0~1023（实测）"
+      - "**无定标表**：DOC 定标块为全 0，无法得到亮温"
+
+  - name: IR2
+    path: IR2
+    kind: dn
+    unit: DN
+    label: 红外通道 2（10 bit）
+    channel: IR2
+    dn:
+      valid_range: [0, 1023]
+      no_fill_value: true
+    calib:
+      method: raw_dn
+
+  - name: IR3
+    path: IR3
+    kind: dn
+    unit: DN
+    label: 红外通道 3（10 bit）
+    channel: IR3
+    dn:
+      valid_range: [0, 1023]
+      no_fill_value: true
+    calib:
+      method: raw_dn
+
+  - name: IR4
+    path: IR4
+    kind: dn
+    unit: DN
+    label: 红外通道 4（10 bit）
+    channel: IR4
+    dn:
+      valid_range: [0, 1023]
+      no_fill_value: true
+    calib:
+      method: raw_dn
+
+  - name: VIS1
+    path: VIS1
+    kind: dn
+    unit: DN
+    label: 可见光通道 1（6 bit，9164 像元/行）
+    channel: VIS1
+    dn:
+      valid_range: [0, 63]
+      no_fill_value: true
+    calib:
+      method: raw_dn
+    notes:
+      - "6 bit 量化，值域 0~63（实测）"
+      - "**无定标表**：DOC 定标块为全 0，无法得到反照率"
+
+  - name: VIS2
+    path: VIS2
+    kind: dn
+    unit: DN
+    label: 可见光通道 2（6 bit）
+    channel: VIS2
+    dn:
+      valid_range: [0, 63]
+      no_fill_value: true
+    calib:
+      method: raw_dn
+
+  - name: VIS3
+    path: VIS3
+    kind: dn
+    unit: DN
+    label: 可见光通道 3（6 bit）
+    channel: VIS3
+    dn:
+      valid_range: [0, 63]
+      no_fill_value: true
+    calib:
+      method: raw_dn
+
+  - name: VIS4
+    path: VIS4
+    kind: dn
+    unit: DN
+    label: 可见光通道 4（6 bit）
+    channel: VIS4
+    dn:
+      valid_range: [0, 63]
+      no_fill_value: true
+    calib:
+      method: raw_dn
+
+  # ---------------- 逐行元信息（无效行判据）----------------
+  - name: line_quality
+    path: line_quality
+    kind: flag
+    unit: '1'
+    required: false
+    calib:
+      method: flag
+    notes:
+      - "记录第 3 字节（元数据记录里是 strLineQuality[2500]）"
+      - "文档 §1.1c 的行综合质量码位定义：Bit0=误差；Bit1=时间订正；Bit2=计数订正；Bit3=坏行；Bit4=丢行填充；Bit5/6/7=0"
+      - "实测该 granule 2500 行全为 0（正常）"
+
+  - name: picture_flag
+    path: picture_flag
+    kind: flag
+    unit: '1'
+    required: false
+    calib:
+      method: flag
+    notes:
+      - "DOC 图像标志；0xFF = 本行含图像数据（实测全 0xFF）"
+
+  - name: scan_count
+    path: scan_count
+    kind: table
+    unit: '1'
+    required: false
+    notes:
+      - "DOC 扫描行号 1..2500，应与记录号一致"
+
+  - name: line_time
+    path: line_time
+    kind: table
+    unit: s
+    required: false
+    notes:
+      - "DOC 内 8 字节 BCD（YYYYMMDDhhmmsscc）解出的 POSIX 秒，实测整盘扫描约 25 分钟"
+
+display:
+  primary: IR1
+  cmap: gray
+  stretch: [2, 98]
+
+pending_verification:
+  - "该容器的定标表在业务文件里全为 0，因此**只能输出 DN**。若后续拿到含有效定标块的样本，需要新增定标方法并更新本定义。"
+  - "8 个通道的物理波段（µm）文档未在容器内给出，定义里只标 IR1~IR4 / VIS1~VIS4，未绑定中心波长，属待核对（不要臆测波段）。"
+  - "「无填充值」是实测结论（4 次采样），权威文档 Table 4.19~4.23 未定义填充值；若未来版本引入哨兵值需要重新核对。"
+  - "逐像元经纬度依赖 DOC 简化映射块（25×25 稀疏网格），完整圆盘的逐像元定位尚未实现（只有 GLT 网格点）。"
+  - "文档 L34/L92 明示**每景也可能只有 1300 行**（「2500th (or 1300th) row」），本定义与实测样本都按 2500 行；1300 行变体尚未验证，记录数应动态按文件长度推算（读取器已如此做）。"
+  - "文档 L67 的卫星名只举例 FY-2C/2D/2E，而实测样本是 FY-2G；格式说明版本 3.0 可能未覆盖新卫星，需确认 FY-2F/G/H 的 CSV 布局是否与 V2.0 完全一致。"
+  - "文档 L248 的段号说明有排版错误（把 IR3/IR4 写成了重复的 IR1/IR2，VIS2/VIS3/VIS4 写成重复的 VIS1），实测段标志为 DOC=1…VIS4=9 连续，以实测为准。"
+
+notes:
+  - "这是本项目唯一需要位流解包的容器（10 bit / 6 bit，MSB 优先）。"
+  - "文件前 4 字节按大端读是 70，只是 F（文件名首字母），**不存在长度前缀**。"
+  - "每行 2291 红外像元对应 5 km 分辨率，可见光 9164 像元对应约 1.25 km。"

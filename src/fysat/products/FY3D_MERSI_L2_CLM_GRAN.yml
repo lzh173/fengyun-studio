@@ -1,0 +1,149 @@
+# FY-3D MERSI-II L2 云检测段产品（CLM，GRAN 5 分钟段）
+#
+# 证据链
+# ------
+# 文档：D:\desktop_dp\temp\nsmc-doc\md\数据格式说明\FY-3D数据格式说明\
+#       FY-3D_Product_Instruction_MERSI-II_CLM_GRAN.md
+#   - L71-L73    SDS1 Cloud_Mask / SDS2 Cloud_Mask_QA / SDS3 Cirrus_Mask
+#   - L155       Cloud_Mask      Byte [2000, 2048, 6]   ← 注意通道维在**最后**
+#   - L158-163   valid_range 1~255、FillValue 0、Slope 1、Intercept 0
+#   - L166       Cloud_Mask_QA   Byte [2000, 2048, 10]
+#   - L169-176   valid_range 1~255、FillValue 0
+#   - L179       Cirrus_Mask     Byte [2048, 2000]      ← 行列与 Cloud_Mask **相反**
+#   - L182-184   valid_range 0~1、FillValue 255
+#   - L26        由 3,4,6,7,19,20,21,24,25 通道生成，原始分辨率，无地理投影
+#   - L127-L128  数据行数 2000、数据列数 2048
+#
+# 真实样本
+#   Y:\download-data\C202611011426140096\FY3D_MERSI_ORBT_L2_CLM_*.HDF（7 个）
+#
+# 注意：本定义**未通过真实文件回归**（见 pending_verification 第 1 条）
+# ---------------------------------------------------------------
+# 项目 PLAN.md 第 123 行记录的形状是 "Cloud_Mask (6,2000,2048)"，
+# 而格式说明文档第 155 行写的是 "[2000,2048,6]" —— 两者**维度顺序冲突**。
+# 本定义按**文档**取 band_axis: 0；若实测文件是 (6,2000,2048)，
+# 必须改成 band_axis: 0，否则取出来的通道是错的。
+# 这是本产品定义最关键的待核对项。
+# 真实样本
+#   Y:\download-data\C202611011426140096\FY3D_MERSI_ORBT_L2_CLM_*.HDF
+#   实测样本：FY3D_MERSI_ORBT_L2_CLM_MLT_NUL_20260810_0000_1000M_MS.HDF（7 个）
+#
+# 文档与实测的冲突（已用真实文件仲裁）
+# ----------------------------------
+# 格式说明 L155/L166/L179 把三个数据集写成 [2000,2048,6] / [2000,2048,10] /
+# [2048,2000]（前两个通道在最后、第三个二维且行列相反）。
+# **h5py 直读真实文件推翻了这三条**：全部是 (通道, 行, 列)，通道维在第 0 维，
+# 且 Cirrus_Mask 也是三维 (1,2000,2048)。以实测为准，band_axis 一律为 0。
+product: FY3D_MERSI_L2_CLM_GRAN
+title: FY-3D MERSI-II L2 云检测段产品（云掩膜/质量码/卷云）
+platform: FY-3D
+instrument: MERSI
+level: L2
+container: hdf5
+verified: true
+
+match:
+  filename: '^FY3D_MERSI_ORBT_L2_CLM_.*\.(HDF|hdf)$'
+  container: hdf5
+
+evidence:
+  document: "D:\\desktop_dp\\temp\\nsmc-doc\\md\\数据格式说明\\FY-3D数据格式说明\\FY-3D_Product_Instruction_MERSI-II_CLM_GRAN.md"
+  document_lines:
+    - "L71-73 SDS1 Cloud_Mask / SDS2 Cloud_Mask_QA / SDS3 Cirrus_Mask"
+    - "L155 Cloud_Mask Byte [2000, 2048, 6]"
+    - "L158-163 valid_range 1~255、FillValue 0、Slope 1、Intercept 0"
+    - "L166 Cloud_Mask_QA Byte [2000, 2048, 10]"
+    - "L179 Cirrus_Mask Byte [2048, 2000]（行列与 Cloud_Mask 相反）"
+    - "L26 由 3/4/6/7/19/20/21/24/25 通道生成，原始分辨率，无地理投影"
+    - "L103 Number Of Data Level = 3（3 个数据集共同构成该产品）"
+    - "L104 Projection Type = ORBIT（无重投影）"
+    - "L127-128 数据行数 2000、数据列数 2048"
+    - "L93 Data Level = L2"
+  samples:
+    - "Y:\\download-data\\C202611011426140096\\FY3D_MERSI_ORBT_L2_CLM_*.HDF（7 个）"
+  tests:
+    - "tests/test_products.py::test_fy3d_clm_channel_axis_is_correct（用真实文件判定 band_axis）"
+  conflict_note: "PLAN.md L123 记录实测 Cloud_Mask 为 (6,2000,2048)，与文档 [2000,2048,6] 冲突，尚未用真实文件仲裁"
+
+geolocation:
+  method: none
+  notes:
+    - 文档 L26/L104 明示：原始分辨率、**无地理投影**（Projection Type = ORBIT）
+    - 逐像元定位需配合同轨 L1 的 GEO 网格，本定义不含定位
+
+fields:
+  # ------------------------------------------------------------------
+  # 实测（h5py 直读真实样本 FY3D_MERSI_ORBT_L2_CLM_MLT_NUL_20260810_0000_1000M_MS.HDF）：
+  #   Cirrus_Mask    (1, 2000, 2048) uint8  band_name=b'NANA'
+  #   Cloud_Mask     (6, 2000, 2048) uint8  band_name=b'NANA'
+  #   Cloud_Mask_QA  (10, 2000, 2048) uint8 band_name=b'NANA'
+  #
+  # 三个数据集**全部是三维 (通道, 行, 列)**，通道维在**第 0 维**。
+  # 格式说明文档写 [2000,2048,6] / [2000,2048,10] / [2048,2000] 是笔误，
+  # 以真实文件为准（PLAN.md L123 记录的 (6,2000,2048) 才是对的）。
+  # ------------------------------------------------------------------
+  - name: Cloud_Mask
+    path: Cloud_Mask
+    kind: flag
+    unit: '1'
+    label: 云检测标识（6 个标志平面）
+    # 实测 (6, 2000, 2048)：通道在最前。按文档写 2 会把第 2000 行当通道，图完全错乱。
+    band_axis: 0
+    bands: [1, 2, 3, 4, 5, 6]
+    dn:
+      valid_range: [1, 255]
+      fill: 0
+    calib:
+      method: flag
+    notes:
+      - "实测 shape=(6,2000,2048)，band_axis=0；文档 L155 的 [2000,2048,6] 是笔误"
+      - "FillValue=0 表示未定标像元；valid_range 1~255"
+
+  - name: Cloud_Mask_QA
+    path: Cloud_Mask_QA
+    kind: flag
+    unit: '1'
+    label: 云检测质量码（10 个平面）
+    band_axis: 0
+    bands: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+    dn:
+      valid_range: [1, 255]
+      fill: 0
+    calib:
+      method: flag
+    notes:
+      - "实测 shape=(10,2000,2048)，band_axis=0；文档 L166 的 [2000,2048,10] 是笔误"
+
+  - name: Cirrus_Mask
+    path: Cirrus_Mask
+    kind: flag
+    unit: '1'
+    label: 卷云掩膜
+    # 实测 (1, 2000, 2048)：**也是三维**，只有 1 个平面。
+    # 文档 L179 写二维 [2048,2000] 且行列与 Cloud_Mask 相反，实测推翻了这两点。
+    band_axis: 0
+    bands: [1]
+    dn:
+      valid_range: [0, 1]
+      fill: 255
+    calib:
+      method: flag
+    notes:
+      - "实测 shape=(1,2000,2048)，band_axis=0；文档 L179 写的二维 [2048,2000] 不成立，无需转置"
+      - "valid_range [0,1]、FillValue=255"
+
+display:
+  primary: Cloud_Mask
+  cmap: gray
+  stretch: [0, 1]
+
+pending_verification:
+  - "Cloud_Mask 的 6 个标志平面的逐位语义（每个平面代表哪个判据）文档未在本文件给出明细表，仅有 SDS 级定义，位定义属待核对。"
+  - "Cloud_Mask_QA 的 10 个平面语义同样未细化，待核对。"
+  - "该产品无地理投影（Projection Type = ORBIT），batch 导出成图时没有经纬度，只能出像素图（无地理参考）。"
+  - "三个数据集的 band_name 实测都是 b'NANA'（无意义占位），所以通道语义无法从属性推断，只能按文档的 SDS 描述理解。"
+
+notes:
+  - 这是本库唯一的 L2 产品定义，用于验证「产品定义库不只覆盖 L1」。
+  - 由 3/4/6/7/19/20/21/24/25 通道生成（文档 L26），属多特征阈值法。
+  - 数据行数 2000、列数 2048（文档 L127-L128）。

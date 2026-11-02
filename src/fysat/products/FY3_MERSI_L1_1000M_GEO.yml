@@ -1,0 +1,280 @@
+# FY-3D/E/F/G/H MERSI-II L1 1KM_GEO（逐像元定位与几何产品）
+#
+# 证据链
+# ------
+# 文档：D:\desktop_dp\temp\nsmc-doc\md\数据格式说明\FY-3D数据格式说明\
+#       FY-3D_L1_Data_Instruction_MERSI-II_1KM_GEO.md
+#   - L66-L67   Geolocation Fields: SDS1 Latitude / SDS2 Longitude，逐像元
+#   - L176-L188 Latitude  float32 [2000,2048]
+#               FillValue 65535.0 / Slope 1.0 / Intercept 0.0
+#               units "degree" / valid_range [-90, 90]
+#               Description: "Latitude of each pixel in Earth Topography
+#               based on WGS84 and Digital Elevation Model"
+#   - L190-L206 Longitude float32 [2000,2048]
+#               FillValue 65535.0 / units "degree" / valid_range [-180, 180]
+#               Description 同 Latitude（文档此处中文误写"逐像元纬度"，实为经度）
+#   - L207-L220 SensorAzimuth int16 [2000,2048] FillValue -32767
+#               Slope 0.01 / units "degree" / valid_range [0, 36000]
+#   - L221-L232 SensorZenith  int16 [2000,2048] FillValue -32767
+#               Slope 0.01 / units "degree" / valid_range 文档写 [0,4095]，
+#               Description 却是 [0,18000] —— 文档自相矛盾，见待核对
+#   - L233-L246 SolarAzimuth  int16 Slope 0.01 valid_range [0, 36000]
+#   - L247-L264 SolarZenith   int16 **Slope 1.0**（注意：与其他角度不同！）
+#               valid_range [0, 18000]
+#   - L265-L269 LandSeaMask   char [2000,2048] FillValue 255
+#
+# 真实样本
+#   Y:\download-data\**\FY3[HCDEF]_MERSI_*_L1_*GEO*.HDF
+#   （PLAN.md §1.4 记录：FY-3H MERSI L1 GEOQK 2 个，0.91 GB）
+#
+# 本定义**未通过真实文件回归**（见 pending_verification）
+# ------------------------------------------------------
+# 本产品的字段形状、填充值、Slope 全部来自格式说明文档，尚未用真实 GEO 文件
+# 逐字段断言过。与 1000M/250M 产品不同，这些字段没有现成的回归测试锚点。
+product: FY3_MERSI_L1_1000M_GEO
+title: FY-3 系列 MERSI-II L1 1KM 逐像元定位与几何产品
+platform: FY-3
+instrument: MERSI
+level: L1
+container: hdf5
+verified: false
+# 必须优先于 FY3_MERSI_L1_1000M：GEO 文件名同时含 "1000M" 与 "GEO"，
+# 两个定义的正则都会命中。只靠正则长度不可靠（"1000M" 比 "GEO" 长 2 字符，
+# 会把 GEO 文件判给主产品），所以用显式 priority 保证本定义先匹配。
+priority: 10
+
+match:
+  # 本正则要求文件名含 GEO。但注意它同时也会命中含 "1000M" 的字符串，
+  # 与主产品的正则存在重叠 —— 排序靠上面的 priority: 10 保证，不靠正则长度。
+  filename: '^FY3[CDEFGH]_MERSI_.*_L1_.*GEO.*\.(HDF|hdf)$'
+  container: hdf5
+
+evidence:
+  document: "D:\\desktop_dp\\temp\\nsmc-doc\\md\\数据格式说明\\FY-3D数据格式说明\\FY-3D_L1_Data_Instruction_MERSI-II_1KM_GEO.md"
+  document_lines:
+    - "L66-67 SDS1 Latitude / SDS2 Longitude 逐像元"
+    - "L176-188 Latitude float32 [2000,2048] FillValue 65535.0 Slope 1.0 units degree valid_range [-90,90]"
+    - "L190-206 Longitude float32 [2000,2048] FillValue 65535.0 units degree valid_range [-180,180]"
+    - "L207-220 SensorAzimuth int16 Slope 0.01 FillValue -32767 valid_range [0,36000]"
+    - "L221-232 SensorZenith int16 Slope 0.01 valid_range 表写 [0,4095]，Description 写 [0,18000]（矛盾）"
+    - "L233-246 SolarAzimuth int16 Slope 0.01 valid_range [0,36000]"
+    - "L247-264 SolarZenith int16 Slope 1.0（与其他角度不同）valid_range [0,18000]"
+    - "L265-269 LandSeaMask char [2000,2048] FillValue 255"
+  samples:
+    - "Y:\\download-data\\**\\FY3[HCDEF]_MERSI_*_L1_*GEO*.HDF（PLAN.md §1.4：FY-3H GEOQK 2 个）"
+  tests: []
+  evidence_strength: "weak — 仅文档支撑，无真实文件回归"
+
+geolocation:
+  method: latlon_grid
+  lat:
+    - /Geolocation/Latitude
+    - Latitude
+    - /GEO/Latitude
+  lon:
+    - /Geolocation/Longitude
+    - Longitude
+    - /GEO/Longitude
+  step: 1
+  notes:
+    - 本产品是**逐像元**经纬度（step=1），不是 MERSI 主产品的 20 像元粗网格
+    - 直接作为 geolocation 使用，无需插值
+
+fields:
+  # 说明：路径一律写**无通配**的候选列表。之前用 "*Latitude*" 这种通配会经
+  # loader.resolve_path 的 basename 回退匹配到任意含 Latitude 的数据集（可能命中
+  # /Geolocation_Fields/Latitude），容易错取；显式列候选更安全。
+  - name: Latitude
+    path:
+      - /Geolocation/Latitude
+      - /Geolocation Fields/Latitude
+      - /GEO/Latitude
+      - Latitude
+    kind: dn
+    unit: degree
+    label: 逐像元纬度
+    dn:
+      valid_range: [-90, 90]
+      fill: 65535.0
+    calib:
+      method: identity
+    notes:
+      - float32，Slope=1/Intercept=0，DN 即纬度（度）
+      - 基于 WGS84 + DEM 地形
+
+  - name: Longitude
+    path:
+      - /Geolocation/Longitude
+      - /Geolocation Fields/Longitude
+      - /GEO/Longitude
+      - Longitude
+    kind: dn
+    unit: degree
+    label: 逐像元经度
+    dn:
+      valid_range: [-180, 180]
+      fill: 65535.0
+    calib:
+      method: identity
+    notes:
+      - float32，Slope=1/Intercept=0，DN 即经度（度）
+
+  - name: SensorAzimuth
+    path:
+      - /Geolocation/SensorAzimuth
+      - /Geolocation Fields/SensorAzimuth
+      - SensorAzimuth
+    kind: dn
+    unit: degree
+    label: 仪器方位角（×0.01）
+    dn:
+      valid_range: [0, 36000]
+      fill: -32767
+    calib:
+      method: linear
+      scale: 0.01
+      offset: 0.0
+    notes:
+      - int16 存放大 100 倍的角度；Slope=0.01 还原成度
+
+  - name: SensorZenith
+    path:
+      - /Geolocation/SensorZenith
+      - /Geolocation Fields/SensorZenith
+      - SensorZenith
+    kind: dn
+    unit: degree
+    label: 仪器天顶角（×0.01）
+    dn:
+      # 文档 valid_range 写 [0,4095]，但 Description 写 [0,18000]，取宽的
+      valid_range: [0, 18000]
+      fill: -32767
+    calib:
+      method: linear
+      scale: 0.01
+      offset: 0.0
+    notes:
+      - "**文档矛盾**：valid_range 表项写 [0,4095]，Description 写 [0,18000]；定义取 [0,18000]（0~180.00 度），见 pending_verification。"
+
+  - name: SolarAzimuth
+    path:
+      - /Geolocation/SolarAzimuth
+      - /Geolocation Fields/SolarAzimuth
+      - SolarAzimuth
+    kind: dn
+    unit: degree
+    label: 太阳方位角（×0.01）
+    dn:
+      valid_range: [0, 36000]
+      fill: -32767
+    calib:
+      method: linear
+      scale: 0.01
+      offset: 0.0
+
+  - name: SolarZenith
+    path:
+      - /Geolocation/SolarZenith
+      - /Geolocation Fields/SolarZenith
+      - SolarZenith
+    kind: dn
+    unit: degree
+    label: 太阳天顶角
+    dn:
+      valid_range: [0, 18000]
+      fill: -32767
+    calib:
+      # 注意：SolarZenith 的 Slope 文档写 1.0，而不是其他角度的 0.01
+      method: identity
+    notes:
+      - "**与其他角度不同**：文档 L257 写 SolarZenith 的 Slope=1.0（不是 0.01），但 valid_range 仍是 [0,18000]。若 Slope 真是 1.0，则 DN 直接是 0.01 度的整数倍，与 SensorZenith 的 ×0.01 口径不一致，属文档可疑点。"
+
+  - name: LandSeaMask
+    path:
+      - /Geolocation/LandSeaMask
+      - /Geolocation Fields/LandSeaMask
+      - LandSeaMask
+    kind: flag
+    unit: '1'
+    label: 海陆掩码
+    dn:
+      valid_range: [0, 7]
+      fill: 255
+    calib:
+      method: flag
+    notes:
+      - "文档 L266-L280：char [2000,2048]，FillValue=255，valid_range [0,7]"
+      - "0=浅海（离岸<5km 或水深<50m）；1=陆地；2=海岸线与湖泊"
+
+  - name: DEM
+    path:
+      - /Geolocation/DEM
+      - /Geolocation Fields/DEM
+      - DEM
+    kind: dn
+    unit: meter
+    label: 数字海拔高程
+    dn:
+      valid_range: [-400, 10000]
+      fill: -32767
+    calib:
+      method: identity
+    notes:
+      - "文档 L281-L294：int16 [2000,2048]，Slope=1.0，valid_range [-400,10000] 米"
+
+  - name: LandCover
+    path:
+      - /Geolocation/LandCover
+      - /Geolocation Fields/LandCover
+      - LandCover
+    kind: flag
+    unit: '1'
+    label: 陆地覆盖类型
+    dn:
+      valid_range: [0, 254]
+      fill: 255
+    calib:
+      method: flag
+    notes:
+      - "文档 L295-L330：char [2000,2048]，valid_range [0,254]，254=未分类，255=填充"
+      - "IGBP 分类：0 水体 / 1-5 各类森林 / 6-7 灌丛 / 8-9 稀树草原 / 10 草地 / 11 湿地 / 12 农田 / 13 城市 / 14 农田自然植被镶嵌 / 15 冰雪 / 16 裸地 / 17 内陆水体（MODIS 一致性重编码为 0）"
+
+  - name: Day_Count
+    path:
+      - /Geolocation/Day_Count
+      - /Geolocation Fields/Day_Count
+      - Day_Count
+    kind: table
+    unit: day
+    required: false
+    notes:
+      - "文档 L331-L344：int32 [200]，FillValue=65535，valid_range [6100,13200]"
+      - "从 2000-01-01 12:00 起算的天数（J2000.0），每扫描行一个值"
+
+  - name: Millisecond_Count
+    path:
+      - /Geolocation/Millisecond_Count
+      - /Geolocation Fields/Millisecond_Count
+      - Millisecond_Count
+    kind: table
+    unit: ms
+    required: false
+    notes:
+      - "文档 L345-L351：int32 [200]，FillValue=999999999，每扫描行一个毫秒计数"
+
+display:
+  primary: Latitude
+  cmap: terrain
+  stretch: [2, 98]
+
+pending_verification:
+  - "本产品定义**完全没有真实文件回归**：所有字段值（形状、FillValue、Slope）均来自格式说明文档，尚未对真实 GEO 文件逐字段断言。这是 9 个产品里证据最弱的一个，必须优先补样本测试。"
+  - "SolarZenith 的 Slope 文档写 1.0，而 SensorAzimuth/SensorZenith/SolarAzimuth 都是 0.01。若 SolarZenith 真的 Slope=1.0，则它的 DN 与 valid_range [0,18000] 的量纲就与其他角度不一致，需要真实文件读属性确认。"
+  - "SensorZenith 的 valid_range 文档表项 [0,4095] 与 Description [0,18000] 矛盾，定义暂取 [0,18000]。"
+  - "真实数据集的 HDF5 分组名不确定：本定义按 /Geolocation/ 、/Geolocation Fields/ 与裸节点三种写法给了候选路径，需用真实文件确认。"
+  - "文档 L194 把 Longitude 的中文描述也写成「逐像元纬度」（复制粘贴错误），英文 long_name 是 Longitude，以英文为准。"
+  - "LandCover 的 IGBP 枚举来自文档 L306-L330，但文档把 17 号类「内陆水体」注明重编码为 0，实际文件里是否已重编码需核对。"
+
+notes:
+  - "与 FY3_MERSI_L1_1000M.yml 是两个不同产品：那个是通道数据（含每 5 像元抽点经纬度），这个是逐像元定位/几何辅助产品。"
+  - "文件名里带 GEO 的走本定义，不带 GEO 的走主产品定义。"

@@ -1,5 +1,16 @@
 """主窗口：左边数据源、中间画布、右边属性，底部状态栏。
 
+四屏结构
+--------
+1. **主界面**（本文件）：数据源树 → 画布 → 属性/变量/显示/辅助
+2. **分析工作台** ``workspace.AnalysisWorkspace``：2×2 四视口联动 + LUT + 统计
+3. **解码工作台** ``decodebench.DecodeBench``：输入队列 + 七步流水线 + 字段表
+4. **制图工作台** ``figurebench.FigureBench``：图层树 + 实时预览 + 导出
+
+后三屏放在 ``QStackedWidget`` 里，与主界面共用一个窗口，通过左侧
+「工作台」切换条 / 菜单 / 工具栏切换。这样既保持了单窗口体验，
+又避免四个独立 MainWindow 之间同步数据集的麻烦。
+
 所有耗时操作（打开文件、渲染）都走线程池，UI 不阻塞。
 """
 from __future__ import annotations
@@ -13,11 +24,18 @@ from .. import __version__
 from ..export import KINDS, ExportOptions, export
 from ..readers import open_file
 from ..render import Stretch
+from . import chartwidgets as cw
 from . import theme
 from .explorer import Explorer
 from .imageview import ImageCanvas
 from .inspector import Inspector
 from .workers import Worker, render_rgb, render_variable
+
+# 工作台索引（与 _build_screens 里的添加顺序一致）
+SCREEN_MAIN = 0
+SCREEN_ANALYSIS = 1
+SCREEN_DECODE = 2
+SCREEN_FIGURE = 3
 
 
 class MainWindow(QtWidgets.QMainWindow):
@@ -44,6 +62,7 @@ class MainWindow(QtWidgets.QMainWindow):
         self.canvas.pixelHovered.connect(self._on_pixel)
         self.canvas.zoomChanged.connect(self._on_zoom)
         self.canvas.rectSelected.connect(self._on_rect)
+        self._load_last_source()
 
     # ================= 构建 =================
     def _build_actions(self) -> None:
@@ -81,6 +100,33 @@ class MainWindow(QtWidgets.QMainWindow):
         self.act_science.setShortcut("Ctrl+Shift+E")
         self.act_science.triggered.connect(self.science_figure_dialog)
 
+        self.act_analysis = QtGui.QAction("分析工作台", self)
+        self.act_analysis.setShortcut("Ctrl+2")
+        self.act_analysis.triggered.connect(self.open_analysis_bench)
+
+        self.act_decode = QtGui.QAction("解码工作台", self)
+        self.act_decode.setShortcut("Ctrl+3")
+        self.act_decode.triggered.connect(self.open_decode_bench)
+
+        self.act_figure = QtGui.QAction("制图工作台", self)
+        self.act_figure.setShortcut("Ctrl+4")
+        self.act_figure.triggered.connect(self.open_figure_bench)
+
+        self.act_main_screen = QtGui.QAction("主界面", self)
+        self.act_main_screen.setShortcut("Ctrl+1")
+        self.act_main_screen.triggered.connect(lambda: self.goto_screen(SCREEN_MAIN))
+
+        self.act_coast = QtGui.QAction("海岸线叠加", self)
+        self.act_coast.setCheckable(True)
+        self.act_coast.setChecked(True)
+        self.act_coast.triggered.connect(lambda on: self.toggle_overlay("coast", on))
+
+        self.act_graticule = QtGui.QAction("经纬网叠加", self)
+        self.act_graticule.setCheckable(True)
+        self.act_graticule.setChecked(True)
+        self.act_graticule.triggered.connect(
+            lambda on: self.toggle_overlay("grid", on))
+
         self.act_quit = QtGui.QAction("退出", self)
         self.act_quit.setShortcut("Ctrl+Q")
         self.act_quit.triggered.connect(self.close)
@@ -95,8 +141,37 @@ class MainWindow(QtWidgets.QMainWindow):
 
         self.explorer.fileActivated.connect(self.load_file)
 
+        # ---- 左侧：工作台切换条 + 三层数据树 ----
+        self.datatree = None
+        left = QtWidgets.QWidget()
+        ll = QtWidgets.QVBoxLayout(left)
+        ll.setContentsMargins(0, 0, 0, 0)
+        ll.setSpacing(0)
+
+        self._nav = self._build_nav()
+        ll.addWidget(self._nav)
+
+        # 数据源：新的三层数据树（目录 → 卫星/仪器 → 文件）。
+        # 旧的 explorer 保留为「按容器类型」视角的下方折叠区，
+        # 既保证既有测试对 win.explorer 的断言继续成立，也给用户两种看法。
+        try:
+            from .datatree import DataTree
+
+            self.datatree = DataTree()
+            self.datatree.fileActivated.connect(self.load_file)
+            ll.addWidget(self.datatree, 3)
+            self.explorer.setMaximumHeight(150)
+            ll.addWidget(self.explorer, 1)
+        except Exception:                       # noqa: BLE001
+            self.datatree = None
+            ll.addWidget(self.explorer, 1)
+
+        # ---- 中间：四屏堆叠 ----
+        self.screen_stack = QtWidgets.QStackedWidget()
+        self._build_screens()
+
         dock_left = QtWidgets.QDockWidget("数据源", self)
-        dock_left.setWidget(self.explorer)
+        dock_left.setWidget(left)
         dock_left.setMinimumWidth(320)
         dock_left.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable
                               | QtWidgets.QDockWidget.DockWidgetFloatable)
@@ -107,9 +182,11 @@ class MainWindow(QtWidgets.QMainWindow):
         dock_right.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable
                                | QtWidgets.QDockWidget.DockWidgetFloatable)
 
-        self.setCentralWidget(self.canvas)
+        self.setCentralWidget(self.screen_stack)
         self.addDockWidget(QtCore.Qt.LeftDockWidgetArea, dock_left)
         self.addDockWidget(QtCore.Qt.RightDockWidgetArea, dock_right)
+        self._dock_left = dock_left
+        self._dock_right = dock_right
 
         self.inspector.variableSelected.connect(self.display_variable)
         self.inspector.displayChanged.connect(self._on_display_changed)
@@ -117,6 +194,107 @@ class MainWindow(QtWidgets.QMainWindow):
 
         # 初始欢迎页
         self._show_placeholder()
+
+    def _build_nav(self) -> QtWidgets.QWidget:
+        """工作台切换条：主界面 / 分析 / 解码 / 制图。"""
+        bar = QtWidgets.QWidget()
+        bar.setFixedHeight(32)
+        bar.setStyleSheet(f"background:#101319;border-bottom:1px solid {theme.LINE};")
+        lay = QtWidgets.QHBoxLayout(bar)
+        lay.setContentsMargins(4, 2, 4, 2)
+        lay.setSpacing(2)
+        self._nav_buttons: list[QtWidgets.QToolButton] = []
+        for i, (label, tip) in enumerate((
+                ("主界面", "01 主界面：数据源 / 画布 / 属性"),
+                ("分析", "02 分析工作台：2×2 四视口 / LUT / 统计 / 剖面"),
+                ("解码", "03 解码工作台：输入队列 / 七步流水线 / 字段表"),
+                ("制图", "04 制图工作台：图层 / 预览 / 导出"))):
+            btn = QtWidgets.QToolButton()
+            btn.setText(label)
+            btn.setToolTip(tip)
+            btn.setCheckable(True)
+            btn.setChecked(i == 0)
+            btn.setCursor(QtCore.Qt.PointingHandCursor)
+            btn.setStyleSheet(
+                "QToolButton{font-size:11px;padding:3px 10px;border-radius:5px;"
+                "border:1px solid transparent;color:#8b95a5;}"
+                "QToolButton:hover{background:#1c222c;color:#dfe5ee;}"
+                "QToolButton:checked{background:#10333d;border-color:#1d5f70;"
+                "color:#9fe9f5;font-weight:600;}")
+            btn.clicked.connect(lambda _c=False, idx=i: self.goto_screen(idx))
+            lay.addWidget(btn)
+            self._nav_buttons.append(btn)
+        lay.addStretch(1)
+        return bar
+
+    def _build_screens(self) -> None:
+        """构建四屏并加入 stack。
+
+        后三屏延迟导入：它们引用了 chartwidgets，而 chartwidgets 又依赖
+        matplotlib / scipy（海岸线 KDTree）。放在函数里导入可以让
+        「只想用主界面」的场景少加载一堆模块，也避免循环导入。
+        """
+        # 0. 主界面
+        self.screen_main = QtWidgets.QWidget()
+        ml = QtWidgets.QVBoxLayout(self.screen_main)
+        ml.setContentsMargins(0, 0, 0, 0)
+        ml.setSpacing(0)
+        ml.addWidget(self.canvas)
+        self.screen_stack.addWidget(self.screen_main)
+
+        # 1. 分析工作台
+        try:
+            from .workspace import AnalysisWorkspace
+
+            self.workspace = AnalysisWorkspace()
+        except Exception as exc:                # noqa: BLE001
+            self.workspace = self._error_screen("分析工作台", exc)
+        self.screen_stack.addWidget(self.workspace)
+
+        # 2. 解码工作台
+        try:
+            from .decodebench import DecodeBench
+
+            self.decodebench = DecodeBench()
+        except Exception as exc:                # noqa: BLE001
+            self.decodebench = self._error_screen("解码工作台", exc)
+        self.screen_stack.addWidget(self.decodebench)
+
+        # 3. 制图工作台
+        try:
+            from .figurebench import FigureBench
+
+            self.figurebench = FigureBench()
+        except Exception as exc:                # noqa: BLE001
+            self.figurebench = self._error_screen("制图工作台", exc)
+        self.screen_stack.addWidget(self.figurebench)
+
+    @staticmethod
+    def _error_screen(name: str, exc: Exception) -> QtWidgets.QWidget:
+        """某一屏构建失败时给出可见提示，而不是让整个程序起不来。"""
+        w = QtWidgets.QWidget()
+        lay = QtWidgets.QVBoxLayout(w)
+        lbl = QtWidgets.QLabel(f"{name} 初始化失败\n\n{type(exc).__name__}: {exc}")
+        lbl.setAlignment(QtCore.Qt.AlignCenter)
+        lbl.setWordWrap(True)
+        lbl.setStyleSheet("color:#f87171;font-size:12px;")
+        lay.addWidget(lbl)
+        return w
+
+    def goto_screen(self, index: int) -> None:
+        """切换工作台，并把当前数据集同步给对应屏。"""
+        if not (0 <= index < self.screen_stack.count()):
+            return
+        self.screen_stack.setCurrentIndex(index)
+        for i, btn in enumerate(self._nav_buttons):
+            btn.setChecked(i == index)
+        # 主界面显示影像画布，工作台自己有画布，右栏属性面板对后三屏意义不大
+        self._dock_right.setVisible(index == SCREEN_MAIN)
+        if index == SCREEN_ANALYSIS and self._ds is not None:
+            self.workspace.set_dataset(self._ds)
+        elif index == SCREEN_FIGURE and self._ds is not None:
+            self.figurebench.set_dataset(self._ds, self._selection)
+        self._current_screen = index
 
     def _build_menu(self) -> None:
         mb = self.menuBar()
@@ -135,7 +313,16 @@ class MainWindow(QtWidgets.QMainWindow):
         m_view.addAction(self.act_zoom_in)
         m_view.addAction(self.act_zoom_out)
         m_view.addSeparator()
+        m_view.addAction(self.act_coast)
+        m_view.addAction(self.act_graticule)
+        m_view.addSeparator()
         m_view.addAction(self.act_select)
+
+        m_bench = mb.addMenu("工作台")
+        m_bench.addAction(self.act_main_screen)
+        m_bench.addAction(self.act_analysis)
+        m_bench.addAction(self.act_decode)
+        m_bench.addAction(self.act_figure)
 
         m_help = mb.addMenu("帮助")
         m_help.addAction(self.act_about)
@@ -153,6 +340,10 @@ class MainWindow(QtWidgets.QMainWindow):
         tb.addAction(self.act_zoom_out)
         tb.addSeparator()
         tb.addAction(self.act_select)
+        tb.addSeparator()
+        tb.addAction(self.act_analysis)
+        tb.addAction(self.act_decode)
+        tb.addAction(self.act_figure)
         tb.addSeparator()
         tb.addAction(self.act_science)
         tb.addAction(self.act_export)
@@ -174,6 +365,27 @@ class MainWindow(QtWidgets.QMainWindow):
         img = np.zeros((600, 800, 3), dtype=np.uint8)
         img[:, :] = (12, 14, 18)
         self.canvas.set_array(img)
+
+    def _load_last_source(self) -> None:
+        """启动时尝试恢复上次的数据源目录（存在才用，不存在就留空）。
+
+        刻意不弹对话框：用户没要求就别打扰。目录来自
+        ``QSettings``，默认给本项目常见的数据落盘位置。
+        """
+        try:
+            settings = QtCore.QSettings("FY-Sat", "Studio")
+            last = settings.value("last_source", "", type=str)
+        except Exception:                       # noqa: BLE001
+            last = ""
+        candidates = [last] if last else []
+        candidates += [
+            r"Y:\download-data",
+            r"E:\CODEX-NOworkspaces\fy2_decoder",
+        ]
+        for c in candidates:
+            if c and Path(c).exists() and self.datatree is not None:
+                self.datatree.add_source(Path(c))
+                break
 
     # ---------- 后台任务 ----------
     def _submit(self, worker: Worker, on_ok, on_fail=None) -> None:
@@ -249,6 +461,17 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.lbl_range.setText(ds.geolocation.kind)
 
+        # 记住这次的数据源目录，下次启动直接恢复
+        try:
+            QtCore.QSettings("FY-Sat", "Studio").setValue(
+                "last_source",
+                str(ds.source.parent if ds.source else Path(path).parent))
+        except Exception:                       # noqa: BLE001
+            pass
+
+        # 画布的叠加层（海岸线/经纬网）与四角角标
+        self._ensure_overlays()
+
         # 自动显示第一个可成像变量
         from .varcatalog import classify_dataset
 
@@ -257,6 +480,33 @@ class MainWindow(QtWidgets.QMainWindow):
             if c.is_image:
                 self.display_variable(n, 0)
                 break
+
+    def _ensure_overlays(self) -> None:
+        """给主界面画布挂上海岸线/经纬网叠加层与四角信息角标。"""
+        if getattr(self, "_overlay", None) is None:
+            self._overlay = cw.CanvasOverlay(self.canvas)
+            self._badges = cw.CanvasBadges(self.canvas)
+        if self._ds is None:
+            return
+        arr = self.canvas.array()
+        shape = tuple(arr.shape[:2]) if arr is not None else (2000, 2048)
+        self._overlay.set_dataset(self._ds, shape)
+        self._overlay.set_show_coast(True)
+        self._overlay.set_show_grid(True)
+        self._overlay.raise_()
+        self._badges.set_badges(
+            tl=f"{self._ds.platform} · {self._ds.instrument} · {self._ds.level}",
+            tr="", bl="", br=self._ds.geolocation.kind)
+        self._badges.raise_()
+
+    def toggle_overlay(self, which: str, on: bool) -> None:
+        """切换海岸线 / 经纬网叠加（菜单与工具栏共用）。"""
+        if getattr(self, "_overlay", None) is None:
+            return
+        if which == "coast":
+            self._overlay.set_show_coast(on)
+        else:
+            self._overlay.set_show_grid(on)
 
     # ================= 显示 =================
     def display_variable(self, name: str, band: int = 0) -> None:
@@ -319,7 +569,16 @@ class MainWindow(QtWidgets.QMainWindow):
     def _on_rect(self, rect: QtCore.QRect) -> None:
         self._selection = (rect.top(), rect.bottom() + 1, rect.left(), rect.right() + 1)
         self.lbl_status.setText(
-            f"已框选 {rect.width()} × {rect.height()} 像素 —— 可按 Ctrl+Shift+E 导出科学制图")
+            f"已框选 {rect.width()} × {rect.height()} 像素 —— "
+            f"Ctrl+Shift+E 导出科学制图，或到「制图」工作台用此范围出图")
+        # 有选区就把制图工作台的范围同步过去
+        if self._ds is not None and hasattr(self, "figurebench"):
+            try:
+                self.figurebench.lbl_region.setText(
+                    f"像素 ({self._selection[0]},{self._selection[1]}) × "
+                    f"({self._selection[2]},{self._selection[3]})")
+            except Exception:                   # noqa: BLE001
+                pass
 
     def science_figure_dialog(self) -> None:
         """打开科学制图对话框（带当前框选区域）。"""
@@ -332,6 +591,25 @@ class MainWindow(QtWidgets.QMainWindow):
             self, ds=self._ds, region_px=self._selection,
             current_var=self._current_var, current_band=self._current_band)
         dlg.exec()
+
+    def open_figure_bench(self) -> None:
+        """把当前产品与选区带到制图工作台（常驻页面版）。"""
+        if self._ds is None:
+            QtWidgets.QMessageBox.information(self, "提示", "请先打开产品")
+            return
+        self.goto_screen(SCREEN_FIGURE)
+
+    def open_analysis_bench(self) -> None:
+        if self._ds is None:
+            QtWidgets.QMessageBox.information(self, "提示", "请先打开产品")
+            return
+        self.goto_screen(SCREEN_ANALYSIS)
+
+    def open_decode_bench(self) -> None:
+        """把当前文件的所在目录灌进解码队列。"""
+        self.goto_screen(SCREEN_DECODE)
+        if self._ds is not None and getattr(self._ds, "source", None):
+            self.decodebench.add_files([str(self._ds.source)])
 
     def _toggle_select(self, checked: bool) -> None:
         self.canvas.set_select_mode(checked)

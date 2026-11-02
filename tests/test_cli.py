@@ -44,6 +44,39 @@ def test_subcommands_present():
         assert hasattr(ns, "func")
 
 
+def test_batch_subcommand_parses():
+    """batch 子命令的参数解析（不含实际运行）。"""
+    p = build_parser()
+    ns = p.parse_args(["batch", "some/dir", "--out", "out/dir"])
+    assert ns.directory == "some/dir"
+    assert ns.out == "out/dir"
+    assert ns.kind == "png_full"
+    assert ns.dry_run is False
+    assert ns.limit is None
+    assert callable(ns.func)
+
+
+def test_batch_subcommand_options():
+    p = build_parser()
+    ns = p.parse_args([
+        "batch", "d", "--out", "o", "--kind", "tiff",
+        "--limit", "3", "--max-bands", "2", "--dry-run", "--json", "--quiet",
+    ])
+    assert ns.kind == "tiff"
+    assert ns.limit == 3
+    assert ns.max_bands == 2
+    assert ns.dry_run is True and ns.json is True and ns.quiet is True
+
+
+def test_products_and_product_subcommands_parse():
+    p = build_parser()
+    ns = p.parse_args(["products"])
+    assert ns.json is False
+    ns2 = p.parse_args(["product", "FY3_MERSI_L1_1000M", "--json"])
+    assert ns2.target == "FY3_MERSI_L1_1000M"
+    assert ns2.json is True
+
+
 def test_export_kind_defaults():
     p = build_parser()
     ns = p.parse_args(["export", "x.hdf", "v", "--out", "o.png"])

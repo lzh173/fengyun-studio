@@ -172,6 +172,137 @@ def cmd_gui(args) -> int:
     return gui_main(argv)
 
 
+# ---------------------------------------------------------------- 产品定义 / 批量
+
+def cmd_products(args) -> int:
+    """列出已加载的产品定义。"""
+    from .products import ProductRegistry
+
+    reg = ProductRegistry.from_dir(args.dir)
+    for err in reg.errors:
+        print(f"[定义加载失败] {err}", file=sys.stderr)
+    if args.json:
+        print(json.dumps(reg.to_summary(), ensure_ascii=False, indent=2, default=str))
+        return 0
+    print(f"共 {len(reg)} 个产品定义\n")
+    print(f"{'产品':32s} {'平台/仪器':22s} {'级别':5s} {'字段':>4s} {'待核对':>6s} 验证")
+    for d in reg:
+        pi = f"{d.platform or '?'}/{d.instrument or '?'}"
+        print(f"{d.product:32s} {pi:22s} {d.level or '?':5s} "
+              f"{len(d.fields):>4d} {len(d.pending_verification):>6d} "
+              f"{'✓' if d.verified else '待补'}")
+    return 0
+
+
+def cmd_product(args) -> int:
+    """查看单个产品定义详情（或按文件名反查）。"""
+    from pathlib import Path as _P
+
+    from .detect import sniff
+    from .products import ProductRegistry
+
+    reg = ProductRegistry.from_dir(args.dir)
+    pdef = None
+    if args.target and _P(args.target).exists():
+        pdef = reg.match(args.target, container=sniff(args.target))
+        if pdef is None:
+            pdef = reg.expected_for(args.target)
+    if pdef is None and args.target:
+        try:
+            pdef = reg.get(args.target)
+        except KeyError:
+            print(f"找不到产品定义 {args.target}；已加载 {reg.names()}", file=sys.stderr)
+            return 2
+    if pdef is None:
+        print("请指定产品名或数据文件路径", file=sys.stderr)
+        return 2
+
+    if args.json:
+        print(json.dumps({
+            **pdef.to_summary(),
+            "container": pdef.container,
+            "filename_regex": pdef.match.filename,
+            "attrs": pdef.match.attrs,
+            "fields": [
+                {"name": f.name, "paths": f.paths, "kind": f.kind, "unit": f.unit,
+                 "bands": f.bands, "method": f.calib.get("method")}
+                for f in pdef.fields
+            ],
+            "geolocation": pdef.geolocation.method,
+            "evidence": pdef.evidence,
+            "pending_verification": pdef.pending_verification,
+            "notes": pdef.notes,
+        }, ensure_ascii=False, indent=2, default=str))
+        return 0
+
+    print(f"产品      {pdef.product}  {pdef.title}")
+    print(f"平台/仪器 {pdef.platform or '?'} / {pdef.instrument or '?'} / {pdef.level or '?'}")
+    print(f"容器      {pdef.container or '?'}    定义文件 {pdef.source_path.name if pdef.source_path else '?'}")
+    print(f"匹配正则  {pdef.match.filename}")
+    print(f"定位      {pdef.geolocation.method}" +
+          (f"  step={pdef.geolocation.step}" if pdef.geolocation.method == "latlon_grid" else ""))
+    print(f"验证状态  {'已通过真实样本' if pdef.verified else '未验证（见待核对）'}")
+    print(f"\n字段 {len(pdef.fields)} 个：")
+    for f in pdef.fields:
+        method = f.calib.get("method", "")
+        bands = f" {f.bands}" if f.bands else ""
+        print(f"  {f.name:28s} {f.kind:11s} {f.unit or '-':7s} {method:15s}{bands}")
+    if pdef.pending_verification:
+        print(f"\n待核对 {len(pdef.pending_verification)} 项：")
+        for i, item in enumerate(pdef.pending_verification, 1):
+            print(f"  {i}. {item}")
+    if pdef.notes:
+        print("\n备注：")
+        for item in pdef.notes:
+            print(f"  - {item}")
+    return 0
+
+
+def cmd_batch(args) -> int:
+    """批量解码一个目录。"""
+    from . import batch as batch_mod
+
+    out_dir = Path(args.out)
+    if not args.dry_run:
+        out_dir.mkdir(parents=True, exist_ok=True)
+    else:
+        out_dir.parent.mkdir(parents=True, exist_ok=True)
+
+    def _progress(done: int, total: int, path: Path) -> None:
+        if not args.quiet:
+            print(f"[{done}/{total}] {path.name}", file=sys.stderr)
+
+    try:
+        result = batch_mod.run(
+            args.directory,
+            out_dir=out_dir,
+            kind=args.kind,
+            limit=args.limit,
+            dry_run=args.dry_run,
+            max_bands=args.max_bands,
+            patterns=tuple(args.pattern) if args.pattern else batch_mod.DEFAULT_PATTERNS,
+            progress=_progress,
+        )
+    except (FileNotFoundError, NotADirectoryError, ValueError) as exc:
+        print(f"批量解码失败：{exc}", file=sys.stderr)
+        return 2
+
+    if args.json:
+        print(json.dumps({
+            **result.summary(),
+            "files": [f.to_dict() for f in result.files],
+        }, ensure_ascii=False, indent=2, default=str))
+    else:
+        for line in result.report_lines():
+            print(line)
+
+    # 全部失败才算命令失败；部分失败用退出码 1 提示
+    if result.n_total and result.n_ok == 0 and result.n_failed:
+        return 1
+    return 0
+
+
+
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser("fysat", description="风云卫星官方数据解码与制图工具")
     p.add_argument("--version", action="version", version=f"fysat {__version__}")
@@ -215,6 +346,32 @@ def build_parser() -> argparse.ArgumentParser:
     pg = sub.add_parser("gui", help="启动图形界面")
     pg.add_argument("file", nargs="?", help="启动后直接打开的产品文件")
     pg.set_defaults(func=cmd_gui)
+
+    # ---- 产品定义库 ----
+    pp = sub.add_parser("products", help="列出产品定义库")
+    pp.add_argument("--dir", default=None, help="产品定义目录（默认内置 products/）")
+    pp.add_argument("--json", action="store_true")
+    pp.set_defaults(func=cmd_products)
+
+    pd = sub.add_parser("product", help="查看产品定义详情（可按文件反查）")
+    pd.add_argument("target", help="产品名（如 FY3_MERSI_L1_1000M）或数据文件路径")
+    pd.add_argument("--dir", default=None)
+    pd.add_argument("--json", action="store_true")
+    pd.set_defaults(func=cmd_product)
+
+    # ---- 批量解码 ----
+    pb = sub.add_parser("batch", help="批量解码一个目录")
+    pb.add_argument("directory", help="输入目录")
+    pb.add_argument("--out", required=True, help="输出目录")
+    pb.add_argument("--kind", choices=list(KINDS), default="png_full")
+    pb.add_argument("--limit", type=int, default=None, help="只处理前 N 个文件")
+    pb.add_argument("--max-bands", type=int, default=None, help="每个字段最多导出几个通道")
+    pb.add_argument("--pattern", action="append", default=None,
+                    help="文件名模式，可重复（默认 *.HDF/*.hdf/*.NC/*.DAT 等）")
+    pb.add_argument("--dry-run", action="store_true", help="只扫描+匹配，不写文件")
+    pb.add_argument("--json", action="store_true")
+    pb.add_argument("--quiet", action="store_true", help="不打印进度")
+    pb.set_defaults(func=cmd_batch)
     return p
 
 

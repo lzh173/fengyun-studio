@@ -1,0 +1,170 @@
+# FY-4B AGRI L1 全圆盘 1000M（只有 3 个可见光通道，没有红外！）
+#
+# 证据链
+# ------
+# 文档：D:\desktop_dp\temp\nsmc-doc\md\数据格式说明\FY-4B数据格式说明\
+#       FY4B_AGRI_DISK_L1_1KM_HDF_V1.0.md
+#   - L71  文件名约定 FY4B-_AGRI--_N_DISK_1235E_L1-_FDI-_MULT_NOM_YYYYMMDDHHMMSS_
+#          YYYYMMDDHHMMSS_1000M_V0001.HDF
+#   - L96-L101  Data 分组只有 NOMChannel01/02/03（0.47 / 0.65 / 0.825 µm）
+#   - L104-L106 Calibration 分组 CALChannel01/02/03
+#   - L107  ESUN
+#   - L108  NOMObs/NOMObsTime [10992,2] 逐行起止观测时间，格式 YYYYMMDDHHmmssfff
+#   - L109-L111 QA/L1QualityFlag、NavQualityFlag、CalQualityFlag
+#   - L112-L114 VerSoft/*
+#   - L203  NOMChannel01 维数 [10992, 10992]
+#   - L211-215 各通道 valid_range 0,4095 / FillValue 65535 / units "DN"
+#   - L313  CALChannel01 valid_range 0,1.5（反射率小数，不是百分数）
+#   - L686  地球内无效像素 65534，地球外 65535
+#
+# 真实样本
+#   Y:\download-data\FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_
+#       20261030154500_20261030155959_1000M_V0001.HDF（11 个）
+#
+# 已通过的真实样本回归（tests/test_fy4b_family.py）
+#   test_1000m_has_only_visible   Data/NOMChannel* 恰好 3 个，且 LUT 最大值 < 2.0
+#
+# 重要：这是最容易踩坑的档位
+#   1000M 只有 3 个可见光通道，**没有任何红外通道**。
+#   想做亮温/火点/云顶温度，必须用 4000M 或 2000M 档位。
+product: FY4B_AGRI_L1_DISK_1000M
+title: FY-4B AGRI L1 全圆盘 1000M（仅 3 个可见光通道）
+platform: FY-4B
+instrument: AGRI
+level: L1
+container: hdf5
+verified: true
+
+match:
+  filename: '^FY4B.*_1000M_V\d+\.HDF$'
+  container: hdf5
+
+evidence:
+  document: "D:\\desktop_dp\\temp\\nsmc-doc\\md\\数据格式说明\\FY-4B数据格式说明\\FY4B_AGRI_DISK_L1_1KM_HDF_V1.0.md"
+  document_lines:
+    - "L71 文件名约定（含 DISK / 星下点经度 1235E / 1000M / V0001）"
+    - "L96-101 Data 分组只有 NOMChannel01/02/03（0.47/0.65/0.825 µm）"
+    - "L104-106 Calibration CALChannel01/02/03"
+    - "L108 NOMObs/NOMObsTime [10992,2] 逐行起止观测时间"
+    - "L109-111 QA/L1QualityFlag、NavQualityFlag、CalQualityFlag"
+    - "L203 NOMChannel01 维数 [10992, 10992]"
+    - "L313 CALChannel01 valid_range 0,1.5（反射率小数）"
+    - "L686 地球内无效 65534，地球外 65535"
+  samples:
+    - "Y:\\download-data\\FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_20261030154500_20261030155959_1000M_V0001.HDF"
+  tests:
+    - "tests/test_fy4b_family.py::test_1000m_has_only_visible"
+
+geolocation:
+  method: nominal
+  notes:
+    - 全圆盘标称投影 (10992, 10992)，像元 1000 m
+    - sub_lon 取 NOMCenterLon（实测 105.0），sat_height = 35786000 m
+    - 全盘 1.2 亿像元，经纬度反算约 21 s / 峰值内存 1.3 GB（见 geo.nominal_geos_lonlat）
+
+fields:
+  - name: NOMChannel01
+    path: /Data/NOMChannel01
+    kind: reflective
+    unit: '%'
+    label: 0.47 µm（蓝）
+    channel: '01'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel01
+      lut_kind: nearest
+      # 文档 L314/L344/L370：CALChannelXX 的 FillValue = -65535.0
+      lut_fill: -65535.0
+    notes:
+      - 单幅 10992×10992 uint16 = 241 MB，按需加载，不要整盘读入两次
+
+  - name: NOMChannel02
+    path: /Data/NOMChannel02
+    kind: reflective
+    unit: '%'
+    label: 0.65 µm（红）
+    channel: '02'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel02
+      lut_kind: nearest
+      # 文档 L314/L344/L370：CALChannelXX 的 FillValue = -65535.0
+      lut_fill: -65535.0
+
+  - name: NOMChannel03
+    path: /Data/NOMChannel03
+    kind: reflective
+    unit: '%'
+    label: 0.825 µm（近红外）
+    channel: '03'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel03
+      lut_kind: nearest
+      # 文档 L314/L344/L370：CALChannelXX 的 FillValue = -65535.0
+      lut_fill: -65535.0
+
+  # ---------------- 辅助数据集 ----------------
+  - name: NOMObsTime
+    path: /NOMObs/NOMObsTime
+    kind: table
+    unit: '1'
+    required: false
+    notes:
+      - "[10992,2]，两列分别为观测起止时间，格式 YYYYMMDDHHmmssfff，无效值 9999"
+
+  - name: L1QualityFlag
+    path: /QA/L1QualityFlag
+    kind: flag
+    unit: '1'
+    required: false
+    calib:
+      method: flag
+    notes:
+      - 0=无填充（好）/ 1=部分填充（中）/ 2=全部填充（差）
+
+  - name: NavQualityFlag
+    path: /QA/NavQualityFlag
+    kind: flag
+    unit: '1'
+    required: false
+    calib:
+      method: flag
+    notes:
+      - 0=定位成功 / 1=定位失败
+
+  - name: CalQualityFlag
+    path: /QA/CalQualityFlag
+    kind: flag
+    unit: '1'
+    required: false
+    calib:
+      method: flag
+    notes:
+      - Bit0：反射波段定标源（0 正常 VOC/SD，1 替代或降级）
+      - Bit1：发射波段定标源（0 黑体正常，1 黑体异常）
+
+display:
+  primary: NOMChannel02
+  cmap: gray
+  stretch: [2, 98]
+
+pending_verification:
+  - "1000M 档位确认只有 3 个可见光通道（文档 L96-101 与 test_1000m_has_only_visible 双重确认）；但 1000M 是否另有 GEO 定位文件配套（FY4B_AGRI_DISK_L1_GEO_HDF_V1.0.md）未纳入本定义，逐像元经纬度目前靠 geo.py 标称投影反算。"
+  - "65534（地球内无效）已纳入掩膜（in_earth_invalid），但尚未统计实际像元数。"
+  - "NOMObsTime 的逐行观测时间尚未与标称投影的行号对齐（需按行号线性插值）。"
+
+notes:
+  - "1000M 的 3 个可见光通道可以做真彩色（R=02 红 / G=03 近红外 / B=01 蓝），但严格说缺绿通道，标准真彩色需要 0.55 µm，AGRI 没有这个通道，业务上常用 0.65/0.825/0.47 的「伪真彩色」。"

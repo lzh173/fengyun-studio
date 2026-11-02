@@ -1,0 +1,158 @@
+# FY-3H GNOSO L1 掩星大气产品（NetCDF-3 经典格式）
+#
+# 证据链
+# ------
+# 读取器实测（src/fysat/readers/nc3.py 模块文档，14 个样本一致）：
+#   维度     只有一个 time（每条掩星剖面一个时间维，实测 2000~4500 不等）
+#   变量     29 个，全部 1 维 (time)，float32 / float64
+#   变量属性  units / long_name / band_name / Description / valid_range /
+#             FillValue / Intercept(0.0) / Slope(1.0)  ← DN 即物理量
+#   全局属性  78 个：Satellite Name / Sensor Name / Sensor Identification Code /
+#             Dataset Name / Observing Beginning(Ending) Date+Time /
+#             Orbit Number / Number Of Scans / occL / occB / gnssName /
+#             Orbit Point Latitute+Longitude 等
+#   注意      "Orbit Point Latitute" 是文件里原样的拼写错误（Latitute）
+#
+# 真实样本
+#   Y:\download-data\**\FY3H_GNOSO_*.NC（14 个）
+#   优先样本 FY3H_GNOSO_ORBT_L1_20261019_0000_ANC31*.NC
+#
+# 已通过的真实样本回归（tests/test_nc3.py）
+#   test_sample_container           魔数 CDF\\x01，sniff → netcdf3
+#   test_sample_variables_contract  29 个变量，全部 (time,) 1 维，
+#                                   单位/填充值/有效范围**一个不缺**
+#   test_sample_global_attrs        Satellite Name=FY-3H、Sensor=GNOS-II、
+#                                   Dataset Name="GNOS-II L1 AE Data"、dataLevel=L1
+#   test_sample_values              time 0~240 s 单调递增；TPH 实测 -157~+107 km；
+#                                   xLeo/yLeo/zLeo < 7378 km；zGnss < 26564 km
+#   test_sample_geolocation         occ_lat=23.895、occ_lon=-167.052、gnssName=BDS
+#   test_sample_every_variable_loadable  全变量可读，无残留填充值
+#
+# 本产品是**廓线序列**（不是影像）
+#   每个变量是 (time,) 一维序列，无法直接当二维影像导出。
+#   batch 导出时会跳过（无法成图），这是设计预期，不是失败。
+product: FY3H_GNOSO_L1_AE
+title: FY-3H GNOSO（GNOS-II）L1 掩星大气廓线
+platform: FY-3H
+instrument: GNOSO
+level: L1
+container: netcdf3
+verified: true
+
+match:
+  filename: '^FY3[A-H]_GNOSO_.*\.(NC|nc)$'
+  container: netcdf3
+
+evidence:
+  document: "（无独立格式说明文档）以读取器实测为准"
+  document_lines:
+    - "src/fysat/readers/nc3.py 模块文档：维度/变量/属性/全局属性 78 个的实测清单"
+    - "SDS 等价物：29 个一维 (time,) 变量，属性含 units/long_name/valid_range/FillValue/Slope/Intercept"
+  implementation: "src/fysat/readers/nc3.py 模块文档：维度/变量/属性/全局属性 78 个的实测清单"
+  samples:
+    - "Y:\\download-data\\**\\FY3H_GNOSO_*.NC（14 个）"
+  tests:
+    - "tests/test_nc3.py::test_sample_container（CDF\\x01）"
+    - "tests/test_nc3.py::test_sample_variables_contract（29 变量全部 1 维，单位/填充/有效范围齐备）"
+    - "tests/test_nc3.py::test_sample_global_attrs（Satellite Name=FY-3H, Sensor=GNOS-II）"
+    - "tests/test_nc3.py::test_sample_values（TPH 实测 -157~+107 km；time 0~240 s 单调递增）"
+    - "tests/test_nc3.py::test_sample_geolocation（occ_lat=23.895, occ_lon=-167.052, gnssName=BDS）"
+
+geolocation:
+  method: nominal
+  notes:
+    - 单条掩星剖面：位置取自全局属性 occB/occL（实测 23.895 / -167.052）
+    - 切点轨迹需由 xLeo/yLeo/zLeo 与 xGnss/yGnss/zGnss 反算，尚未实现
+    - 也读 "Orbit Point Latitute"（文件里拼写错误，读取器两种拼写都认）
+
+fields:
+  # 说明：GNOSO 的变量属性 Slope=1 / Intercept=0，物理量即原值，故用 identity。
+  # 下面的变量名与单位均来自读取器实测（见 readers/nc3.py 与 tests/test_nc3.py）。
+  - name: time
+    path: time
+    kind: table
+    unit: s
+    required: false
+    notes:
+      - 掩星时间序列 0~240 s（valid_range），单调递增（tests 断言）
+
+  - name: TPH
+    path: TPH
+    kind: dn
+    unit: km
+    label: 切点高度
+    calib:
+      method: identity
+    notes:
+      - 实测 -157 ~ +107 km（对流层到平流层）
+
+  - name: xLeo
+    path: xLeo
+    kind: dn
+    unit: km
+    label: LEO 位置 X
+    calib:
+      method: identity
+    notes:
+      - 必须落在地球附近：|xLeo| < 7378 km（tests 断言）
+
+  - name: yLeo
+    path: yLeo
+    kind: dn
+    unit: km
+    label: LEO 位置 Y
+    calib:
+      method: identity
+
+  - name: zLeo
+    path: zLeo
+    kind: dn
+    unit: km
+    label: LEO 位置 Z
+    calib:
+      method: identity
+
+  - name: zGnss
+    path: zGnss
+    kind: dn
+    unit: km
+    label: GNSS 位置 Z
+    calib:
+      method: identity
+    notes:
+      - GNSS 轨道附近：|zGnss| < 26564 km（tests 断言）
+
+  - name: exL1
+    path: exL1
+    kind: dn
+    unit: '1'
+    label: 弯曲角（L1）
+    calib:
+      method: identity
+
+  - name: exLC_C1C2
+    path: exLC_C1C2
+    kind: dn
+    unit: '1'
+    label: L1/L2 组合弯曲角
+    calib:
+      method: identity
+    notes:
+      - 实测该变量整列是 netCDF 默认填充值 9.969e36，physical() 应全为 NaN
+        （tests/test_nc3.py::test_sample_values 断言）
+
+display:
+  primary: TPH
+  cmap: viridis
+  stretch: [2, 98]
+
+pending_verification:
+  - "29 个变量里只挑了 8 个代表性变量显式定义。其余 21 个（xGnss/yGnss/refractivity 等）尚未逐个核对语义与单位，需从变量属性 units/long_name 批量导入后再确认。"
+  - "TPH 的单位在文件属性里是 km，但「切点高度」通常以海拔或大地水准面为基准，基准面未在属性里说明，属待核对。"
+  - "掩星切点轨迹（逐点的 lat/lon）需要由 LEO 与 GNSS 位置矢量反算，本定义只给出事件中心点（occB/occL），不是逐点轨迹。"
+  - "全局属性里 Orbit Point Latitute 的拼写错误说明厂商工具链不一致，其他属性名也可能有变体，读取器已做双拼写兼容但未穷举。"
+
+notes:
+  - "这是本库唯一的 NetCDF-3 产品，容器类型由魔数 CDF\\x01 判定（detect.sniff）。"
+  - "廓线产品无法导出为影像：batch 会跳过并记入 skipped，属预期行为。"
+  - "变量数 29、全局属性 78 个，是判断文件是否完整的实测基线。"

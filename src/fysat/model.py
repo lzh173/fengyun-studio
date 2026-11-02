@@ -122,8 +122,18 @@ class SatDataset:
 
         import importlib
 
-        # reader 名 → 模块名；hdf5/netcdf4 共用同一实现
-        mod_name = {"netcdf4": "hdf5"}.get(self.reader, self.reader or "hdf5")
+        # reader 名 → 模块名。
+        # 注意 netcdf3 的模块叫 nc3（不是 netcdf3），
+        # 漏掉这条映射会回退到 hdf5，打开 CDF 文件时报
+        # "file signature not found"。
+        mod_name = {
+            "netcdf4": "hdf5",      # NetCDF-4 本质是 HDF5
+            "netcdf3": "nc3",
+            "hdf5": "hdf5",
+            "fy2_csv": "fy2_csv",
+            "oneb": "oneb",
+            "awx": "awx",
+        }.get(self.reader, self.reader or "hdf5")
         try:
             mod = importlib.import_module(f".readers.{mod_name}", package="fysat")
         except ImportError:

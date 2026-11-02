@@ -1,0 +1,198 @@
+# FY-2G FDI L1 全圆盘（HDF5 容器，扁平结构无分组）
+#
+# 证据链
+# ------
+# 文档：D:\desktop_dp\temp\nsmc-doc\md\数据格式说明\FY-2 Data Format\
+#       FY-2_HDF5.0_File_Format_Specification_Version_3.0_EN.md
+#   - Table 4.27（L90-114）NOM 科学数据集：
+#       CALIR1..CALIR4（1024 float）      定标表 IR1~IR4
+#       CALVIS     （64 float）           定标表 VIS
+#       NOMOBSTIME （2288 rows, 5 cols）  观测时间（MJD）
+#       NOMOBSTimeGridSpace（2288 rows, 1 col） 观测时间间隔
+#       NOMChannelIR1..IR4（2288×2288 uint16）
+#       NOMChannelVIS     （2288×2288 uint8）
+#       NOMSatelliteZenith / NOMSunZenith / NOMAzimuth / NOMSunGlintAngle（float，弧度）
+#       NOMCloudClassification（2288×2288 uint8）
+#   - L144  IR1-IR4 灰度索引 0~1023，无效区/太空填 65535
+#   - L146  VIS 灰度索引 0~64，无效区/太空填 255
+#   - L150  角度数据单位为弧度
+#   - L158-171 云分类取值定义（255=无效）
+#
+# 真实样本
+#   Y:\download-data\C202610181401129865\FY2G_FDI_ALL_NOM_20261018_1300.hdf
+#
+# 已通过的真实样本回归（tests/test_calib.py）
+#   test_fy2g_ir_lut_brightness_temperature
+#     CALChannelIR1 形状 (1,1024)，**单调不增**（计数值越大越冷，不要反转）
+#     DN=65535 像元数 1,547,601 → 全部 NaN
+#     亮温实测 173.93~304.59 K，中位 275~285 K
+#   test_fy2g_vis_lut_is_already_percent
+#     CALChannelVIS 形状 (64,)，lut[0]=0、max=118.3942（**已经是百分比，不要再 ×100**）
+#     无填充像元（本 granule），valid_range=(0,63)
+#
+# 关键差异：FY-2 的定标表语义与 FY-4 不同
+#   * FY-2 IR LUT 直接给亮温 K，且是**递减表**
+#   * FY-2 VIS LUT 直接给百分比反射率（0~118.39），FY-4 的 VIS LUT 给 0~1.14 小数
+#   * FY-2 的这个文件**没有全局属性**，平台/仪器/时间全在文件名里
+product: FY2G_FDI_L1_NOM
+title: FY-2G FDI L1 全圆盘标称投影
+platform: FY-2G
+instrument: VISSR
+level: L1
+container: hdf5
+verified: true
+
+match:
+  filename: '^FY2[A-H]_FDI_.*\.(hdf|HDF)$'
+  container: hdf5
+
+evidence:
+  document: "D:\\desktop_dp\\temp\\nsmc-doc\\md\\数据格式说明\\FY-2 Data Format\\FY-2_HDF5.0_File_Format_Specification_Version_3.0_EN.md"
+  document_lines:
+    - "L90-114 Table 4.27 NOM 科学数据集（CALIR1..4 / CALVIS / NOMChannelIR1..4 / NOMChannelVIS / 角度 / 云分类）"
+    - "L144 IR1-IR4 灰度索引 0~1023，无效区/太空填 65535"
+    - "L146 VIS 灰度索引 0~64，无效区/太空填 255"
+    - "L150 角度数据单位为弧度"
+    - "L158-171 云分类取值定义（255=无效）"
+  samples:
+    - "Y:\\download-data\\C202610181401129865\\FY2G_FDI_ALL_NOM_20261018_1300.hdf"
+  tests:
+    - "tests/test_calib.py::test_fy2g_ir_lut_brightness_temperature（递减表；实测 173.93~304.59 K）"
+    - "tests/test_calib.py::test_fy2g_vis_lut_is_already_percent（lut.max()=118.3942，已是 %）"
+
+geolocation:
+  method: nominal
+  notes:
+    - "文档 §1.1（L32）：归一化投影，星下点 104.5°E（FY-2C/E 为 104.5°E，FY-2D 为 86.5°E）、0°N"
+    - "文档 §1.2 structNOMFileInfo（L58-L64）给出文件属性：fNOMCenterLat / fNOMCenterLon / fNOMSatHeight / dEA / dSamplingAngle / dSteppingAngle / dObRecFlat"
+    - "dSamplingAngle（东西采样角）与 dSteppingAngle（南北步进角）单位是**弧度**，不是度"
+    - "全圆盘网格 (2288, 2288)，红外 5 km"
+
+fields:
+  # ---------------- 红外 4 通道 ----------------
+  - name: NOMChannelIR1
+    path: /NOMChannelIR1
+    kind: thermal
+    unit: K
+    label: IR1 10.3-11.3 µm（窗区）
+    channel: IR1
+    dn:
+      valid_range: [0, 1023]
+      fill: 65535
+    calib:
+      method: lut_bt
+      lut: /CALChannelIR1
+      lut_kind: nearest
+    notes:
+      - CALChannelIR1 为 (1,1024) 递减表，直接按 DN 索引，**不要反转**
+      - 实测 173.93~304.59 K，中位 275~285 K
+    display:
+      cmap: turbo
+      range: [180, 320]
+
+  - name: NOMChannelIR2
+    path: /NOMChannelIR2
+    kind: thermal
+    unit: K
+    label: IR2 11.5-12.5 µm（窗区）
+    channel: IR2
+    dn:
+      valid_range: [0, 1023]
+      fill: 65535
+    calib:
+      method: lut_bt
+      lut: /CALChannelIR2
+      lut_kind: nearest
+
+  - name: NOMChannelIR3
+    path: /NOMChannelIR3
+    kind: thermal
+    unit: K
+    label: IR3 6.3-7.6 µm（水汽）
+    channel: IR3
+    dn:
+      valid_range: [0, 1023]
+      fill: 65535
+    calib:
+      method: lut_bt
+      lut: /CALChannelIR3
+      lut_kind: nearest
+
+  - name: NOMChannelIR4
+    path: /NOMChannelIR4
+    kind: thermal
+    unit: K
+    label: IR4 3.5-4.0 µm（高温目标）
+    channel: IR4
+    dn:
+      valid_range: [0, 1023]
+      fill: 65535
+    calib:
+      method: lut_bt
+      lut: /CALChannelIR4
+      lut_kind: nearest
+
+  # ---------------- 可见光 ----------------
+  - name: NOMChannelVIS
+    path: /NOMChannelVIS
+    kind: reflective
+    unit: '%'
+    label: VIS 0.55-0.90 µm
+    channel: VIS
+    dn:
+      valid_range: [0, 63]
+      fill: 255
+    calib:
+      method: lut_reflectance
+      lut: /CALChannelVIS
+      lut_kind: nearest
+      # FY-2 的 VIS LUT 值域 0~118.39，**已经是百分比**；FY-4 的是 0~1.14 小数。
+      # 若按 FY-4 口径再 ×100，反射率会被放大 100 倍（实测锚点：
+      # lut[0]=0、lut.max()=118.3942，见 tests/test_calib.py）。
+      lut_percent: false
+    notes:
+      - CALChannelVIS 是 (64,) 已经是百分比（0~118.3942），不能再 ×100
+
+  # ---------------- 辅助数据集 ----------------
+  - name: NOMOBSTIME
+    path: /NOMOBSTIME
+    kind: table
+    unit: 'MJD'
+    required: false
+    notes:
+      - "(2288, 5)，每行 5 个时间参考点，用 NOMOBSTimeGridSpace 的间隔插值"
+
+  - name: NOMOBSTimeGridSpace
+    path: /NOMOBSTimeGridSpace
+    kind: table
+    unit: pixel
+    required: false
+    notes:
+      - 每行 1 列，表示 5 个参考点的像素间隔；-1 表示该行不在有效成像区
+
+  - name: NOMCloudClassification
+    path: /NOMCloudClassification
+    kind: flag
+    unit: '1'
+    required: false
+    calib:
+      method: flag
+    notes:
+      - "255=无效；0=晴空地表；1=有云；2=高云；3=中低云；4=薄卷云（详见文档 Table 4.29）"
+
+display:
+  primary: NOMChannelIR1
+  cmap: turbo
+  stretch: [2, 98]
+
+pending_verification:
+  - "星下点经度应取自文件属性（文档 structNOMFileInfo 的 fNOMCenterLon，读取器侧常见写法 NOMCenterLon），但实测 FY2G_FDI_ALL_NOM_20261018_1300.hdf 的全局属性读不出元数据（h5py 侧 attrs 为空），需确认是 HDF5 组属性还是需用低层 API 读。"
+  - "NOMOBSTIME 是 MJD + 5 参考点插值（文档 §1.2 说明 1），尚未实现逐像元时间反算。"
+  - "文档 Table 4.27 的 NOMSatelliteZenith 等角度数据单位为弧度（L150），本定义未纳入（属辅助数据，暂不做物理量转换）。"
+  - "NOMChannelVIS 的 valid_range 文档写 0~64（L146）但 LUT 只有 64 项（0~63），定义按 (0,63) 掩膜，与 tests/test_calib.py 的实际用法一致；边界值 64 待确认。"
+  - "CALChannelIR1..4 的 LUT 值域文档未给（只说 1024 float），实测 173.93~304.59 K 且**单调不增**；不同 FY-2 星（C/D/E/F/G/H）的 LUT 值域可能不同，需逐星核对。"
+
+notes:
+  - "FY-2 的 .hdf 是 HDF5 而不是 HDF4，PLAN.md 已实测确认，推翻早期假设。"
+  - "文件名里的 FY2G_FDI_ALL_NOM_20261018_1300 提供平台/时间。"
+  - "该文档只定义了 NOM 产品的通用 HDF5 骨架（structNOMFileInfo / structNOMDataLayer），Table 4.27 才列出 FY-2 的 15 个科学数据集。"

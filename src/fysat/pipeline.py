@@ -305,6 +305,145 @@ def _reflective_band_names(var) -> list[str]:
     return out
 
 
+
+# ---------------- 太阳几何：GEO 文件里的天顶角 ----------------
+
+# 各卫星族太阳天顶角的候选路径（按文档）
+SOLAR_ZENITH_PATHS = (
+    "Geolocation/SolarZenith",     # FY-3 MERSI GEO1K
+    "Geolocation/SolarZenithAngle",
+    "Navigation/NOMSunZenith",     # FY-4 AGRI GEO
+    "Navigation/NOMSunZenithAngle",
+    "SolarZenith",
+)
+
+
+def find_geo_file(ds) -> Path | None:
+    """在数据文件同目录找配套的 GEO 定位文件。
+
+    MERSI L1 的命名规律：FY3H_MERSI_GRAN_L1_YYYYMMDD_HHMM_1000M_V0.hdf
+    对应的 GEO 文件：     FY3H_MERSI_GRAN_L1_YYYYMMDD_HHMM_GEO1K_V0.hdf
+    """
+    if ds.source is None:
+        return None
+    src = Path(ds.source)
+    stem = src.stem
+
+    # 把分辨率段替换成 GEO1K / GEOQK
+    cands = []
+    for token, repl in (("_1000M_", "_GEO1K_"), ("_0250M_", "_GEOQK_"),
+                        ("_0500M_", "_GEOQK_"), ("_2000M_", "_GEO1K_"),
+                        ("_4000M_", "_GEO1K_")):
+        if token in stem:
+            cands.append(stem.replace(token, repl))
+    cands.append(stem.replace("_1000M", "_GEO1K"))
+    cands.append(stem + "_GEO")
+
+    for c in cands:
+        for ext in (src.suffix, ".hdf", ".HDF"):
+            p = src.with_name(c + ext)
+            if p.exists() and p != src:
+                return p
+    return None
+
+
+def solar_zenith(ds, shape: tuple[int, int] | None = None,
+                 geo_file: Path | None = None) -> np.ndarray | None:
+    """取逐像元太阳天顶角（度）。优先从数据文件本身找，其次找配套 GEO 文件。"""
+    # 1) 数据文件自带？
+    for p in SOLAR_ZENITH_PATHS:
+        if p in ds.variables:
+            arr = _read_angle(ds, p)
+            return _fit_shape(arr, shape)
+
+    # 2) 配套 GEO 文件
+    gf = geo_file or find_geo_file(ds)
+    if gf is None or not Path(gf).exists():
+        return None
+    try:
+        from .readers import open_file
+
+        gds = open_file(gf, load=False)
+    except Exception:                       # noqa: BLE001
+        return None
+
+    for p in SOLAR_ZENITH_PATHS:
+        if p in gds.variables:
+            arr = _read_angle(gds, p)
+            return _fit_shape(arr, shape)
+    return None
+
+
+def _read_angle(ds, path: str) -> np.ndarray:
+    """读角度类字段并应用缩放。
+
+    文档（FY-3D MERSI 1KM_GEO 表5 SDS6）：
+        SolarZenith  int16  Slope=0.01  Intercept=0  FillValue=-32768
+        valid_range [0, 18000]  units=degree
+    原始 DN 2188~5291 → 21.88°~52.91°。
+    """
+    var = ds.load(path)
+    raw = np.asarray(var.data)
+    out = raw.astype(np.float32)
+    if var.scale_factor is not None:
+        out = out * np.float32(var.scale_factor)
+    if var.add_offset is not None:
+        out = out + np.float32(var.add_offset)
+
+    bad = np.zeros(out.shape, dtype=bool)
+    if var.fill_value is not None:
+        bad |= raw == var.fill_value          # 在原始整数上比，避免 float32 精度问题
+    if var.valid_range is not None:
+        lo, hi = var.valid_range
+        bad |= (raw < lo) | (raw > hi)
+    return np.where(bad, np.nan, out)
+
+
+def _fit_shape(arr: np.ndarray, shape: tuple[int, int] | None) -> np.ndarray:
+    """把天顶角缩放到目标形状（GEO 与数据分辨率可能不同）。"""
+    if shape is None or arr.shape[:2] == tuple(shape):
+        return arr
+    h, w = shape
+    gh, gw = arr.shape[:2]
+    ri = np.clip((np.arange(h) * gh / h).astype(int), 0, gh - 1)
+    ci = np.clip((np.arange(w) * gw / w).astype(int), 0, gw - 1)
+    return arr[np.ix_(ri, ci)]
+
+
+def earth_sun_distance_ratio(ds) -> float:
+    """日地距离比 d（全局属性）。"""
+    for key in ("EarthSun Distance Ratio", "Earth-Sun Distance Ratio",
+                "EarthSunDistanceRatio"):
+        v = ds.attrs.get(key)
+        if v is not None:
+            try:
+                return float(np.asarray(v).reshape(-1)[0])
+            except (TypeError, ValueError):
+                pass
+    return 1.0
+
+
+def reflectance_toa(ds, var_name: str, band: int = 0,
+                    sza: np.ndarray | None = None) -> tuple[np.ndarray, str]:
+    """归一化反射率 → 表观反射率（TOA），按 SZA 订正。
+
+        Ref_TOA = Ref* / cos(SZA) * d^2
+
+    SZA >= 88° 的像元（夜侧/无光照）置 NaN。
+    """
+    ref, unit = visible_data(ds, var_name, band)
+    sza = solar_zenith(ds, ref.shape) if sza is None else sza
+    if sza is None:
+        return ref, unit                     # 没有天顶角就返回原值
+
+    cos_sza = np.cos(np.deg2rad(np.asarray(sza, dtype=np.float32)))
+    d = earth_sun_distance_ratio(ds)
+    with np.errstate(divide="ignore", invalid="ignore"):
+        toa = ref / cos_sza * (d ** 2)
+    bad = (~np.isfinite(toa)) | (sza >= 88.0)
+    return np.where(bad, np.nan, toa).astype(np.float32), unit
+
+
 def visible_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
     """取可见光通道的**归一化反射率**（0~1），按 FY-3 MERSI 说明书 6.2 节。
 
@@ -350,13 +489,17 @@ TRUE_COLOR_BANDS = (2, 1, 0)
 
 
 def true_color(r: np.ndarray, g: np.ndarray, b: np.ndarray,
-               pct: tuple[float, float] = (2.0, 98.0),
-               gamma: float = 0.9,
-               saturation: float = 1.25) -> np.ndarray:
+               pct: tuple[float, float] = (1.0, 99.0),
+               gamma: float = 0.6,
+               saturation: float = 1.5) -> np.ndarray:
     """真彩色合成，移植自参考实现 _truecolor_array（fy3f_mersi_l1.py:1662）。
 
-    每个通道先独立按 (2,98) 拉伸，再做白平衡（各通道均值归一到几何均值），
-    最后增强饱和度。云因此呈中性白，地表色调不被压平。
+    每个通道先独立拉伸，再做白平衡（各通道均值归一到几何均值），最后增强饱和度。
+
+    默认参数 (1,99) / gamma 0.6 / sat 1.5 是针对**晨昏轨道**调过的：
+    MERSI L1 不含太阳天顶角数据，无法做真正的 TOA 订正，
+    只能用更低的 gamma 把暗部提亮，否则整幅图接近黑色。
+    正午场景可传 gamma=0.9 更接近真实亮度。
     """
     chans, valid = [], None
     for ref in (r, g, b):

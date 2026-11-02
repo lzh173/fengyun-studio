@@ -87,8 +87,15 @@ def _load_coastlines(path: Path | str | None) -> list[np.ndarray]:
     import json
 
     if path is None:
-        here = Path(__file__).resolve().parents[1]
-        path = here / "assets" / "ne_110m_coastline.geojson"
+        here = Path(__file__).resolve()
+        # 资源在工程根 assets/ 下：src/fysat/sciencefig.py → 上溯 3 层
+        for base in (here.parents[2], here.parents[1], here.parent):
+            cand = base / "assets" / "ne_110m_coastline.geojson"
+            if cand.exists():
+                path = cand
+                break
+        else:
+            path = here.parents[2] / "assets" / "ne_110m_coastline.geojson"
     p = Path(path)
     if not p.exists():
         return []

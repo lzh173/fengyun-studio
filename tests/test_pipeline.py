@@ -177,13 +177,21 @@ def test_real_geo_grid_is_clean(fy3h_file):
     assert -180 <= np.min(lo) and np.max(lo) <= 360
 
 
-def test_visible_reflectance_is_percent(fy3h_file):
+def test_visible_reflectance_is_normalized(fy3h_file):
+    """反射率是 0~1 的归一化值（公式里乘了 0.01），不是百分数。
+
+    依据参考实现 fy3f_mersi_l1.py:601：
+        Ref* = (c2*dn^2 + c1*dn + c0) * 0.01
+    早期版本返回百分数（单位 "%"），与参考实现和 NSMC 说明书的定义不一致。
+    """
     from fysat.readers import open_file
 
     ds = open_file(fy3h_file, load=False)
-    refl, unit = pipeline.visible_data(ds, "Data/EV_1KM_RefSB", 0)
-    assert unit == "%"
+    src = pipeline.true_color_source(ds)
+    assert src is not None
+    refl, unit = pipeline.visible_data(ds, src[0], src[1][0])
+    assert unit == "1"
     v = refl[np.isfinite(refl)]
     assert v.size > 1000
-    assert np.percentile(v, 99) < 120, "反射率超过 120% 说明定标或索引有问题"
+    assert np.percentile(v, 99) < 1.5, f"反射率 p99={np.percentile(v,99):.2f}，应已归一化到 0~1"
     assert np.median(v) > 0

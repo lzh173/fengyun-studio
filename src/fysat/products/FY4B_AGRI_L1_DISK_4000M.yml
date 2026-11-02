@@ -1,0 +1,345 @@
+# FY-4B AGRI L1 全圆盘 4000M（唯一含全部 15 通道的档位）
+#
+# 证据链
+# ------
+# 文档：D:\desktop_dp\temp\nsmc-doc\md\数据格式说明\FY-4B数据格式说明\
+#       FY4B_AGRI_DISK_L1_4KM_HDF_V1.0.md
+#   - L99-L118   NOMChannel01..15：01=0.47 / 02=0.65 / 03=0.825 / 04=1.379 / 05=1.61 /
+#                06=2.225 / 07=3.75(high) / 08=3.75(low) / 09=6.25 / 10=6.95 /
+#                11=7.42 / 12=8.55 / 13=10.80 / 14=12.00 / 15=13.3 µm
+#   - L119-L139   CALChannel01..15  定标表
+#   - L140        ESUN 平均日地距离处太阳辐照度
+#   - 3.1/L588-603 反射通道：CALChannelXX 是 DN→反射率 的查找表（公式法用 CALIBRATION_COEF）
+#   - 3.2/L636-646 热红外通道：CALChannelXX 是 DN→亮温(K) 的查找表
+#   - L211-214     NOMChannelXX SDS 属性：valid_range 0,4095 / FillValue 65535 /
+#                  Intercept 0.0 / Slope 1.0 / units "DN"
+#   - L686         地球内无效像素填 65534，地球外无效像素填 65535
+#
+# 真实样本
+#   Y:\download-data\**\FY4B-*_4000M_V0001.HDF（12 个，1.11 GB）
+#
+# 已通过的真实样本回归（tests/test_fy4b_family.py / test_calib.py）
+#   test_4000m_has_15_channels                      Data/NOMChannel* 恰好 15 个
+#   test_visible_lut_is_fraction_not_percent        CH01 LUT 最大值落在 (0.5, 2.0) → 0~1.14
+#   test_thermal_lut_is_kelvin                      CH12 LUT 值域 110~405 K
+#   test_fy4b_ch01_lut_reflectance_percent          DN=1000→26.2868%，DN=4095→114.31%
+#   test_calibrated_temperature_is_physical         定标后亮温 150~350 K
+product: FY4B_AGRI_L1_DISK_4000M
+title: FY-4B AGRI L1 全圆盘 4000M（15 通道全）
+platform: FY-4B
+instrument: AGRI
+level: L1
+container: hdf5
+verified: true
+
+match:
+  # 实测文件名：FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_20261030154500_..._4000M_V0001.HDF
+  filename: '^FY4B.*_4000M_V\d+\.HDF$'
+  container: hdf5
+
+evidence:
+  document: "D:\\desktop_dp\\temp\\nsmc-doc\\md\\数据格式说明\\FY-4B数据格式说明\\FY4B_AGRI_DISK_L1_4KM_HDF_V1.0.md"
+  document_lines:
+    - "L99-118 NOMChannel01..15 中心波长（0.47/0.65/0.825/1.379/1.61/2.225/3.75h/3.75l/6.25/6.95/7.42/8.55/10.80/12.00/13.3 µm）"
+    - "L119-139 CALChannel01..15 定标表"
+    - "L211-214 SDS 属性 valid_range 0,4095 / FillValue 65535 / units DN"
+    - "L588-603 反射通道：CALChannelXX 为 DN→反射率查找表"
+    - "L636-646 热红外通道：CALChannelXX 为 DN→亮温(K) 查找表"
+    - "L686 地球内无效像素 65534，地球外 65535"
+  samples:
+    - "Y:\\download-data\\**\\FY4B-*_4000M_V0001.HDF（12 个）"
+  tests:
+    - "tests/test_fy4b_family.py::test_4000m_has_15_channels"
+    - "tests/test_fy4b_family.py::test_visible_lut_is_fraction_not_percent（CH01 LUT max 落在 0.5~2.0）"
+    - "tests/test_fy4b_family.py::test_thermal_lut_is_kelvin（CH12 LUT 110~405 K）"
+    - "tests/test_calib.py::test_fy4b_ch01_lut_reflectance_percent（DN=1000→26.2868%）"
+    - "tests/test_fy4b_family.py::test_calibrated_temperature_is_physical"
+
+geolocation:
+  method: nominal
+  notes:
+    - "全圆盘标称投影 (2748, 2748)，像元 4000 m（文档 L238 维数 [2748,2748]）"
+    - "sub_lon 取全局属性 NOMCenterLon（填充值 65535 无效）；sat_height 取 NOMSatHeight（米）"
+    - "文档 L220-221 另有 dSamplingAngle（东西采样角）与 dSteppingAngle（南北步进角），单位微弧度，可替代 pixel_size 的更精确算法"
+
+fields:
+  # ---------------- 反射通道 01~06（可见光/近红外）----------------
+  - name: NOMChannel01
+    path: /Data/NOMChannel01
+    kind: reflective
+    unit: '%'
+    label: 0.47 µm
+    channel: '01'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel01
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+    notes:
+      - LUT 值域 0~1.14（不是 0~100），必须 ×100 才是 %；实测 DN=1000→26.2868%
+
+  - name: NOMChannel02
+    path: /Data/NOMChannel02
+    kind: reflective
+    unit: '%'
+    label: 0.65 µm
+    channel: '02'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel02
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel03
+    path: /Data/NOMChannel03
+    kind: reflective
+    unit: '%'
+    label: 0.825 µm
+    channel: '03'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel03
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel04
+    path: /Data/NOMChannel04
+    kind: reflective
+    unit: '%'
+    label: 1.379 µm（卷云通道）
+    channel: '04'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel04
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel05
+    path: /Data/NOMChannel05
+    kind: reflective
+    unit: '%'
+    label: 1.61 µm
+    channel: '05'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel05
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel06
+    path: /Data/NOMChannel06
+    kind: reflective
+    unit: '%'
+    label: 2.225 µm
+    channel: '06'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_reflectance
+      lut: /Calibration/CALChannel06
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  # ---------------- 热红外通道 07~15 ----------------
+  - name: NOMChannel07
+    path: /Data/NOMChannel07
+    kind: thermal
+    unit: K
+    label: 3.75 µm (high)
+    channel: '07'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel07
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+    notes:
+      - 火点检测主通道；高温目标易饱和
+
+  - name: NOMChannel08
+    path: /Data/NOMChannel08
+    kind: thermal
+    unit: K
+    label: 3.75 µm (low)
+    channel: '08'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel08
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel09
+    path: /Data/NOMChannel09
+    kind: thermal
+    unit: K
+    label: 6.25 µm（水汽）
+    channel: '09'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel09
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel10
+    path: /Data/NOMChannel10
+    kind: thermal
+    unit: K
+    label: 6.95 µm（水汽）
+    channel: '10'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel10
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel11
+    path: /Data/NOMChannel11
+    kind: thermal
+    unit: K
+    label: 7.42 µm（水汽）
+    channel: '11'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel11
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel12
+    path: /Data/NOMChannel12
+    kind: thermal
+    unit: K
+    label: 8.55 µm
+    channel: '12'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel12
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+    notes:
+      - "文档 L981 CALChannel12 的 LUT valid_range = 100~500 K，FillValue = -65535.0"
+      - "实测 LUT 值域 110~405 K（test_thermal_lut_is_kelvin 断言 100<min 且 max<400）"
+
+  - name: NOMChannel13
+    path: /Data/NOMChannel13
+    kind: thermal
+    unit: K
+    label: 10.80 µm（窗区）
+    channel: '13'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel13
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+    display:
+      cmap: turbo
+      range: [180, 320]
+
+  - name: NOMChannel14
+    path: /Data/NOMChannel14
+    kind: thermal
+    unit: K
+    label: 12.00 µm（窗区）
+    channel: '14'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel14
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+  - name: NOMChannel15
+    path: /Data/NOMChannel15
+    kind: thermal
+    unit: K
+    label: 13.3 µm（CO2）
+    channel: '15'
+    dn:
+      valid_range: [0, 4095]
+      fill: 65535
+      in_earth_invalid: 65534
+    calib:
+      method: lut_bt
+      lut: /Calibration/CALChannel15
+      lut_kind: nearest
+      # 文档 L674/L982：CALChannelXX 的 FillValue = -65535.0，表内该值代表无效
+      lut_fill: -65535.0
+
+display:
+  primary: NOMChannel13
+  cmap: turbo
+  stretch: [2, 98]
+
+pending_verification:
+  - "LUT 查表用 nearest 还是 linear：calib.lookup_table 支持两种，实测差异小于一个 DN 的斜率。目前取 nearest 与 test_calib.py 的口径一致，但文档 3.1/3.2 只写「查找表法」未指明插值方式，属待核对。"
+  - "CALIBRATION_COEF(SCALE+OFFSET) 公式法（文档 L594-601）未实现，当前只用 LUT。两种方法应给出一致结果，建议补一个交叉校验测试。"
+  - "ESUN（[3,1]）与表观反射率换算未实现；真彩色目前走 pipeline 的经验白平衡。"
+  - "「地球内无效像素 65534」（文档 L686）已纳入 dn.in_earth_invalid 掩膜，但尚未用真实文件统计过 65534 的实际像元数，需复核掩膜的合理性。"
+
+notes:
+  - "1000M 档位只有 3 个可见光通道（见 FY4B_AGRI_L1_DISK_1000M.yml），红外算法验证必须用 4000M 或 2000M。"
