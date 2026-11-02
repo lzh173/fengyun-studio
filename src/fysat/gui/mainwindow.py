@@ -476,6 +476,15 @@ class MainWindow(QtWidgets.QMainWindow):
         # **把数据集传播到其它工作台**。
         # 早期版本只更新了 inspector，切到分析/制图工作台是全黑的，
         # 因为它们的 set_dataset 从未被调用。
+        # 解码工作台：把打开的文件推进它的队列（它是队列式界面，
+        # 不推的话切过去是空的，用户还得手动"添加文件"）
+        db = getattr(self, "decodebench", None)
+        if db is not None and hasattr(db, "add_files"):
+            try:
+                db.add_files([str(path)])
+            except Exception as exc:            # noqa: BLE001
+                print(f"[warn] 推入解码队列失败: {exc}", file=sys.stderr)
+
         for target in (getattr(self, "workspace", None),
                        getattr(self, "figurebench", None)):
             if target is None or not hasattr(target, "set_dataset"):

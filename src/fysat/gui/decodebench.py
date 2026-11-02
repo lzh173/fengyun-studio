@@ -142,8 +142,25 @@ def analyze_dataset(item: QueueItem, emit_log) -> None:
         raise RuntimeError("数据集为空")
 
     # ---- 3. 产品定义 ----
+    # 必须走产品库匹配（文件名 + 容器 + 全局属性），
+    # 而不是只读 ds.product_def（读取器不会填这个字段，永远为空）。
     item.step = 3
-    pdef = getattr(ds, "product_def", "") or ""
+    pdef = ""
+    try:
+        from ..products import ProductRegistry
+        from ..products.loader import PRODUCTS_DIR
+
+        reg = ProductRegistry.from_dir(PRODUCTS_DIR)
+        matched = reg.match(item.path, container=getattr(ds, "reader", None),
+                            attrs=ds.attrs)
+        if matched is not None:
+            pdef = f"{matched.product}（{len(matched.fields)} 字段"
+            pdef += "，已验证）" if getattr(matched, "verified", False) else "，待核对）"
+            item.meta["product_def_id"] = matched.product
+    except Exception as exc:                     # noqa: BLE001
+        emit_log("warn", f"{item.name}：产品库匹配异常 {exc}")
+    if not pdef:
+        pdef = getattr(ds, "product_def", "") or ""
     item.meta["product_def"] = pdef or "未匹配"
     emit_log("info", f"{item.name}：产品定义 {pdef or '未匹配（按容器通用规则解析）'}")
 
