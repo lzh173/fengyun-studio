@@ -1,10 +1,16 @@
-"""属性检查器：变量列表 + 属性表 + 显示参数。"""
+"""属性检查器：产品信息 / 影像变量 / 辅助表 / 显示设置。
+
+关键设计：变量按用途分类（见 varcatalog），
+「变量」页只列可成像的，辅助表单独一页，RGB 下拉框只放同网格影像。
+早期版本把 Calibration/* 也塞进 RGB 下拉，用户一选就因尺寸不符崩溃。
+"""
 from __future__ import annotations
 
 import numpy as np
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from ..render import COLORMAPS, PRESETS
+from .varcatalog import classify_dataset, describe_class, rgb_choices
 
 STRETCH_PRESETS = [
     ("2% – 98%（推荐）", (2.0, 98.0)),
@@ -15,15 +21,16 @@ STRETCH_PRESETS = [
 
 
 class Inspector(QtWidgets.QWidget):
-    """右侧面板：产品信息 / 变量 / 显示设置。"""
+    """右侧面板：产品信息 / 影像变量 / 辅助表 / 显示设置。"""
 
-    variableSelected = QtCore.Signal(str)
-    displayChanged = QtCore.Signal(dict)      # {'cmap':..., 'stretch':(...), 'gamma':...}
-    rgbRequested = QtCore.Signal(tuple)       # 三个通道名
+    variableSelected = QtCore.Signal(str, int)      # 变量名, 通道号
+    displayChanged = QtCore.Signal(dict)
+    rgbRequested = QtCore.Signal(tuple, tuple)      # 三个变量名, 三个通道号
 
     def __init__(self, parent=None):
         super().__init__(parent)
         self._ds = None
+        self._classes: dict = {}
         self._current: str | None = None
 
         lay = QtWidgets.QVBoxLayout(self)
@@ -36,6 +43,7 @@ class Inspector(QtWidgets.QWidget):
         self.tabs.addTab(self._build_info_tab(), "属性")
         self.tabs.addTab(self._build_vars_tab(), "变量")
         self.tabs.addTab(self._build_display_tab(), "显示")
+        self.tabs.addTab(self._build_aux_tab(), "辅助")
 
     # ---------- 属性页 ----------
     def _build_info_tab(self) -> QtWidgets.QWidget:
@@ -62,28 +70,70 @@ class Inspector(QtWidgets.QWidget):
         lay.addWidget(self.attr_table, 1)
         return w
 
-    # ---------- 变量页 ----------
+    # ---------- 影像变量页 ----------
     def _build_vars_tab(self) -> QtWidgets.QWidget:
         w = QtWidgets.QWidget()
         lay = QtWidgets.QVBoxLayout(w)
         lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(6)
+
+        self.var_hint = QtWidgets.QLabel("尚无数据")
+        self.var_hint.setStyleSheet("color:#8b95a5;font-size:11px;")
+        lay.addWidget(self.var_hint)
 
         self.var_table = QtWidgets.QTableWidget(0, 4)
-        self.var_table.setHorizontalHeaderLabels(["变量", "形状", "类型", "单位"])
-        # 第 0 列给足宽度：变量名常带 Data/ 前缀，Stretch 会把它压缩到看不见
-        self.var_table.setColumnWidth(0, 210)
-        self.var_table.horizontalHeader().setSectionResizeMode(
-            0, QtWidgets.QHeaderView.Interactive)
-        for i in (1, 2, 3):
-            self.var_table.horizontalHeader().setSectionResizeMode(
-                i, QtWidgets.QHeaderView.ResizeToContents)
+        self.var_table.setHorizontalHeaderLabels(["变量", "形状", "类型"])
+        self.var_table.setColumnWidth(0, 190)
+        self.var_table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
+        self.var_table.horizontalHeader().setStretchLastSection(True)
+        self.var_table.setColumnWidth(1, 100)
         self.var_table.verticalHeader().setVisible(False)
         self.var_table.setSelectionBehavior(QtWidgets.QAbstractItemView.SelectRows)
         self.var_table.setSelectionMode(QtWidgets.QAbstractItemView.SingleSelection)
         self.var_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
         self.var_table.setAlternatingRowColors(True)
         self.var_table.itemSelectionChanged.connect(self._on_var_row_changed)
-        lay.addWidget(self.var_table)
+        lay.addWidget(self.var_table, 1)
+
+        # 通道选择（多通道变量才有用）
+        self.band_row = QtWidgets.QWidget()
+        bl = QtWidgets.QHBoxLayout(self.band_row)
+        bl.setContentsMargins(0, 0, 0, 0)
+        bl.addWidget(QtWidgets.QLabel("通道"))
+        self.band_spin = QtWidgets.QSpinBox()
+        self.band_spin.setRange(1, 1)
+        self.band_spin.valueChanged.connect(self._on_band_changed)
+        bl.addWidget(self.band_spin)
+        self.band_label = QtWidgets.QLabel("—")
+        self.band_label.setStyleSheet("color:#8b95a5;")
+        bl.addWidget(self.band_label, 1)
+        lay.addWidget(self.band_row)
+        self.band_row.setVisible(False)
+
+        return w
+
+    # ---------- 辅助表页 ----------
+    def _build_aux_tab(self) -> QtWidgets.QWidget:
+        w = QtWidgets.QWidget()
+        lay = QtWidgets.QVBoxLayout(w)
+        lay.setContentsMargins(8, 8, 8, 8)
+        lay.setSpacing(6)
+
+        hint = QtWidgets.QLabel("校准系数、坐标轴、质量码等辅助数据（不能直接成像）")
+        hint.setStyleSheet("color:#8b95a5;font-size:11px;")
+        hint.setWordWrap(True)
+        lay.addWidget(hint)
+
+        self.aux_table = QtWidgets.QTableWidget(0, 4)
+        self.aux_table.setHorizontalHeaderLabels(["变量", "形状", "类型"])
+        self.aux_table.setColumnWidth(0, 190)
+        self.aux_table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
+        self.aux_table.horizontalHeader().setStretchLastSection(True)
+        self.aux_table.setColumnWidth(1, 100)
+        self.aux_table.verticalHeader().setVisible(False)
+        self.aux_table.setEditTriggers(QtWidgets.QAbstractItemView.NoEditTriggers)
+        self.aux_table.setAlternatingRowColors(True)
+        lay.addWidget(self.aux_table, 1)
         return w
 
     # ---------- 显示页 ----------
@@ -108,7 +158,7 @@ class Inspector(QtWidgets.QWidget):
         f2.addRow("区间", self.stretch_combo)
 
         self.gamma_slider = QtWidgets.QSlider(QtCore.Qt.Horizontal)
-        self.gamma_slider.setRange(20, 300)          # 0.2 – 3.0
+        self.gamma_slider.setRange(20, 300)
         self.gamma_slider.setValue(100)
         self.gamma_label = QtWidgets.QLabel("1.00")
         gam_row = QtWidgets.QHBoxLayout()
@@ -119,6 +169,9 @@ class Inspector(QtWidgets.QWidget):
 
         g3 = QtWidgets.QGroupBox("RGB 合成")
         f3 = QtWidgets.QFormLayout(g3)
+        hint = QtWidgets.QLabel("只列出同网格的影像通道")
+        hint.setStyleSheet("color:#8b95a5;font-size:10px;")
+        f3.addRow(hint)
         self.rgb_r = QtWidgets.QComboBox()
         self.rgb_g = QtWidgets.QComboBox()
         self.rgb_b = QtWidgets.QComboBox()
@@ -145,9 +198,10 @@ class Inspector(QtWidgets.QWidget):
     # ---------- 数据绑定 ----------
     def set_dataset(self, ds) -> None:
         self._ds = ds
+        self._classes = classify_dataset(ds)
         self._fill_info(ds)
         self._fill_vars(ds)
-        self._fill_rgb_choices(ds)
+        self._fill_aux(ds)
 
     def _fill_info(self, ds) -> None:
         rows = [
@@ -179,26 +233,45 @@ class Inspector(QtWidgets.QWidget):
             v = attrs[k]
             text = np.asarray(v).reshape(-1)[:4].tolist() if isinstance(v, np.ndarray) else str(v)
             self.attr_table.setItem(i, 0, QtWidgets.QTableWidgetItem(str(k)))
-            self.attr_table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(text).replace("[", "").replace("]", "")))
+            self.attr_table.setItem(i, 1, QtWidgets.QTableWidgetItem(
+                str(text).replace("[", "").replace("]", "")))
 
     def _fill_vars(self, ds) -> None:
-        names = list(ds.variables)
+        """只列可成像的变量。"""
+        names = [n for n, c in self._classes.items() if c.is_image]
         self.var_table.setRowCount(len(names))
         for i, n in enumerate(names):
-            v = ds.variables[n]
+            c = self._classes[n]
             item = QtWidgets.QTableWidgetItem(n)
             item.setToolTip(n)
             self.var_table.setItem(i, 0, item)
-            self.var_table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(tuple(v.shape))))
-            self.var_table.setItem(i, 2, QtWidgets.QTableWidgetItem(str(v.dtype)))
-            self.var_table.setItem(i, 3, QtWidgets.QTableWidgetItem(v.unit))
+            self.var_table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(c.shape)))
+            self.var_table.setItem(i, 2, QtWidgets.QTableWidgetItem(describe_class(c)))
 
-    def _fill_rgb_choices(self, ds) -> None:
-        names = [n for n, v in ds.variables.items() if len(v.shape) == 2]
+        n_img = len(names)
+        self.var_hint.setText(
+            f"可成像 {n_img} 个 · 多通道变量请用下方通道选择器" if n_img
+            else "此文件没有可直接成像的二维影像")
+
+    def _fill_aux(self, ds) -> None:
+        names = [n for n, c in self._classes.items() if not c.is_image]
+        self.aux_table.setRowCount(len(names))
+        for i, n in enumerate(names):
+            c = self._classes[n]
+            item = QtWidgets.QTableWidgetItem(n)
+            item.setToolTip(n)
+            self.aux_table.setItem(i, 0, item)
+            self.aux_table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(c.shape)))
+            self.aux_table.setItem(i, 2, QtWidgets.QTableWidgetItem(describe_class(c)))
+
+    def _fill_rgb_choices(self, base_shape: tuple | None) -> None:
+        """按当前影像的形状填充 RGB 下拉，避免用户选出尺寸不匹配的组合。"""
+        choices = rgb_choices(self._ds, base_shape) if self._ds else []
         for combo in (self.rgb_r, self.rgb_g, self.rgb_b):
             combo.clear()
-            combo.addItems(names)
-        if len(names) >= 3:
+            for label, value in choices:
+                combo.addItem(label, value)
+        if len(choices) >= 3:
             self.rgb_r.setCurrentIndex(2)
             self.rgb_g.setCurrentIndex(0)
             self.rgb_b.setCurrentIndex(1)
@@ -210,7 +283,24 @@ class Inspector(QtWidgets.QWidget):
             return
         name = self.var_table.item(rows[0].row(), 0).text()
         self._current = name
-        self.variableSelected.emit(name)
+        c = self._classes.get(name)
+
+        if c and c.kind == "band_stack" and c.bands > 1:
+            self.band_row.setVisible(True)
+            self.band_spin.blockSignals(True)
+            self.band_spin.setRange(1, c.bands)
+            self.band_spin.setValue(1)
+            self.band_spin.blockSignals(False)
+            self.band_label.setText(f"共 {c.bands} 个通道")
+        else:
+            self.band_row.setVisible(False)
+
+        self._fill_rgb_choices(c.shape if c else None)
+        self.variableSelected.emit(name, 0)
+
+    def _on_band_changed(self, val: int) -> None:
+        if self._current:
+            self.variableSelected.emit(self._current, val - 1)
 
     def _on_gamma(self, val: int) -> None:
         self.gamma_label.setText(f"{val/100:.2f}")
@@ -219,19 +309,14 @@ class Inspector(QtWidgets.QWidget):
     def _emit_display(self) -> None:
         if self._ds is None:
             return
-        pct = STRETCH_PRESETS[self.stretch_combo.currentIndex()][1]
-        self.displayChanged.emit({
-            "cmap": self.cmap_combo.currentText(),
-            "stretch": pct,
-            "gamma": self.gamma_slider.value() / 100.0,
-        })
+        self.displayChanged.emit(self.display_params())
 
     def _emit_rgb(self) -> None:
-        self.rgbRequested.emit((
-            self.rgb_r.currentText(),
-            self.rgb_g.currentText(),
-            self.rgb_b.currentText(),
-        ))
+        names = (self.rgb_r.currentData(), self.rgb_g.currentData(),
+                 self.rgb_b.currentData())
+        if any(n is None for n in names):
+            return
+        self.rgbRequested.emit(names, (0, 0, 0))
 
     def display_params(self) -> dict:
         pct = STRETCH_PRESETS[self.stretch_combo.currentIndex()][1]

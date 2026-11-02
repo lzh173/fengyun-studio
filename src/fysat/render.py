@@ -42,11 +42,69 @@ def display_array(var, physical: bool = True) -> np.ndarray:
     if physical and (var.scale_factor is not None or var.add_offset is not None):
         arr = var.physical()
     else:
-        arr = var.data.astype(np.float32, copy=True)
+        arr = np.ascontiguousarray(var.data, dtype=np.float32)
     bad = var.mask()
     if bad.any():
         arr = np.where(bad, np.float32("nan"), arr)
     return arr
+
+
+def _band_axis(shape: tuple[int, ...]) -> int | None:
+    """判断三维数组里哪一维是通道。
+
+    规则：通道维通常是最小的那一维，且另外两维明显更大。
+    不能只看"第 0 维小"——测试里 (3,10,12) 这种小图也应是通道栈。
+    """
+    if len(shape) != 3:
+        return None
+    cand = min(range(3), key=lambda i: shape[i])   # 最小的维
+    others = [shape[i] for i in range(3) if i != cand]
+    # 另外两维要"像是个二维影像"（明显大于通道维），且不小于 4x4
+    if min(others) >= 4 and shape[cand] < min(others):
+        return cand
+    return None
+
+
+def band_of(var, index: int = 0) -> np.ndarray:
+    """从可能带通道维的变量里取出指定通道的数组。
+
+    FY-3 MERSI 的 EV_1KM_RefSB 是 (15, 2000, 2048)：第 0 维是通道，
+    直接当图像画会把 15 个通道竖着拼成"横条"。这里按 _band_axis 判断并取第 index 个通道。
+    """
+    arr = np.asarray(var.data)
+    ax = _band_axis(arr.shape)
+    if ax is None:
+        return arr
+    return np.take(arr, min(index, arr.shape[ax] - 1), axis=ax)
+
+
+def n_bands(var) -> int:
+    """变量的通道数（无通道维返回 1）。"""
+    shape = tuple(var.shape if var.source_shape else np.shape(var.data))
+    ax = _band_axis(shape)
+    return int(shape[ax]) if ax is not None else 1
+
+
+def display_band(var, index: int = 0, physical: bool = True) -> np.ndarray:
+    """取指定通道并应用定标 + 无效值掩膜，返回二维 float32。"""
+    raw = band_of(var, index)
+    out = np.ascontiguousarray(raw, dtype=np.float32)
+
+    if physical:
+        if var.scale_factor is not None:
+            out = out * np.float32(var.scale_factor)
+        if var.add_offset is not None:
+            out = out + np.float32(var.add_offset)
+
+    bad = np.zeros(out.shape, dtype=bool)
+    if var.fill_value is not None:
+        bad |= raw == var.fill_value
+    if var.valid_range is not None:
+        lo, hi = var.valid_range
+        bad |= (raw < lo) | (raw > hi)
+    if bad.any():
+        out = np.where(bad, np.float32("nan"), out)
+    return out
 
 
 def stretch(data: np.ndarray, st: Stretch | None = None) -> np.ndarray:
@@ -72,12 +130,35 @@ def apply_cmap(gray01: np.ndarray, cmap: str = "gray") -> np.ndarray:
 
 def composite(r: np.ndarray, g: np.ndarray, b: np.ndarray,
               st: Stretch | None = None,
-              weights: tuple[float, float, float] = (1.0, 1.0, 1.0)) -> np.ndarray:
-    """三通道合成 uint8 RGB。输入可以是 DN 或物理量，会被独立拉伸。"""
+              weights: tuple[float, float, float] = (1.0, 1.0, 1.0),
+              shared_range: bool = True) -> np.ndarray:
+    """三通道合成 uint8 RGB。
+
+    shared_range=True（默认）时三个通道用**同一个**拉伸区间，
+    这是真彩色的前提：若各通道独立拉伸，通道间的相对比例被抹掉，
+    白云会偏色（常见是整幅发黄绿）。
+    shared_range=False 时各通道独立拉伸，适合强调单通道细节的假彩色。
+    """
     st = st or Stretch()
-    chans = []
-    for arr, w in zip((r, g, b), weights):
-        chans.append(np.clip(stretch(arr, st) * float(w), 0.0, 1.0))
+    chans_in = (r, g, b)
+
+    if shared_range:
+        # 用三通道合并后的分位数作为统一区间
+        pooled = np.concatenate([
+            np.asarray(c, dtype=np.float32)[np.isfinite(c)].ravel()[::max(1, np.size(c)//200_000)]
+            for c in chans_in
+        ])
+        if pooled.size:
+            lo, hi = st.bounds(pooled.reshape(-1, 1))
+            unified = Stretch(method="fixed", vmin=lo, vmax=hi, gamma=st.gamma)
+        else:
+            unified = st
+        chans = [np.clip(stretch(arr, unified) * float(w), 0.0, 1.0)
+                 for arr, w in zip(chans_in, weights)]
+    else:
+        chans = [np.clip(stretch(arr, st) * float(w), 0.0, 1.0)
+                 for arr, w in zip(chans_in, weights)]
+
     rgb = np.dstack(chans)
     return (rgb * 255.0 + 0.5).astype(np.uint8)
 

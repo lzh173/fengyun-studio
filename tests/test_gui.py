@@ -69,7 +69,7 @@ def test_mainwindow_builds(win):
     assert win.canvas is not None
     assert win.explorer is not None
     assert win.inspector is not None
-    assert win.inspector.tabs.count() == 3
+    # 属性 / 变量 / 显示 / 辅助\n    assert win.inspector.tabs.count() == 4
 
 
 def test_statusbar_labels_exist(win):

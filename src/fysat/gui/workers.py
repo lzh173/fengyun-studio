@@ -68,13 +68,17 @@ class RenderRequest:
 
 
 def render_variable(var, cmap: str | None = "gray", st: Stretch | None = None,
-                    max_size: int = 4096) -> Any:
-    """把 Variable 渲染成 uint8 数组（灰度或 RGB），自动降采样到 max_size 以内。"""
+                    max_size: int = 4096, band: int = 0) -> Any:
+    """把 Variable 渲染成 uint8 数组（灰度或 RGB），自动降采样到 max_size 以内。
+
+    注意：FY-3 的 EV_1KM_RefSB 是 (15, 2000, 2048)，第 0 维是通道。
+    必须用 display_band 取单通道，否则会把 15 个通道竖着拼成横条图。
+    """
     import numpy as np
 
-    arr = display_array(var, physical=True)
-    if arr.ndim == 3 and arr.shape[0] <= 32 and arr.shape[-1] > 32:
-        arr = arr[0]                      # (band, y, x) → 取第一波段
+    from ..render import display_band
+
+    arr = display_band(var, index=band, physical=True)
 
     h, w = arr.shape[:2]
     step = max(1, int(np.ceil(max(h, w) / float(max_size))))
@@ -88,20 +92,32 @@ def render_variable(var, cmap: str | None = "gray", st: Stretch | None = None,
 
 
 def render_rgb(loader, names: tuple[str, str, str], st: Stretch | None = None,
-               max_size: int = 4096) -> Any:
-    """三通道合成 RGB（uint8）。"""
+               max_size: int = 4096, bands: tuple[int, int, int] = (0, 0, 0)) -> Any:
+    """三通道合成 RGB（uint8）。三个输入必须同为二维影像。"""
     import numpy as np
 
-    from ..render import composite
+    from ..render import composite, display_band
 
     arrs = []
-    for name in names:
+    shapes = []
+    for name, band in zip(names, bands):
         var = loader(name)
-        a = display_array(var, physical=True)
+        a = display_band(var, index=band, physical=True)
+        if a.ndim != 2:
+            raise ValueError(f"{name} 不是二维影像（shape={a.shape}），无法参与 RGB 合成")
+        shapes.append(a.shape)
         h, w = a.shape[:2]
         step = max(1, int(np.ceil(max(h, w) / float(max_size))))
         if step > 1:
             a = a[::step, ::step]
         arrs.append(a)
+
+    if len(set(shapes)) > 1:
+        raise ValueError(
+            "三个通道的尺寸不一致，无法合成：\n"
+            + "\n".join(f"  {n}: {s}" for n, s in zip(names, shapes))
+            + "\n请选择同一产品、同一分辨率的通道。"
+        )
+
     rgb = composite(*arrs, st=st or Stretch(method="percentile", pct=(1, 99), gamma=1.1))
     return rgb

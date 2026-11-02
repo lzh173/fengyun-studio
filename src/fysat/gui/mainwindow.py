@@ -30,6 +30,8 @@ class MainWindow(QtWidgets.QMainWindow):
         self._pool.setMaxThreadCount(max(2, QtCore.QThread.idealThreadCount() - 2))
         self._ds = None
         self._current_var: str | None = None
+        self._current_band: int = 0
+        self._selection: tuple[int, int, int, int] | None = None
         self._jobs: list[Worker] = []          # 持有引用，否则 QRunnable 会被回收
 
         self._build_actions()
@@ -75,6 +77,10 @@ class MainWindow(QtWidgets.QMainWindow):
         self.act_select.setCheckable(True)
         self.act_select.triggered.connect(self._toggle_select)
 
+        self.act_science = QtGui.QAction("导出科学制图…", self)
+        self.act_science.setShortcut("Ctrl+Shift+E")
+        self.act_science.triggered.connect(self.science_figure_dialog)
+
         self.act_quit = QtGui.QAction("退出", self)
         self.act_quit.setShortcut("Ctrl+Q")
         self.act_quit.triggered.connect(self.close)
@@ -118,6 +124,7 @@ class MainWindow(QtWidgets.QMainWindow):
         m_file.addAction(self.act_open)
         m_file.addAction(self.act_opendir)
         m_file.addSeparator()
+        m_file.addAction(self.act_science)
         m_file.addAction(self.act_export)
         m_file.addSeparator()
         m_file.addAction(self.act_quit)
@@ -147,6 +154,7 @@ class MainWindow(QtWidgets.QMainWindow):
         tb.addSeparator()
         tb.addAction(self.act_select)
         tb.addSeparator()
+        tb.addAction(self.act_science)
         tb.addAction(self.act_export)
         self.addToolBar(tb)
 
@@ -241,31 +249,37 @@ class MainWindow(QtWidgets.QMainWindow):
         else:
             self.lbl_range.setText(ds.geolocation.kind)
 
-        # 自动显示第一个二维变量
-        for v in ds.variables.values():
-            if len(v.shape) == 2:
-                self.display_variable(v.name)
+        # 自动显示第一个可成像变量
+        from .varcatalog import classify_dataset
+
+        classes = classify_dataset(ds)
+        for n, c in classes.items():
+            if c.is_image:
+                self.display_variable(n, 0)
                 break
 
     # ================= 显示 =================
-    def display_variable(self, name: str) -> None:
+    def display_variable(self, name: str, band: int = 0) -> None:
         if self._ds is None:
             return
         self._current_var = name
+        self._current_band = band
         var = self._ds.variables[name]
         params = self.inspector.display_params()
-        self.lbl_status.setText(f"渲染 {name} {tuple(var.shape)} …")
+        tag = f" [通道 {band + 1}]" if len(tuple(var.shape)) == 3 else ""
+        self.lbl_status.setText(f"渲染 {name}{tag} {tuple(var.shape)} …")
         self.setCursor(QtCore.Qt.WaitCursor)
 
         st = Stretch(method="percentile", pct=params["stretch"], gamma=params["gamma"])
 
         def work():
             v = self._ds.load(name)
-            return render_variable(v, cmap=params["cmap"], st=st)
+            return render_variable(v, cmap=params["cmap"], st=st, band=band)
 
         self._submit(Worker(work), self._on_rendered)
 
-    def display_rgb(self, names: tuple[str, str, str]) -> None:
+    def display_rgb(self, names: tuple[str, str, str],
+                    bands: tuple[int, int, int] = (0, 0, 0)) -> None:
         if self._ds is None:
             return
         params = self.inspector.display_params()
@@ -275,7 +289,7 @@ class MainWindow(QtWidgets.QMainWindow):
         st = Stretch(method="percentile", pct=(1.0, 99.0), gamma=params["gamma"])
 
         def work():
-            return render_rgb(self._ds.load, names, st=st)
+            return render_rgb(self._ds.load, names, st=st, bands=bands)
 
         self._submit(Worker(work), self._on_rendered)
 
@@ -288,7 +302,7 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _on_display_changed(self, _params: dict) -> None:
         if self._current_var:
-            self.display_variable(self._current_var)
+            self.display_variable(self._current_var, self._current_band)
 
     def _on_error(self, msg: str) -> None:
         self.unsetCursor()
@@ -303,7 +317,21 @@ class MainWindow(QtWidgets.QMainWindow):
         self.lbl_zoom.setText(f"{pct:.0f}%")
 
     def _on_rect(self, rect: QtCore.QRect) -> None:
-        self.lbl_status.setText(f"已框选 {rect.width()} × {rect.height()} 像素")
+        self._selection = (rect.top(), rect.bottom() + 1, rect.left(), rect.right() + 1)
+        self.lbl_status.setText(
+            f"已框选 {rect.width()} × {rect.height()} 像素 —— 可按 Ctrl+Shift+E 导出科学制图")
+
+    def science_figure_dialog(self) -> None:
+        """打开科学制图对话框（带当前框选区域）。"""
+        if self._ds is None:
+            QtWidgets.QMessageBox.information(self, "提示", "请先打开产品")
+            return
+        from .figdialog import ScienceFigureDialog
+
+        dlg = ScienceFigureDialog(
+            self, ds=self._ds, region_px=self._selection,
+            current_var=self._current_var, current_band=self._current_band)
+        dlg.exec()
 
     def _toggle_select(self, checked: bool) -> None:
         self.canvas.set_select_mode(checked)
