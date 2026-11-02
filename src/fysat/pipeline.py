@@ -269,11 +269,9 @@ def _mersi_bt(dn: np.ndarray, scale: float, offset: float,
     return radiance_to_bt(radiance, lam)
 
 
-def visible_rgb(ds, names: tuple[str, str, str], bands: tuple[int, int, int] = (0, 0, 0),
+def visible_rgb(ds, names: tuple[str, str, str], bands: tuple[int, int, int] = (2, 1, 0),
                 region_px: tuple[int, int, int, int] | None = None) -> tuple[np.ndarray, Any, Any]:
-    """三通道合成真彩色，返回 (rgb, lat, lon)。"""
-    from .render import Stretch, composite
-
+    """三通道真彩色合成，返回 (rgb, lat, lon)。"""
     chans = []
     for n, b in zip(names, bands):
         arr, _ = visible_data(ds, n, b)
@@ -282,40 +280,9 @@ def visible_rgb(ds, names: tuple[str, str, str], bands: tuple[int, int, int] = (
             arr = arr[r0:r1, c0:c1]
         chans.append(arr)
 
-    # 真彩色白平衡：可见光三通道物理反射率天然是 G>R>B
-    # （植被 0.55µm 反射高于 0.65µm），直接合成就整幅发绿。
-    # 业务做法是按通道经验增益 + 云顶白参考做归一，让云呈中性灰白。
-    balanced = _white_balance(chans)
-    rgb = composite(*balanced, st=Stretch(method="percentile", pct=(1, 99), gamma=1.1))
+    rgb = true_color(*chans)
     lat, lon = geo_grid(ds, (rgb.shape[0], rgb.shape[1]))
     return rgb, lat, lon
-
-
-
-# 典型真彩色通道增益（R, G, B）：补偿可见光波段的大气与光谱响应差异
-TRUE_COLOR_GAIN = (1.00, 0.95, 1.12)
-
-
-def _white_balance(chans, gain: tuple[float, float, float] = TRUE_COLOR_GAIN):
-    """按经验增益做白平衡，再用云顶高分位作白参考归一。
-
-    可见光三通道的物理反射率天然是 G > R > B（植被在 0.55µm 的反射
-    高于 0.65µm），直接合成真彩色会整幅发绿。这里：
-      1. 各通道乘经验增益，补偿波段间的大气/光谱差异
-      2. 用三通道第 95 分位（近似云反射率）作为白参考
-    最亮的云因此在三通道都接近同一值，呈现中性灰白而不是偏色。
-    """
-    scaled = [np.asarray(c, dtype=np.float32) * float(g) for c, g in zip(chans, gain)]
-
-    refs = []
-    for arr in scaled:
-        v = arr[np.isfinite(arr)]
-        if v.size:
-            refs.append(float(np.percentile(v, 95)))
-    ref = float(np.median(refs)) if refs else 1.0
-    if not np.isfinite(ref) or ref <= 0:
-        return scaled
-    return [np.clip(arr / ref, 0.0, 1.5) for arr in scaled]
 
 
 def _reflective_band_names(var) -> list[str]:
@@ -339,12 +306,14 @@ def _reflective_band_names(var) -> list[str]:
 
 
 def visible_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
-    """取可见光通道反射率（%），按文档用 VIS_Cal_Coeff 定标。
+    """取可见光通道的**归一化反射率**（0~1），按 FY-3 MERSI 说明书 6.2 节。
 
-    VIS_Cal_Coeff 有 19 行对应 b1..b19；EV_1KM_RefSB 是 b5..b19，
-    因此数组索引 band 要用 coeff 的第 (通道号 - 1) 行。
-    早期实现直接取 coeff[band] 会让三个可见光通道用错位的系数，
-    真彩色因此偏色（发黄绿）。
+    公式（移植自参考实现 fy3f_mersi_l1.py:584-609）：
+        Ref* = (Cal_2 * DN^2 + Cal_1 * DN + Cal_0) * 0.01
+
+    - VIS_Cal_Coeff 的索引是 **通道号 - 1**（ch 从 1 开始）
+    - 乘 0.01 得到 0~1，不是百分数
+    - 250m 文件里数据集名可能拼作 VIS_Cal_Ceff（说明书表 7 同样笔误）
     """
     var = ds.load(var_name)
     dn = _band_slice(var, band).astype(np.float64)
@@ -366,26 +335,93 @@ def visible_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
 
     refl = None
     if coeff is not None and band < coeff.shape[0]:
-        # 索引映射：直接按数组索引取 coeff[band]。
-        # 文档 band_name 写 "5-19"，据此应映射到 coeff[4+i]；
-        # 但实测那样做会让蓝通道反射率只剩 2.2%、云区蓝光几乎不反射，
-        # 明显违反物理；改回 coeff[band] 后蓝通道 p90 达 38.2%，符合云的宽谱高反射。
-        # 结论：band_name 标注与真实排列不一致，以数据为准。
         a0, a1, a2 = coeff[band][0], coeff[band][1], coeff[band][2]
-        refl = a0 + a1 * dn + a2 * dn * dn      # 单位：%
-
+        refl = (a2 * dn ** 2 + a1 * dn + a0) * 0.01
     if refl is None:
-        scale = float(var.scale_factor) if var.scale_factor is not None else 1.0
-        offset = float(var.add_offset) if var.add_offset is not None else 0.0
-        refl = dn * scale + offset
+        s = float(var.scale_factor) if var.scale_factor is not None else 1.0
+        o = float(var.add_offset) if var.add_offset is not None else 0.0
+        refl = (dn * s + o) * 0.01
 
-    out = np.where(bad, np.nan, refl).astype(np.float32)
-    return out, "%"
+    return np.where(bad, np.nan, refl).astype(np.float32), "1"
+
+
+# 真彩色默认波段（参考实现用 b3/b2/b1 = 0.65/0.55/0.47 µm）
+TRUE_COLOR_BANDS = (2, 1, 0)
+
+
+def true_color(r: np.ndarray, g: np.ndarray, b: np.ndarray,
+               pct: tuple[float, float] = (2.0, 98.0),
+               gamma: float = 0.9,
+               saturation: float = 1.25) -> np.ndarray:
+    """真彩色合成，移植自参考实现 _truecolor_array（fy3f_mersi_l1.py:1662）。
+
+    每个通道先独立按 (2,98) 拉伸，再做白平衡（各通道均值归一到几何均值），
+    最后增强饱和度。云因此呈中性白，地表色调不被压平。
+    """
+    chans, valid = [], None
+    for ref in (r, g, b):
+        arr = np.asarray(ref, dtype=np.float32)
+        v = arr[np.isfinite(arr)]
+        lo, hi = np.percentile(v, pct) if v.size else (0.0, 1.0)
+        if hi <= lo:
+            hi = lo + 1e-6
+        chans.append(np.clip((arr - lo) / (hi - lo), 0, 1))
+        m = np.isfinite(arr) & (arr > -0.02) & (arr < 1.4)
+        valid = m if valid is None else (valid & m)
+
+    means = [float(np.nanmean(c)) if np.isfinite(c).any() else 1.0 for c in chans]
+    gmean = float(np.mean(means)) or 1.0
+    chans = [np.clip(c * (gmean / max(m, 1e-6)), 0, 1) ** gamma
+             for c, m in zip(chans, means)]
+
+    rgb = np.dstack(chans)
+    gray = np.mean(rgb, axis=2, keepdims=True)
+    rgb = np.clip(gray + saturation * (rgb - gray), 0, 1)
+
+    rgb = np.nan_to_num(rgb, nan=0.0, posinf=1.0, neginf=0.0)   # 避免 NaN cast 告警
+    out = (rgb * 255.0 + 0.5).astype(np.uint8)
+    if valid is not None:
+        out[~valid] = 0
+    return out
+
+
+
+def true_color_source(ds) -> tuple[str, tuple[int, int, int], tuple[int, int, int]] | None:
+    """找真彩色所需的变量与波段。
+
+    **关键**：MERSI 的 b1-b4（0.47/0.55/0.65/0.87 µm）在
+    ``EV_250_Aggr.1KM_RefSB``（band_name "1-4"），
+    而 ``EV_1KM_RefSB`` 只含 b5-b19（1.38 µm 起，全在短波红外/水汽带），
+    拿它做真彩色会得到一片黄绿的错误图像。
+
+    返回 (变量名, 数组索引三元组(R,G,B), 通道号三元组(b3,b2,b1)) 或 None。
+    """
+    for name in ("Data/EV_250_Aggr.1KM_RefSB", "Data/EV_250_RefSB"):
+        if name not in ds.variables:
+            continue
+        var = ds.variables[name]
+        bands = _reflective_band_names(var)
+        shape = tuple(var.shape)
+        # 需要至少 3 个通道
+        if len(bands) < 3 and len(shape) >= 3 and shape[0] < 3:
+            continue
+        # b3/b2/b1 在 band list 里的位置
+        idx = []
+        chs = []
+        for target in (3, 2, 1):
+            if target in bands:
+                idx.append(bands.index(target))
+                chs.append(target)
+        if len(idx) != 3:
+            # 属性缺失时退回前三个通道（b1,b2,b3）并按 B,G,R 顺序给
+            idx, chs = [2, 1, 0], [3, 2, 1]
+        return name, tuple(idx), tuple(chs)
+    return None
 
 
 def build_layers(ds, thermal_var: str, thermal_band: int = 0,
                  visible_vars: tuple[str, str, str] | None = None,
-                 visible_bands: tuple[int, int, int] = (0, 0, 0),
+                 visible_bands: tuple[int, int, int] = TRUE_COLOR_BANDS,
                  region_px: tuple[int, int, int, int] | None = None,
                  extent: tuple[float, float, float, float] | None = None,
                  max_cells: int = 250_000) -> tuple[ThermalLayer, dict | None]:

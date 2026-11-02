@@ -107,15 +107,31 @@ def display_band(var, index: int = 0, physical: bool = True) -> np.ndarray:
     return out
 
 
-def stretch(data: np.ndarray, st: Stretch | None = None) -> np.ndarray:
-    """把任意量纲的数据拉到 0..1（NaN → 0）。"""
+def stretch(data: np.ndarray, st: Stretch | None = None,
+            nan_value: float | None = None) -> np.ndarray:
+    """把任意量纲的数据拉到 0..1。
+
+    nan_value=None（默认）时**保留 NaN**，让上层决定无效像元怎么画；
+    早期实现用 nan_to_num(nan=lo) 把无效值变成实色，
+    结果卫星数据里大片的填充区在 RGB 合成时变成紫色斑块。
+
+    nan_value 给数字时按该值填充（0 表示无效像元画黑）。
+    """
     st = st or Stretch()
-    lo, hi = st.bounds(data)
-    v = np.nan_to_num(np.asarray(data, dtype=np.float32), nan=lo)
-    v = np.clip(v, lo, hi)
-    out = (v - lo) / (hi - lo) if hi > lo else np.zeros_like(v)
+    src = np.asarray(data, dtype=np.float32)
+    lo, hi = st.bounds(src)
+
+    if hi <= lo:
+        out = np.zeros_like(src)
+    else:
+        v = np.clip(src, lo, hi)
+        out = (v - lo) / (hi - lo)
+
     if st.gamma and st.gamma != 1.0:
-        out = np.power(out, 1.0 / st.gamma)
+        out = np.power(np.clip(out, 0.0, 1.0), 1.0 / st.gamma)
+
+    if nan_value is not None:
+        out = np.where(np.isfinite(src), out, np.float32(nan_value))
     return out.astype(np.float32, copy=False)
 
 
