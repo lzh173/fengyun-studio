@@ -215,7 +215,7 @@ PRESETS = {
                  "desc": "R=可见光 G/B=红外，兼顾云顶纹理与地表"},
     "day_night": {"label": "昼夜微光", "bands": ("ir", "vis", "vis"),
                   "desc": "夜间用红外补可见光"},
-    "fire": {"label": "火点", "bands": ("b24", "b2", "ir"),
+    "fire": {"label": "火点", "bands": ("ir_short", "nir", "ir"),
              "desc": "R=3.7µm G=0.87µm B=11µm"},
     "dust": {"label": "沙尘", "bands": ("ir_split", "b2", "ir"),
              "desc": "R=11-12µm 差值 G=0.87µm B=11µm"},

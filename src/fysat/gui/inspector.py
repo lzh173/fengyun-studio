@@ -10,6 +10,7 @@ import numpy as np
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from ..render import COLORMAPS, PRESETS
+from .bandindex import band_labels, resolve_preset
 from .varcatalog import classify_dataset, describe_class, rgb_choices
 
 STRETCH_PRESETS = [
@@ -172,14 +173,18 @@ class Inspector(QtWidgets.QWidget):
         hint = QtWidgets.QLabel("只列出同网格的影像通道")
         hint.setStyleSheet("color:#8b95a5;font-size:10px;")
         f3.addRow(hint)
-        self.rgb_r = QtWidgets.QComboBox()
-        self.rgb_g = QtWidgets.QComboBox()
-        self.rgb_b = QtWidgets.QComboBox()
-        f3.addRow("R", self.rgb_r)
-        f3.addRow("G", self.rgb_g)
-        f3.addRow("B", self.rgb_b)
+        # R/G/B 每行 = [数据集下拉] + [通道下拉]
+        # MERSI 的通道被拆在 4 个多通道堆栈里，只选数据集会让三个通道
+        # 都取第 0 层 —— 合成结果退化成灰度图。必须能选到具体通道。
+        self.rgb_r, self.rgb_r_band = self._make_rgb_row(f3, "R")
+        self.rgb_g, self.rgb_g_band = self._make_rgb_row(f3, "G")
+        self.rgb_b, self.rgb_b_band = self._make_rgb_row(f3, "B")
         self.rgb_btn = QtWidgets.QPushButton("合成 RGB")
         f3.addRow(self.rgb_btn)
+        self.lbl_rgb_plan = QtWidgets.QLabel("")
+        self.lbl_rgb_plan.setWordWrap(True)
+        self.lbl_rgb_plan.setStyleSheet("color:#8b95a5;font-size:10px;")
+        f3.addRow(self.lbl_rgb_plan)
         self.preset_combo = QtWidgets.QComboBox()
         self.preset_combo.addItem("（预设组合）", None)
         for key, p in PRESETS.items():
@@ -193,6 +198,12 @@ class Inspector(QtWidgets.QWidget):
         self.stretch_combo.currentIndexChanged.connect(self._emit_display)
         self.gamma_slider.valueChanged.connect(self._on_gamma)
         self.rgb_btn.clicked.connect(self._emit_rgb)
+        self.preset_combo.currentIndexChanged.connect(self._apply_preset)
+        for combo, band in ((self.rgb_r, self.rgb_r_band),
+                            (self.rgb_g, self.rgb_g_band),
+                            (self.rgb_b, self.rgb_b_band)):
+            combo.currentIndexChanged.connect(
+                lambda _i, c=combo, b=band: self._sync_band_combo(c, b))
         return w
 
     # ---------- 数据绑定 ----------
@@ -202,6 +213,9 @@ class Inspector(QtWidgets.QWidget):
         self._fill_info(ds)
         self._fill_vars(ds)
         self._fill_aux(ds)
+        # 载入后立刻填充 RGB 下拉。早期只在"点变量行"时才填，
+        # 于是刚打开文件时三个下拉都是空的，RGB 合成等于不可用。
+        self._fill_rgb_choices(None)
 
     def _fill_info(self, ds) -> None:
         rows = [
@@ -264,6 +278,56 @@ class Inspector(QtWidgets.QWidget):
             self.aux_table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(c.shape)))
             self.aux_table.setItem(i, 2, QtWidgets.QTableWidgetItem(describe_class(c)))
 
+    # ---------- RGB 合成 ----------
+    def _make_rgb_row(self, form, label: str):
+        """建一行「数据集下拉 + 通道下拉」。"""
+        row = QtWidgets.QWidget()
+        h = QtWidgets.QHBoxLayout(row)
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(4)
+        combo = QtWidgets.QComboBox()
+        band = QtWidgets.QComboBox()
+        band.setFixedWidth(96)
+        band.setToolTip("该数据集内部的通道（b 号 + 中心波长）")
+        h.addWidget(combo, 1)
+        h.addWidget(band)
+        form.addRow(label, row)
+        return combo, band
+
+    def _sync_band_combo(self, combo, band) -> None:
+        """数据集变了就刷新它的通道下拉。"""
+        name = combo.currentData()
+        labels = band_labels(self._ds, name) if (self._ds and name) else []
+        band.blockSignals(True)
+        band.clear()
+        for i, lab in enumerate(labels):
+            band.addItem(lab, i)
+        band.setEnabled(len(labels) > 1)
+        band.blockSignals(False)
+
+    def _apply_preset(self, _index: int = 0) -> None:
+        """把预设组合填进三个下拉（变量 + 通道）。"""
+        key = self.preset_combo.currentData()
+        if not key or self._ds is None:
+            return
+        plan = resolve_preset(self._ds, key)
+        if plan is None:
+            self.lbl_rgb_plan.setText(
+                f"{PRESETS[key]['label']}：当前数据缺少所需通道，无法合成")
+            return
+        for combo, band, name, idx in (
+                (self.rgb_r, self.rgb_r_band, plan.names[0], plan.bands[0]),
+                (self.rgb_g, self.rgb_g_band, plan.names[1], plan.bands[1]),
+                (self.rgb_b, self.rgb_b_band, plan.names[2], plan.bands[2])):
+            pos = combo.findData(name)
+            if pos < 0:
+                self.lbl_rgb_plan.setText(f"预设需要的数据集 {name} 不在候选里")
+                return
+            combo.setCurrentIndex(pos)
+            self._sync_band_combo(combo, band)
+            band.setCurrentIndex(idx)
+        self.lbl_rgb_plan.setText(f"{plan.label}：{plan.desc}\n{plan.summary()}")
+
     def _fill_rgb_choices(self, base_shape: tuple | None) -> None:
         """按当前影像的形状填充 RGB 下拉，避免用户选出尺寸不匹配的组合。"""
         choices = rgb_choices(self._ds, base_shape) if self._ds else []
@@ -275,6 +339,35 @@ class Inspector(QtWidgets.QWidget):
             self.rgb_r.setCurrentIndex(2)
             self.rgb_g.setCurrentIndex(0)
             self.rgb_b.setCurrentIndex(1)
+        # 同步每行的通道下拉
+        for combo, band in ((self.rgb_r, self.rgb_r_band),
+                            (self.rgb_g, self.rgb_g_band),
+                            (self.rgb_b, self.rgb_b_band)):
+            self._sync_band_combo(combo, band)
+        self._refresh_presets()
+
+    def _refresh_presets(self) -> None:
+        """按当前数据集把**解析不出来**的预设置灰，而不是让它点了没反应。"""
+        if self._ds is None:
+            return
+        for i in range(self.preset_combo.count()):
+            key = self.preset_combo.itemData(i)
+            if not key:
+                continue
+            plan = resolve_preset(self._ds, key)
+            item = self.preset_combo.model().item(i)
+            if item is None:
+                continue
+            if plan is None:
+                item.setEnabled(False)
+                why = ("需要波段差值运算（暂未实现）"
+                       if PRESETS[key].get("bands") and any(
+                           "split" in str(s) for s in PRESETS[key]["bands"])
+                       else "当前数据缺少所需通道")
+                item.setToolTip(f"{PRESETS[key]['label']}：{why}")
+            else:
+                item.setEnabled(True)
+                item.setToolTip(f"{plan.desc}")
 
     # ---------- 信号 ----------
     def _on_var_row_changed(self) -> None:
@@ -316,7 +409,22 @@ class Inspector(QtWidgets.QWidget):
                  self.rgb_b.currentData())
         if any(n is None for n in names):
             return
-        self.rgbRequested.emit(names, (0, 0, 0))
+        bands = (self.rgb_r_band.currentData(),
+                 self.rgb_g_band.currentData(),
+                 self.rgb_b_band.currentData())
+        if any(b is None for b in bands):
+            return
+        # 三个通道全指向同一数据集的同一层 → 合成必然退化成灰度，直接拦下
+        if len(set(zip(names, bands))) == 1:
+            QtWidgets.QMessageBox.information(
+                self, "无法合成",
+                "R/G/B 三个通道指向了同一个数据集的同一个通道。\n"
+                "MERSI 的通道分散在 EV_250_Aggr.1KM_RefSB(1-4)、"
+                "EV_1KM_RefSB(5-19)、EV_1KM_Emissive(20-23)、"
+                "EV_250_Aggr.1KM_Emissive(24-25) 四个数据集里，\n"
+                "请为 R/G/B 分别选择不同的通道（或用「预设」）。")
+            return
+        self.rgbRequested.emit(tuple(names), tuple(int(b) for b in bands))
 
     def display_params(self) -> dict:
         pct = STRETCH_PRESETS[self.stretch_combo.currentIndex()][1]

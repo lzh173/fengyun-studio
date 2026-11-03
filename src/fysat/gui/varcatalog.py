@@ -109,7 +109,10 @@ def rgb_choices(ds, base_shape: tuple[int, ...] | None = None) -> list[tuple[str
     for name, c in classes.items():
         if not c.is_rgb_candidate:
             continue
-        if base_shape is not None and c.shape != tuple(base_shape):
+        # 只比较**空间维**（最后两维）。多通道堆栈的完整 shape 首维是通道数，
+        # 用完整 shape 比较会让 (4,2000,2048) 与 (15,2000,2048) 互斥，
+        # 于是"真彩色(b1-b4) + 红外(b24)"这种跨数据集组合永远选不出来。
+        if base_shape is not None and tuple(c.shape[-2:]) != tuple(tuple(base_shape)[-2:]):
             continue
         label = name
         if c.kind == "band_stack":

@@ -97,11 +97,33 @@ def render_variable(var, cmap: str | None = "gray", st: Stretch | None = None,
 
 
 def render_rgb(loader, names: tuple[str, str, str], st: Stretch | None = None,
-               max_size: int = 4096, bands: tuple[int, int, int] = (0, 0, 0)) -> Any:
-    """三通道合成 RGB（uint8）。三个输入必须同为二维影像。"""
+               max_size: int = 4096, bands: tuple[int, int, int] = (0, 0, 0),
+               ds=None) -> Any:
+    """三通道合成 RGB（uint8）。三个输入必须同为二维影像。
+
+    两条通路：
+    1. **全部是反射通道**（RefSB）且传了 ds → 走 ``pipeline.visible_data``
+       做可见光定标（(c2·DN²+c1·DN+c0)·0.01 得到 0~1 反射率），
+       再用 ``pipeline.true_color`` 合成（逐通道百分位拉伸 + 白平衡 + 饱和增强）。
+       直接对原始 DN 拉伸会偏色，因为三个通道的定标系数并不相同。
+    2. 其它情况（混入红外/热红外）→ 退回 ``render.composite``。
+    """
     import numpy as np
 
     from ..render import composite, display_band
+
+    if ds is not None and all("RefSB" in n for n in names):
+        from .. import pipeline
+
+        chans = []
+        for name, band in zip(names, bands):
+            arr, _unit = pipeline.visible_data(ds, name, band)
+            h, w = arr.shape[:2]
+            step = max(1, int(np.ceil(max(h, w) / float(max_size))))
+            if step > 1:
+                arr = arr[::step, ::step]
+            chans.append(arr)
+        return pipeline.true_color(*chans)
 
     arrs = []
     shapes = []

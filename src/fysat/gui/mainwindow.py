@@ -568,7 +568,7 @@ class MainWindow(QtWidgets.QMainWindow):
         st = Stretch(method="percentile", pct=(1.0, 99.0), gamma=params["gamma"])
 
         def work():
-            return render_rgb(self._ds.load, names, st=st, bands=bands)
+            return render_rgb(self._ds.load, names, st=st, bands=bands, ds=self._ds)
 
         self._submit(Worker(work), self._on_rendered)
 
