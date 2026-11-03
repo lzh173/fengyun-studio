@@ -19,15 +19,19 @@ def kinds() -> list[str]:
     return sorted(_REGISTRY)
 
 
-def open_file(path: str | Path, **kwargs) -> SatDataset:
-    """按魔数识别容器并调用对应读取器。"""
-    kind = sniff(path)
-    if kind in _REGISTRY:
-        ds = _REGISTRY[kind](path, **kwargs)
-        ds.reader = ds.reader or kind
+def open_file(path: str | Path, *, kind: str | None = None, **kwargs) -> SatDataset:
+    """按魔数识别容器并调用对应读取器。
+
+    ``kind`` 可显式指定容器类型（例如 ``kind="satpy"`` 走 satpy 可选后端，
+    或 ``kind="hdf5"`` 绕过魔数判断）。默认仍按魔数识别，行为与以前一致。
+    """
+    detected = kind or sniff(path)
+    if detected in _REGISTRY:
+        ds = _REGISTRY[detected](path, **kwargs)
+        ds.reader = ds.reader or detected
         return ds
     raise NotImplementedError(
-        f"暂不支持的容器类型: {kind}（{Path(path).name}）；已注册: {kinds()}"
+        f"暂不支持的容器类型: {detected}（{Path(path).name}）；已注册: {kinds()}"
     )
 
 
@@ -55,6 +59,11 @@ def _bootstrap() -> None:
     try:  # 可选：AWX
         from . import awx as _awx
         register("awx", _awx.read)
+    except Exception:
+        pass
+    try:  # 可选：satpy 后端（模块顶层不 import satpy，未安装时 read() 抛 NotImplementedError）
+        from . import satpy_adapter as _satpy
+        register("satpy", _satpy.read)
     except Exception:
         pass
 

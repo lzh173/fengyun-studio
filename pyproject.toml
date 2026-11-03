@@ -27,6 +27,12 @@ dependencies = [
 gui = ["PySide6-Essentials==6.12.0"]
 # netCDF4 是 GPL 兼容但未审计的可选依赖，仅在确实需要时启用
 nc3 = ["netCDF4>=1.6"]
+# satpy 是**可选增强**（不是替代）：复用它的 FY-3 MERSI / FY-4 AGRI L1 定标。
+# 许可证 GPLv3-or-later，与我们 AGPL-3.0-only 兼容（GPLv3 §13 / AGPLv3 §13），
+# 依据与取舍见 analysis/satpy_evaluation.md。
+# 依赖很重（dask/xarray/zarr/pyresample/pyspectral，实装约 370 MB），
+# 所以**绝不进主依赖**；没装时项目一切照旧。
+satpy = ["satpy>=0.50", "pyspectral"]
 dev = ["pytest>=7", "ruff>=0.4"]
 
 [project.scripts]

@@ -173,12 +173,34 @@
 | Nuitka | 2.6.9 | Apache-2.0 | 打包器不分发（C 编译产物属用户代码） | 若采用 Nuitka 打包，随附 Apache-2.0 声明 |
 | pytest / ruff | 9.1.1 / 0.12.7 | MIT | 否 | 仅开发环境 |
 
-### 2.3 可选依赖（当前未安装，启用前必须另行审计）
+### 2.3 可选依赖（默认不装，启用前必须另行审计）
 
-| 组件 | 声明位置 | 许可证（初步） | 状态 |
+| 组件 | 声明位置 | 许可证 | 状态 |
 |---|---|---|---|
-| netCDF4 | `pyproject.toml` `[nc3]` 与 `PLAN.md` | 待确认（netCDF4-python 上游为 MIT 系；但其捆绑的 HDF5/netCDF-C 需逐一核对） | **未安装，未验证 → 列为待确认（§7-Q4）** |
-| pyproj | `PLAN.md` 安装命令 | 待确认（proj 为 MIT/X 系，捆绑 PROJ 数据需核对） | 未使用，未安装 |
+| netCDF4 | `pyproject.toml` `[nc3]` | 待确认（上游 MIT 系；捆绑的 HDF5/netCDF-C 需逐一核对） | 未安装，未验证 → 待确认（§7-Q4） |
+| pyproj | `pyproject.toml`（satpy 额外带入） | MIT（PROJ 本体 MIT/X，PROJ 数据公共领域） | 随 satpy 安装，见下 |
+| **satpy** | `pyproject.toml` `[satpy]` | **GPL-3.0-or-later** | 可选后端，**默认不装**；已实测 36 项测试 |
+| **pyspectral** | 同上（satpy reader 依赖） | **Apache-2.0** | 随 satpy 安装 |
+| **trollimage** | satpy 依赖 | **GPL-3.0-or-later** | 随 satpy 安装 |
+| **python-geotiepoints** | satpy 依赖 | **GPL-3.0-or-later** | 随 satpy 安装 |
+| **pyresample** | satpy 依赖 | **LGPL-3.0-or-later** | 随 satpy 安装 |
+
+#### 2.3.1 satpy 的许可证结论（已核实，非推测）
+
+- **satpy 是 GPLv3+**：`satpy-0.59.0.dist-info/METADATA` 第 6 行 `License: GPLv3`，
+  并有 `Classifier: License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)`。
+- 本项目是 **AGPL-3.0-only**。GPLv3 §13 与 AGPLv3 §13 是**互为镜像**的条款：
+  两者都明确允许把「另一个」许可证的作品链接/合并成单一作品，合并后的整体按 AGPLv3 分发。
+  因此 **GPLv3 依赖可以进 AGPLv3 项目**，不构成冲突。
+- 但这带来两个实际约束，必须遵守：
+  1. **satpy 只能是可选依赖**，不能进主依赖。原因不是许可，而是它会把
+     xarray / dask / zarr / pyresample / pyproj / pyspectral 一并拉进来
+     （隔离安装实测 **370.2 MB / 13,009 个文件**，`import satpy` 冷启动 **1.98 s**）。
+     实测 `import fysat.readers` 仍是 0.33 s，且**不会加载 satpy**。
+  2. 一旦发布带 satpy 的构建，**LICENSE 与 THIRD_PARTY_NOTICES 必须同时列出**
+     satpy / trollimage / python-geotiepoints 的 GPLv3 全文与 pyspectral 的 Apache-2.0 全文，
+     并且整体仍按 AGPLv3 分发。
+- 实测数据来源：`analysis/satpy_evaluation.md` §1（含 METADATA 原文行号与逐包核查表）。
 
 ### 2.4 随依赖二进制捆绑的原生库（间接依赖，随打包产物分发）
 
