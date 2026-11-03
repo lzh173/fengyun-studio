@@ -204,6 +204,7 @@ def _pcolormesh_safe(ax, lat, lon, data, **kwargs):
 
     if lat.shape != data.shape or lon.shape != data.shape:
         # 形状对不上，直接按 extent 画
+        kwargs.setdefault("rasterized", True)
         return ax.imshow(data, origin="upper", aspect="auto", **{
             k: v for k, v in kwargs.items() if k not in ("shading",)})
 
@@ -217,9 +218,14 @@ def _pcolormesh_safe(ax, lat, lon, data, **kwargs):
     lon_s = lon[np.ix_(ri, ci)]
     data_s = data[np.ix_(ri, ci)]
 
+    # 热图必须栅格化：40 万个四边形若全转成矢量，SVG 会到几十 MB、
+    # PDF 也上兆，根本没法分享。rasterized=True 让矢量文件里嵌一张位图，
+    # 而标题/经纬网/海岸线/色标仍然是矢量。
+    kwargs.setdefault("rasterized", True)
     try:
         return ax.pcolormesh(lon_s, lat_s, data_s, shading="auto", **kwargs)
     except Exception:                        # noqa: BLE001
+        kwargs.setdefault("rasterized", True)
         return ax.imshow(data_s, origin="upper", aspect="auto",
                          extent=[float(np.nanmin(lon_s)), float(np.nanmax(lon_s)),
                                  float(np.nanmin(lat_s)), float(np.nanmax(lat_s))],
@@ -281,7 +287,7 @@ def render_science_figure(
             if vlat is not None and vlon is not None:
                 ext = [float(np.nanmin(vlon)), float(np.nanmax(vlon)),
                        float(np.nanmin(vlat)), float(np.nanmax(vlat))]
-            ax.imshow(rgb, origin="upper", extent=ext, aspect="auto", zorder=1)
+            ax.imshow(rgb, origin="upper", extent=ext, aspect="auto", zorder=1, rasterized=True)
         else:
             d = np.asarray(v["data"], dtype=float)
             _, _, d = _subset(vlat, vlon, d, spec.extent)
@@ -289,7 +295,7 @@ def render_science_figure(
             if vlat is not None and vlat.shape == d.shape:
                 _pcolormesh_safe(ax, vlat, vlon, d, cmap="gray", zorder=1)
             else:
-                ax.imshow(d, cmap="gray", origin="upper", aspect="auto", zorder=1)
+                ax.imshow(d, cmap="gray", origin="upper", aspect="auto", zorder=1, rasterized=True)
         _frame_axes(ax, vlat, vlon, coastlines, spec)
         ax.set_title(v.get("label", "可见光真彩色"), fontsize=11, color="#111827")
 
@@ -309,7 +315,7 @@ def render_science_figure(
                              vmin=vmin, vmax=vmax, zorder=1)
     else:
         m = ax2.imshow(tdata, cmap=cmap, vmin=vmin, vmax=vmax,
-                       origin="upper", aspect="auto", zorder=1)
+                       origin="upper", aspect="auto", zorder=1, rasterized=True)
     _frame_axes(ax2, tlat, tlon, coastlines, spec)
     ax2.set_title(t.get("label", "红外亮温"), fontsize=11, color="#111827")
 

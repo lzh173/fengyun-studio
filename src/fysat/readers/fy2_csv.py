@@ -569,7 +569,10 @@ def read(path: str | Path, load: bool = True, channels: list[str] | None = None,
             },
         )
 
-    lines = _read_line_meta(p, n_lines) if load else None
+    # 逐行元信息只有 n_lines（2500）个元素，代价可忽略；
+    # 无论 load 与否都必须读出来 —— 它们是产品定义里的正式字段，
+    # 而 read_variable 只认得 8 个图像通道名，取不到就会报「变量不存在」。
+    lines = _read_line_meta(p, n_lines)
     per_line: tuple[tuple[str, np.dtype, str, str, tuple[float, float] | None], ...] = (
         ("scan_count", np.dtype(np.uint16), "1", "DOC 扫描行号（1..2500）", (1.0, 2500.0)),
         ("line_quality", np.dtype(np.uint8), "1", "CSV 记录质量码（0 = 正常）", (0.0, 255.0)),

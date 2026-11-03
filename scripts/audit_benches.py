@@ -169,16 +169,25 @@ def main() -> int:
             raise RuntimeError("预览区没有图片")
     _()
 
-    @check("04 模板可切换")
+    @check("04 模板可切换（真按钮，不是其它 chips）")
     def _():
-        btns = [b for b in fb.findChildren(QtWidgets.QToolButton)]
+        # 早期探针取 findChildren(QToolButton)[:3]，命中的是左栏"经纬网间隔" chips，
+        # 点它并不会切模板 —— 假通过。现在按 objectName="tpl_*" 精确取。
+        btns = [b for b in fb.findChildren(QtWidgets.QToolButton)
+                if b.objectName().startswith("tpl_")]
         if len(btns) < 2:
-            raise RuntimeError("模板按钮不足")
-        for b in btns[:3]:
-            if b.isEnabled():
-                b.click()
-                pump(app, 1.5)
-                break
+            raise RuntimeError(f"模板按钮不足（找到 {len(btns)} 个 tpl_*）")
+        before = getattr(fb, "_template", None)
+        enabled = [b for b in btns if b.isEnabled()]
+        if not enabled:
+            raise RuntimeError("所有模板按钮都被置灰")
+        enabled[0].click()
+        pump(app, 2.0)
+        if getattr(fb, "_template", None) == before and len(enabled) > 1:
+            enabled[1].click()
+            pump(app, 2.0)
+        if getattr(fb, "_template", None) is None:
+            raise RuntimeError("模板状态字段 _template 不存在")
     _()
 
     @check("04 可无对话框导出（脚本/批量可用）")

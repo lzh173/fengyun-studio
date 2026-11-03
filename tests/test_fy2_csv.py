@@ -270,8 +270,14 @@ def test_sample_header_only(sample):
     assert ds.attrs["record_length"] == 41260
     assert ds.attrs["record_count"] == 2500
     assert ds.attrs["calibration_tables_present"] is False
-    for var in ds.variables.values():
-        assert var.data.size == 0
+    # load=False 的目的是**不加载大数组**（每通道 2500x2291/9164）；
+    # 逐行元信息（scan_count/line_quality/... 各 2500 点，共几十 KB）必须读出来，
+    # 否则产品定义解码时 ds.load() 会因 read_variable 只认 8 个图像通道而失败。
+    for name, var in ds.variables.items():
+        if var.data.ndim == 2 and var.data.size:
+            raise AssertionError(f"{name} 是二维图像通道，load=False 时不应加载")
+    # 一维元信息允许且应当已填充
+    assert ds["scan_count"].data.size == 2500
 
 
 def test_sample_full_disc_structure(sample):
