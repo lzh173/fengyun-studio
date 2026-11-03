@@ -289,8 +289,14 @@ class MainWindow(QtWidgets.QMainWindow):
         self.screen_stack.setCurrentIndex(index)
         for i, btn in enumerate(self._nav_buttons):
             btn.setChecked(i == index)
-        # 主界面显示影像画布，工作台自己有画布，右栏属性面板对后三屏意义不大
-        self._dock_right.setVisible(index == SCREEN_MAIN)
+        # 主界面显示影像画布，工作台自己有画布。
+        # 左右两块停靠面板都要在后三屏隐藏：
+        # 每个工作台都自带更贴切的侧栏（02 是视口/图层、03 是队列/解析器、
+        # 04 是图层树），主停靠面板留在那儿会与之重叠成两块"数据源"。
+        on_main = index == SCREEN_MAIN
+        self._dock_right.setVisible(on_main)
+        if getattr(self, "_dock_left", None) is not None:
+            self._dock_left.setVisible(on_main)
         if index == SCREEN_ANALYSIS and self._ds is not None:
             self.workspace.set_dataset(self._ds)
         elif index == SCREEN_FIGURE and self._ds is not None:
@@ -568,6 +574,14 @@ class MainWindow(QtWidgets.QMainWindow):
 
     def _on_rendered(self, arr) -> None:
         self.unsetCursor()
+        # 画布换了数据后必须重建叠加层映射：
+        # _ensure_overlays 在加载时用的是占位图尺寸(600x800)，
+        # 真实影像(2000x2048)到位后若不重建，海岸线会按错误尺寸换算坐标。
+        if arr is not None and getattr(self, "_overlay", None) is not None:
+            try:
+                self._ensure_overlays()
+            except Exception:                   # noqa: BLE001
+                pass
         if arr is None:
             return
         self.canvas.set_array(arr)

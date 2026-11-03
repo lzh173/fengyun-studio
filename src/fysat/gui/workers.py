@@ -53,7 +53,12 @@ class Worker(QtCore.QRunnable):
         try:
             sig.emit(payload)
         except RuntimeError as exc:
-            sys.stderr.write(f"任务结果无法投递（{exc}）: {str(payload)[:200]}\n")
+            # 窗口已销毁时结果无处投递，属正常现象；不要把整个数组打印出来
+            # （ndarray 的 repr 能有几十行，会把真实错误淹没）
+            desc = f"{type(payload).__name__}"
+            if hasattr(payload, "shape"):
+                desc += f" shape={getattr(payload, 'shape', None)}"
+            sys.stderr.write(f"任务结果已丢弃（{exc}）: {desc}\n")
 
 
 @dataclass

@@ -251,7 +251,11 @@ def render_science_figure(
     """
     import matplotlib
 
-    matplotlib.use("Agg", force=False)
+    # 必须 force=True：GUI 启动时 app.py 已把后端设成 QtAgg，
+    # force=False 不会切换，图就在 Qt 后端里创建 —— 在无头/后台线程下
+    # 会引发堆损坏（退出码 0xC0000374）或直接段错误。
+    # 本模块只往文件出图，从不需要交互后端，一律用 Agg。
+    matplotlib.use("Agg", force=True)
     import matplotlib.pyplot as plt
     from matplotlib.colors import Normalize
 

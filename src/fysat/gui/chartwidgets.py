@@ -216,8 +216,15 @@ class StatSummary:
         return 100.0 * self.n_valid / self.n_total if self.n_total else 0.0
 
     def as_dict(self) -> dict[str, float]:
+        """键名必须与 StatsGrid.CELLS 里用的字段名一致。
+
+        早期这里写的是 "min"/"max"，而 CELLS 取的是 "vmin"/"vmax"，
+        于是 .get(k, nan) 永远拿不到值 → 统计面板的"最小值/最大值"
+        恒显示「—」，而均值/标准差正常 —— 典型的"功能存在但不可用"。
+        """
         return {
-            "min": self.vmin, "max": self.vmax, "mean": self.mean, "std": self.std,
+            "vmin": self.vmin, "vmax": self.vmax,
+            "mean": self.mean, "std": self.std,
             "valid_pct": self.valid_pct, "n_valid": float(self.n_valid),
         }
 
@@ -1123,17 +1130,37 @@ class CanvasOverlay(QtWidgets.QWidget):
     @staticmethod
     def _stroke_polyline(p: QtGui.QPainter, xs: np.ndarray, ys: np.ndarray,
                          rect: QtCore.QRect) -> None:
-        if xs.size < 2:
+        if xs.size < 2 or ys.size < 2:
             return
-        # 完全落在控件外的折线跳过
-        if np.nanmax(xs) < rect.left() - 8 or np.nanmin(xs) > rect.right() + 8:
+        x = np.asarray(xs, dtype=np.float64)
+        y = np.asarray(ys, dtype=np.float64)
+        ok = np.isfinite(x) & np.isfinite(y)
+        if not ok.all():
+            # 有坏点时按连续段重画，避免 NaN 进入 QPainterPath
+            idx = np.flatnonzero(ok)
+            if idx.size < 2:
+                return
+            cuts = np.flatnonzero(np.diff(idx) > 1)
+            for a, b in zip(np.r_[0, cuts + 1], np.r_[cuts, idx.size - 1]):
+                sl = idx[a:b + 1]
+                if sl.size >= 2:
+                    CanvasOverlay._stroke_polyline(p, x[sl], y[sl], rect)
             return
-        if np.nanmax(ys) < rect.top() - 8 or np.nanmin(ys) > rect.bottom() + 8:
+
+        # 全部落在控件外就跳过（用安全阈值，避免超大值参与比较）
+        if x.max() < rect.left() - 8 or x.min() > rect.right() + 8:
             return
+        if y.max() < rect.top() - 8 or y.min() > rect.bottom() + 8:
+            return
+
+        lim = 32000.0   # QPainterPath 用定点数，超大坐标会破坏内部缓冲区
+        x = np.clip(x, -lim, lim)
+        y = np.clip(y, -lim, lim)
+
         path = QtGui.QPainterPath()
-        path.moveTo(float(xs[0]), float(ys[0]))
-        for x, y in zip(xs[1:], ys[1:]):
-            path.lineTo(float(x), float(y))
+        path.moveTo(float(x[0]), float(y[0]))
+        for xi, yi in zip(x[1:], y[1:]):
+            path.lineTo(float(xi), float(yi))
         p.drawPath(path)
 
 
