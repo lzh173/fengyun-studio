@@ -436,14 +436,24 @@ class FigureBench(QtWidgets.QWidget):
         root = QtWidgets.QHBoxLayout(self)
         root.setContentsMargins(0, 0, 0, 0)
         root.setSpacing(0)
-        root.addWidget(self._build_left())
-        root.addWidget(self._build_center(), 1)
-        root.addWidget(self._build_right())
+        # 三栏合计恰好等于窗口宽度时，只要窗口略窄或系统有 DPI 缩放，
+        # 固定宽度的右栏就会被整个挤出屏幕之外 —— 用户看到的就是
+        # "制图工作台没有导出按钮"。所以中间栏必须允许收缩到很小，
+        # 左/右栏保持固定宽度。
+        left = self._build_left()
+        center = self._build_center()
+        right = self._build_right()
+        center.setMinimumWidth(280)
+        center.setSizePolicy(QtWidgets.QSizePolicy.Ignored,
+                             QtWidgets.QSizePolicy.Preferred)
+        root.addWidget(left)
+        root.addWidget(center, 1)
+        root.addWidget(right)
         self._update_layout_hint()
 
     def _build_left(self) -> QtWidgets.QWidget:
         left = QtWidgets.QWidget()
-        left.setFixedWidth(252)
+        left.setFixedWidth(236)
         left.setStyleSheet(f"background:{theme.PANEL};border-right:1px solid {theme.LINE};")
         lay = QtWidgets.QVBoxLayout(left)
         lay.setContentsMargins(0, 0, 0, 0)
@@ -542,6 +552,12 @@ class FigureBench(QtWidgets.QWidget):
         cl = QtWidgets.QVBoxLayout(canvas)
         cl.setContentsMargins(14, 12, 14, 12)
         self.preview = QtWidgets.QLabel("点击「刷新预览」生成制图")
+        # 预览图会远比可用空间大，若让 QLabel 按像素图定尺寸，
+        # 它会把中间栏撑到图片宽度，把右栏挤出去。
+        self.preview.setSizePolicy(QtWidgets.QSizePolicy.Ignored,
+                                   QtWidgets.QSizePolicy.Ignored)
+        self.preview.setMinimumSize(240, 160)
+        self.preview.setScaledContents(False)
         self.preview.setAlignment(QtCore.Qt.AlignCenter)
         self.preview.setStyleSheet(
             "background:#0a0c10;border:1px solid #1c2430;border-radius:6px;"
@@ -577,7 +593,7 @@ class FigureBench(QtWidgets.QWidget):
 
     def _build_right(self) -> QtWidgets.QWidget:
         right = QtWidgets.QWidget()
-        right.setFixedWidth(316)
+        right.setFixedWidth(300)
         right.setStyleSheet(f"background:{theme.PANEL};border-left:1px solid {theme.LINE};")
         lay = QtWidgets.QVBoxLayout(right)
         lay.setContentsMargins(0, 0, 0, 0)

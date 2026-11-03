@@ -113,6 +113,13 @@ class MainWindow(QtWidgets.QMainWindow):
         self.act_figure.setShortcut("Ctrl+4")
         self.act_figure.triggered.connect(self.open_figure_bench)
 
+        # 制图工作台的导出入口。它的"导出…"按钮在右栏最底部，
+        # 窗口较窄或系统有 DPI 缩放时右栏会被挤出可视区，
+        # 用户就"找不到导出按钮"。这里再给一个永远可达的入口。
+        self.act_figure_export = QtGui.QAction("导出制图…", self)
+        self.act_figure_export.setShortcut("Ctrl+Shift+S")
+        self.act_figure_export.triggered.connect(self.export_figure_bench)
+
         self.act_main_screen = QtGui.QAction("主界面", self)
         self.act_main_screen.setShortcut("Ctrl+1")
         self.act_main_screen.triggered.connect(lambda: self.goto_screen(SCREEN_MAIN))
@@ -310,6 +317,7 @@ class MainWindow(QtWidgets.QMainWindow):
         m_file.addAction(self.act_opendir)
         m_file.addSeparator()
         m_file.addAction(self.act_science)
+        m_file.addAction(self.act_figure_export)
         m_file.addAction(self.act_export)
         m_file.addSeparator()
         m_file.addAction(self.act_quit)
@@ -353,6 +361,7 @@ class MainWindow(QtWidgets.QMainWindow):
         tb.addAction(self.act_figure)
         tb.addSeparator()
         tb.addAction(self.act_science)
+        tb.addAction(self.act_figure_export)
         tb.addAction(self.act_export)
         self.addToolBar(tb)
 
@@ -635,6 +644,27 @@ class MainWindow(QtWidgets.QMainWindow):
             QtWidgets.QMessageBox.information(self, "提示", "请先打开产品")
             return
         self.goto_screen(SCREEN_FIGURE)
+
+    def export_figure_bench(self) -> None:
+        """从任意界面直接导出制图工作台当前的成品。
+
+        制图工作台的「导出…」按钮在右栏底部，窗口较窄或系统有 DPI 缩放时
+        右栏会被挤出可视区。这个入口保证导出随时可达。
+        """
+        if self._ds is None:
+            QtWidgets.QMessageBox.information(self, "提示", "请先打开产品")
+            return
+        fb = getattr(self, "figurebench", None)
+        if fb is None:
+            QtWidgets.QMessageBox.information(self, "提示", "制图工作台不可用")
+            return
+        if hasattr(fb, "set_dataset"):
+            fb.set_dataset(self._ds, self._selection)
+        # 有 export()（弹一次对话框）就直接用；否则退回 export_to
+        if hasattr(fb, "export"):
+            fb.export()
+        elif hasattr(fb, "export_to"):
+            fb.export_to(Path.cwd() / "figure.png")
 
     def open_analysis_bench(self) -> None:
         if self._ds is None:

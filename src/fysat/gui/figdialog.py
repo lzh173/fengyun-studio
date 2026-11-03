@@ -14,6 +14,7 @@ import numpy as np
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from ..sciencefig import FigureSpec, render_science_figure
+from .bandindex import band_labels, resolve_preset
 from .varcatalog import classify_dataset
 
 
@@ -84,14 +85,14 @@ class ScienceFigureDialog(QtWidgets.QDialog):
 
         g_data = QtWidgets.QGroupBox("数据通道")
         f_data = QtWidgets.QFormLayout(g_data)
-        self.cmb_thermal = QtWidgets.QComboBox()
-        f_data.addRow("红外通道", self.cmb_thermal)
-        self.cmb_vis_r = QtWidgets.QComboBox()
-        self.cmb_vis_g = QtWidgets.QComboBox()
-        self.cmb_vis_b = QtWidgets.QComboBox()
-        f_data.addRow("可见光 R", self.cmb_vis_r)
-        f_data.addRow("可见光 G", self.cmb_vis_g)
-        f_data.addRow("可见光 B", self.cmb_vis_b)
+        # 每个数据通道 = [数据集下拉] + [通道下拉]
+        # MERSI 的通道分散在 4 个多通道堆栈里，只给数据集的话
+        # 要么三行选到同一个变量（合成退化），要么通道号被写死。
+        self.cmb_thermal, self.cmb_thermal_band = self._make_channel_row(
+            f_data, "红外通道")
+        self.cmb_vis_r, self.cmb_vis_r_band = self._make_channel_row(f_data, "可见光 R")
+        self.cmb_vis_g, self.cmb_vis_g_band = self._make_channel_row(f_data, "可见光 G")
+        self.cmb_vis_b, self.cmb_vis_b_band = self._make_channel_row(f_data, "可见光 B")
         form.addWidget(g_data)
 
         g_style = QtWidgets.QGroupBox("样式")
@@ -163,6 +164,42 @@ class ScienceFigureDialog(QtWidgets.QDialog):
         self.chk_use_selection.toggled.connect(self._sync_region_label)
 
     # ---------- 数据填充 ----------
+    def _make_channel_row(self, form, label: str):
+        """建一行「数据集下拉 + 通道下拉」。"""
+        row = QtWidgets.QWidget()
+        h = QtWidgets.QHBoxLayout(row)
+        h.setContentsMargins(0, 0, 0, 0)
+        h.setSpacing(4)
+        combo = QtWidgets.QComboBox()
+        band = QtWidgets.QComboBox()
+        band.setFixedWidth(104)
+        band.setToolTip("该数据集内部的通道（b 号 + 中心波长）")
+        h.addWidget(combo, 1)
+        h.addWidget(band)
+        form.addRow(label, row)
+        combo.currentIndexChanged.connect(
+            lambda _i, c=combo, b=band: self._sync_band(c, b))
+        return combo, band
+
+    def _sync_band(self, combo, band) -> None:
+        """数据集换了就刷新它的通道下拉。"""
+        name = combo.currentData()
+        labels = band_labels(self._ds, name) if (self._ds and name) else []
+        band.blockSignals(True)
+        band.clear()
+        for i, lab in enumerate(labels):
+            band.addItem(lab, i)
+        band.setEnabled(len(labels) > 1)
+        band.blockSignals(False)
+
+    def _bands_from_ui(self) -> tuple[int, int, int]:
+        """读 R/G/B 三个通道下拉的实际通道号。"""
+        out = []
+        for band in (self.cmb_vis_r_band, self.cmb_vis_g_band, self.cmb_vis_b_band):
+            v = band.currentData()
+            out.append(int(v) if v is not None else 0)
+        return tuple(out)  # type: ignore[return-value]
+
     def _fill_from_dataset(self, ds, current_var: str | None, current_band: int) -> None:
         from .. import pipeline
 
@@ -177,22 +214,46 @@ class ScienceFigureDialog(QtWidgets.QDialog):
         for n in (thermal_cands or images):
             self.cmb_thermal.addItem(n, n)
 
-        # 默认选窗区通道
+        # 默认选 10.7µm 窗区通道，并让用户能看到/更改具体是哪个通道
         wc = pipeline.window_channel(ds)
-        if wc and wc[0] in [n for n in images]:
+        if wc and wc[0] in images:
             idx = self.cmb_thermal.findData(wc[0])
             if idx >= 0:
                 self.cmb_thermal.setCurrentIndex(idx)
-                self._thermal_band = wc[1]
-        else:
-            self._thermal_band = current_band
+        self._sync_band(self.cmb_thermal, self.cmb_thermal_band)
+        self._thermal_band = current_band
+        if wc:
+            pos = self.cmb_thermal_band.findData(int(wc[1]))
+            if pos >= 0:
+                self.cmb_thermal_band.setCurrentIndex(pos)
+                self._thermal_band = int(wc[1])
 
-        for combo, default_band in ((self.cmb_vis_r, 2), (self.cmb_vis_g, 1), (self.cmb_vis_b, 0)):
+        # 可见光三通道默认套用真彩色方案（b3/b2/b1 = 0.65/0.55/0.47 µm）。
+        # 早期这里把通道号写死成 (0,1,2) 并当作 R,G,B —— 等于把红端和蓝端装反，
+        # 而且三个下拉只能选数据集，用户根本改不了。
+        for combo in (self.cmb_vis_r, self.cmb_vis_g, self.cmb_vis_b):
             combo.clear()
             for n in (vis_cands or images):
                 combo.addItem(n, n)
-            combo.setCurrentIndex(0)
-            combo.setProperty("band", default_band)
+
+        plan = resolve_preset(ds, "true_color")
+        if plan is not None:
+            for combo, band, name, idx in (
+                    (self.cmb_vis_r, self.cmb_vis_r_band, plan.names[0], plan.bands[0]),
+                    (self.cmb_vis_g, self.cmb_vis_g_band, plan.names[1], plan.bands[1]),
+                    (self.cmb_vis_b, self.cmb_vis_b_band, plan.names[2], plan.bands[2])):
+                pos = combo.findData(name)
+                if pos < 0:
+                    combo.addItem(name, name)
+                    pos = combo.count() - 1
+                combo.setCurrentIndex(pos)
+                self._sync_band(combo, band)
+                band.setCurrentIndex(idx)
+        else:
+            for combo, band in ((self.cmb_vis_r, self.cmb_vis_r_band),
+                                (self.cmb_vis_g, self.cmb_vis_g_band),
+                                (self.cmb_vis_b, self.cmb_vis_b_band)):
+                self._sync_band(combo, band)
 
         # 标题
         if ds.source:
@@ -261,7 +322,9 @@ class ScienceFigureDialog(QtWidgets.QDialog):
                      self.cmb_vis_g.currentData(),
                      self.cmb_vis_b.currentData())
 
-        thermal_band = getattr(self, "_thermal_band", 0)
+        # 通道号一律从下拉读，不再用写死的值
+        tb = self.cmb_thermal_band.currentData()
+        thermal_band = int(tb) if tb is not None else getattr(self, "_thermal_band", 0)
 
         spec = self._build_spec(out)
         if preview:
@@ -272,7 +335,7 @@ class ScienceFigureDialog(QtWidgets.QDialog):
             ds,
             thermal_var=thermal_var, thermal_band=thermal_band,
             visible_vars=vis_names if spec.layout == "double" else None,
-            visible_bands=(0, 1, 2),
+            visible_bands=self._bands_from_ui(),
             region_px=region,
             max_cells=250_000,
         )
