@@ -509,7 +509,10 @@ def true_color(r: np.ndarray, g: np.ndarray, b: np.ndarray,
         if hi <= lo:
             hi = lo + 1e-6
         chans.append(np.clip((arr - lo) / (hi - lo), 0, 1))
-        m = np.isfinite(arr) & (arr > -0.02) & (arr < 1.4)
+        # 有效性只看有限性。早期这里写死 `arr < 1.4`，那是**只对 0~1 归一化
+        # 反射率成立**的假设；一旦传入原始 DN(0~4095) 或百分数(0~100)，
+        # 几乎所有像元都被判无效，合成结果是全黑。
+        m = np.isfinite(arr)
         valid = m if valid is None else (valid & m)
 
     means = [float(np.nanmean(c)) if np.isfinite(c).any() else 1.0 for c in chans]

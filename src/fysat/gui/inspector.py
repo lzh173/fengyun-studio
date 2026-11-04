@@ -306,27 +306,62 @@ class Inspector(QtWidgets.QWidget):
         band.blockSignals(False)
 
     def _apply_preset(self, _index: int = 0) -> None:
-        """把预设组合填进三个下拉（变量 + 通道）。"""
+        """把选中的合成配方填进三个下拉（变量 + 通道）。"""
         key = self.preset_combo.currentData()
         if not key or self._ds is None:
             return
-        plan = resolve_preset(self._ds, key)
-        if plan is None:
-            self.lbl_rgb_plan.setText(
-                f"{PRESETS[key]['label']}：当前数据缺少所需通道，无法合成")
+        comp = self._presets.get(key)
+        if comp is None:
+            self.lbl_rgb_plan.setText(f"{key}：当前数据缺少所需通道，无法合成")
             return
-        for combo, band, name, idx in (
-                (self.rgb_r, self.rgb_r_band, plan.names[0], plan.bands[0]),
-                (self.rgb_g, self.rgb_g_band, plan.names[1], plan.bands[1]),
-                (self.rgb_b, self.rgb_b_band, plan.names[2], plan.bands[2])):
-            pos = combo.findData(name)
+        if not comp.ready:
+            self.lbl_rgb_plan.setText(
+                f"{comp.label}：缺少通道 {comp.missing()}（该仪器可能没有这些波段）")
+            return
+        for combo, band, ref in ((self.rgb_r, self.rgb_r_band, comp.refs[0]),
+                                 (self.rgb_g, self.rgb_g_band, comp.refs[1]),
+                                 (self.rgb_b, self.rgb_b_band, comp.refs[2])):
+            pos = combo.findData(ref.variable)
             if pos < 0:
-                self.lbl_rgb_plan.setText(f"预设需要的数据集 {name} 不在候选里")
-                return
+                combo.addItem(ref.variable, ref.variable)
+                pos = combo.count() - 1
             combo.setCurrentIndex(pos)
             self._sync_band_combo(combo, band)
-            band.setCurrentIndex(idx)
-        self.lbl_rgb_plan.setText(f"{plan.label}：{plan.desc}\n{plan.summary()}")
+            band.setCurrentIndex(ref.index)
+        self.lbl_rgb_plan.setText(f"{comp.label}：{comp.desc}")
+
+    def _refresh_presets(self) -> None:
+        """按当前产品的**分产品合成配方**填充预设下拉。
+
+        不同仪器的合成互不相同（GHI 有严格真彩色、AGRI 只能伪彩、
+        AVHRR 只有一个可见光通道），配方来自 composites/composites.yml，
+        通道号由 bands.yml 的查找表解析成实际数据集+下标。
+        """
+        self._presets = {}
+        if self._ds is None:
+            return
+        self.preset_combo.blockSignals(True)
+        self.preset_combo.clear()
+        self.preset_combo.addItem("（预设组合）", None)
+
+        try:
+            from .. import composites as _comp
+
+            items = [c for c in _comp.composites_for(self._ds) if c.kind == "rgb"]
+        except Exception:                       # noqa: BLE001
+            items = []
+
+        for c in items:
+            self._presets[c.key] = c
+            label = c.label if c.ready else f"{c.label}（不可用）"
+            self.preset_combo.addItem(label, c.key)
+            i = self.preset_combo.count() - 1
+            item = self.preset_combo.model().item(i)
+            if item is not None:
+                item.setEnabled(c.ready)
+                item.setToolTip(c.desc if c.ready
+                                else f"缺少通道 {c.missing()}")
+        self.preset_combo.blockSignals(False)
 
     def _fill_rgb_choices(self, base_shape: tuple | None) -> None:
         """按当前影像的形状填充 RGB 下拉，避免用户选出尺寸不匹配的组合。"""
@@ -346,30 +381,7 @@ class Inspector(QtWidgets.QWidget):
             self._sync_band_combo(combo, band)
         self._refresh_presets()
 
-    def _refresh_presets(self) -> None:
-        """按当前数据集把**解析不出来**的预设置灰，而不是让它点了没反应。"""
-        if self._ds is None:
-            return
-        for i in range(self.preset_combo.count()):
-            key = self.preset_combo.itemData(i)
-            if not key:
-                continue
-            plan = resolve_preset(self._ds, key)
-            item = self.preset_combo.model().item(i)
-            if item is None:
-                continue
-            if plan is None:
-                item.setEnabled(False)
-                why = ("需要波段差值运算（暂未实现）"
-                       if PRESETS[key].get("bands") and any(
-                           "split" in str(s) for s in PRESETS[key]["bands"])
-                       else "当前数据缺少所需通道")
-                item.setToolTip(f"{PRESETS[key]['label']}：{why}")
-            else:
-                item.setEnabled(True)
-                item.setToolTip(f"{plan.desc}")
 
-    # ---------- 信号 ----------
     def _on_var_row_changed(self) -> None:
         rows = self.var_table.selectionModel().selectedRows()
         if not rows:

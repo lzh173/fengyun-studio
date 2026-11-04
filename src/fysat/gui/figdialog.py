@@ -236,12 +236,32 @@ class ScienceFigureDialog(QtWidgets.QDialog):
             for n in (vis_cands or images):
                 combo.addItem(n, n)
 
-        plan = resolve_preset(ds, "true_color")
+        # 优先用「分产品合成配方」：不同仪器能做的合成不一样
+        #（GHI 有严格真彩色、AGRI 只能伪彩、AVHRR 只有一个可见光通道）
+        plan = None
+        try:
+            from .. import composites as _comp
+
+            rgb_ok = [c for c in _comp.composites_for(ds) if c.kind == "rgb" and c.ready]
+            if rgb_ok:
+                plan = rgb_ok[0]
+        except Exception:                       # noqa: BLE001
+            plan = None
+        if plan is None:
+            plan = resolve_preset(ds, "true_color")
+        # 归一化：Composite 用 refs（.variable/.index），RgbPlan 用 names/bands
+        names = bands = None
         if plan is not None:
+            if hasattr(plan, "refs"):
+                names = tuple(r.variable for r in plan.refs)
+                bands = tuple(r.index for r in plan.refs)
+            else:
+                names, bands = plan.names, plan.bands
+        if names is not None:
             for combo, band, name, idx in (
-                    (self.cmb_vis_r, self.cmb_vis_r_band, plan.names[0], plan.bands[0]),
-                    (self.cmb_vis_g, self.cmb_vis_g_band, plan.names[1], plan.bands[1]),
-                    (self.cmb_vis_b, self.cmb_vis_b_band, plan.names[2], plan.bands[2])):
+                    (self.cmb_vis_r, self.cmb_vis_r_band, names[0], bands[0]),
+                    (self.cmb_vis_g, self.cmb_vis_g_band, names[1], bands[1]),
+                    (self.cmb_vis_b, self.cmb_vis_b_band, names[2], bands[2])):
                 pos = combo.findData(name)
                 if pos < 0:
                     combo.addItem(name, name)
