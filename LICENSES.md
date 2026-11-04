@@ -1,7 +1,9 @@
 # FY-Sat Studio 许可证与合规说明（LICENSES.md）
 
 > 适用项目：**FY-Sat Studio / `fysat`**（风云气象卫星官方数据解码 · 分析 · 制图）
-> 文档版本：**1.1（定稿）** ｜ 审计日期：2026-11-02 ｜ 审计范围：`pyproject.toml` 声明的运行时依赖 + 实际安装环境 `E:\venv\fysat`（Python 3.10.6）中已安装的包 + Qt 6 / PySide6 模块授权
+> 文档版本：**1.2（定稿）** ｜ 审计日期：2026-11-02（1.2 补充 2026-11-04） ｜ 审计范围：`pyproject.toml` 声明的运行时依赖 + 实际安装环境 `E:\venv\fysat`（Python 3.10.6）中已安装的包 + Qt 6 / PySide6 模块授权
+>
+> **1.2 修订（2026-11-04）**：新增 §5.5「借鉴第三方实现（SatDump 等）的合规政策」——结论：AGPLv3 §13 ↔ GPLv3 §13 双向授权，参考/合并 GPLv3 的 SatDump 合法；仅借鉴算法/原理不触发任何 GPL 义务；**红线是 SatDump `resources/` 下的第三方 LUT/色表资产**（独立授权链）。摘要表新增第 11 条。
 > 适用场景：**对外分发**（含安装包、绿色版、容器镜像、以及任何把 Python 包/二进制一并交付给第三方的形式）
 > 对应文件：`LICENSE`（AGPL-3.0 全文 + 附加条款指引）、`THIRD_PARTY_NOTICES.md`（版权声明汇总）、`docs/licenses/`（许可证全文）
 >
@@ -23,8 +25,9 @@
 | 8 | **AGPL 与 LGPLv3 Qt 兼容**：AGPLv3 项目动态链接 LGPLv3 Qt 合法；AGPL 的源码公开义务只作用于「我们自己的代码」，Qt 仍按 LGPLv3 提供（可替换、附全文、附声明）。 | §1.3、§3 |
 | 9 | ✅ **已处理**：根目录 `LICENSE` 已补（AGPL 全文 + 附加条款指引）；`THIRD_PARTY_NOTICES.md`、`docs/licenses/` 全套就绪。**分发前仍需**：About 声明、打包附随与 GPL-only 剪裁（§6）。 | 文件已落地（2026-11-02） |
 | 10 | ✅ **已实现（技术层）**：导出 TIFF/PNG 默认写入 provenance 元数据（software / version / source_url / modified / commit / generated_at），这是「数据来源/是否修改」诉求的最强保障。 | `src/fysat/provenance.py`、`src/fysat/export.py`（§1.4） |
+| 11 | **参考 SatDump（GPL-3.0-or-later）实现思路合法**：AGPLv3 §13 与 GPLv3 §13 双向授权，合并分发合法；若仅借鉴算法/物理原理，则连 GPL 义务都不触发。**唯一红线是 SatDump `resources/` 下的第三方 LUT/色表资产**（独立授权链，不受 GPL 覆盖）。 | §5.5；实测 `src/` 中 SatDump 引用 0 处 |
 
-> 说明：第 6、7 条已由开发负责人于 2026-11-02 修复，并由 `tests/test_license_compliance.py` 固化检查（§5.5）；第 5 条（wheel 剪裁）需在发布打包时落实（检查清单 C-06）。
+> 说明：第 6、7 条已由开发负责人于 2026-11-02 修复，并由 `tests/test_license_compliance.py` 固化检查（§5.6）；第 5 条（wheel 剪裁）需在发布打包时落实（检查清单 C-06）。
 
 ---
 
@@ -389,7 +392,51 @@
 | Nuitka 2.6.9 | Apache-2.0 | ✅ 可用（若采用） |
 | cx_Freeze / 其他 | 未安装 | 采用前先审计 |
 
-### 5.5 自动化合规测试（已上线）
+### 5.5 借鉴第三方实现（SatDump 等 GPL/其他项目）的合规政策
+
+> 背景：本项目图像合成的实现思路需参考 **SatDump**（GPL-3.0-or-later，含 lzh173/SD-ZH 中文化 fork）。本节给出结论与操作规则，适用于所有「参考他项目实现」的场景。
+
+**① 许可证层面：GPLv3 与我们的 AGPL-3.0-only 可以合并**
+- **AGPLv3 §13 第 2 段**（`docs/licenses/AGPL-3.0.txt` L190）：`you have permission to link or combine any covered work with a work licensed under version 3 of the GNU General Public License into a single combined work, and to convey the resulting work.`
+- **GPLv3 §13**（`docs/licenses/GPL-3.0.txt` L182-183）：镜像条款，同样允许合并。
+- 结论：即使直接把 SatDump 的 GPLv3 代码并入本项目，也**合法**（GPL 部分保持 GPLv3，本项目部分保持 AGPL），无需闭源风险；与 `analysis/satpy_evaluation.md` §1 对 satpy（GPLv3）的结论一致。
+
+**② 「只取思路」比「抄代码」更安全，且通常更实用**
+
+| 维度 | 说明 |
+|---|---|
+| 著作权保护对象 | 保护**表达**（代码、结构、注释、脚本），**不保护**思想、算法、数学公式、操作方法。真彩色合成 = 逐通道拉伸 + 白平衡 + 饱和增强，属物理/数学范畴，不构成侵权 |
+| 语言差异 | C++ → Python 本身排除逐字复制；残余风险仅为「结构/顺序组织的实质相似」 |
+| 留痕建议 | 参考时记录**概念**（波段组合、拉伸区间、阈值、公式），不保留 C++ 片段；必要时在 `analysis/` 下记一份来源与学习记录，作为将来举证材料 |
+
+**③ 三条红线（真正会出事的）**
+
+| 级别 | 禁止事项 | 说明 |
+|---|---|---|
+| 🔴 P0 | **复制 SatDump `resources/` 下的第三方资产** | 这些资产**不受 GPL 覆盖**，各有独立授权链：`resources/lut/goes/abi/wxstar/`（Harry Dove-Robinson 设计，见其 README）、`resources/fy2/svissr/LUT.png`（@eswnl 的 FY-2x_CLUT，README 注明「with permission」——**该许可是给 SatDump 的，不自动延伸到我们**）、`WXtoImg-*.png`（WXtoImg 遗留色表）。要使用须**逐项取得原作者许可**并在 `docs/licenses/components/` 留存证据 |
+| 🔴 P0 | **复制 `resources/scripted_compos/*.lua`、合成表达式 JSON/配置** | Lua 脚本与 muParser 表达式属**可版权表达**，不是思想 |
+| 🟡 P1 | **若确实引入 GPLv3 代码却未留痕** | GPLv3 §5 要求：显著标注修改（a）、声明整体按本许可发布（b）、整体按 GPL 授权（c）；同时须在 `THIRD_PARTY_NOTICES.md` 登记 |
+
+**④ 本项目现状（2026-11-04 核查，合规）**
+
+| 检查项 | 结果 |
+|---|---|
+| `src/` 中是否含 SatDump 代码或引用 | ✅ **0 处**（全仓库仅 `PLAN.md` 一句「不做射频接收，属 SatDump 范畴」，属范围划界，非引用） |
+| `composites/composites.yml`、`bands.yml` 来源 | ✅ 头部逐条标注 NSMC 说明书与 HDF5 属性（`Effect_Center_WaveLength`、`band_name`），来源可追溯 |
+| `render.composite()` 架构 | ✅ 三通道合并分位数统一拉伸（`shared_range`）；SatDump 为 muParser 逐像素表达式求值 —— **架构不同**，不构成实质相似 |
+| `palettes.py` 色表 | ✅ `IR_ENHANCED_STOPS` 为自研 8 段色表，非 SatDump `resources/lut/` 资产 |
+| `pipeline.py` 注释「移植自参考实现 fy3f_mersi_l1.py」 | ✅ 该文件为**本项目作者自有脚本**（`2026-10-31\fy3f_mersi3_l1\fy3f_mersi_l1.py`，docstring 声明依据 NSMC《FY-3F MERSI-III L1 产品使用说明》），不涉第三方许可 |
+| 是否使用 SatDump 的 LUT/Lua/配置资产 | ✅ **0 处** |
+
+**⑤ 判据速查（团队执行用）**
+
+> 只读**算法与物理原理**（波段组合、公式、阈值、参数）→ ✅ 安全，记录概念即可
+> 复制**代码/脚本/配置文件** → 在 AGPL 项目中合法，但须按 GPLv3 §5 留痕并登记 NOTICE
+> 复制 `resources/` 里的**图片/LUT/色表** → 🚫 停止，逐项核实原作者授权
+
+---
+
+### 5.6 自动化合规测试（已上线）
 
 `tests/test_license_compliance.py` 已把本文件的硬约束固化为自动测试（任何一项失败即视为可能引入 GPL 污染，禁止发布）：
 
@@ -477,6 +524,9 @@
 | QT_API 强制（1.1 复核） | `src/fysat/gui/app.py::_force_pyside6_backend()`：`os.environ.setdefault("QT_API", "pyside6")` + `matplotlib.use("QtAgg", force=True)`（在 import pyplot 之前） |
 | 溯源元数据（1.1 复核） | `src/fysat/provenance.py`（`build_provenance` / `as_text` / `as_png_text` / `read_*_provenance`）+ `src/fysat/export.py`（TIFF `description=` / PNG `PngInfo` 默认写入） |
 | 自动化合规测试（1.1 复核） | `tests/test_license_compliance.py` + `tests/test_provenance.py`；2026-11-02 实测 **21 项全部通过** |
+| SatDump 许可核实（1.2 新增，2026-11-04） | 本地 `D:\下载\SatDump-1.2.2`：`LICENSE` = GNU GPL v3 全文；`git remote -v` → `git@github.com:lzh173/SD-ZH.git`（本项目作者的中文化 fork，上游为 `SatDump/SatDump`）；源码头 `SPDX-License-Identifier: GPL-3.0-or-later`（`logging.h` 等）；GitHub API `SatDump/SatDump` → `license.spdx_id = GPL-3.0` |
+| SatDump 第三方资产授权（1.2 新增） | `resources/lut/goes/abi/wxstar/README.md` → 作者 Harry Dove-Robinson（wx-star，独立授权）；`resources/fy2/svissr/README.md` → 作者 @eswnl / FY-2x_CLUT，「with permission」（仅授予 SatDump）；`resources/lut/WXtoImg-*.png` 为 WXtoImg 遗留色表 |
+| 本项目与 SatDump 相似性核查（1.2 新增） | `grep -ri satdump src/` → 0 处（仅 `PLAN.md` 范围划界说明）；`composites.yml`/`bands.yml` 头部标注来源为 NSMC 文档与 HDF5 属性；`render.composite()` 为分位数统一拉伸架构，与 SatDump muParser 逐像素表达式不同 |
 
 ### 8.2 官方在线来源（授权结论依据）
 

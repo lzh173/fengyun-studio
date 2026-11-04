@@ -54,7 +54,7 @@ def band_table(instrument: str) -> dict[int, dict]:
 
 
 def band_wavelength(instrument: str, channel: int) -> float | None:
-    """取通道中心波长（µm）；只给了 range 时取中点。"""
+    """取通道中心波长（µm）；只给了 range 时取中点。微波通道返回 None。"""
     c = band_table(instrument).get(channel)
     if not c:
         return None
@@ -64,6 +64,32 @@ def band_wavelength(instrument: str, channel: int) -> float | None:
     if r and len(r) == 2:
         return (float(r[0]) + float(r[1])) / 2.0
     return None
+
+
+def band_frequency(instrument: str, channel: int) -> float | None:
+    """取通道中心频率（GHz）；光学通道返回 None。"""
+    c = band_table(instrument).get(channel)
+    return float(c["ghz"]) if c and "ghz" in c else None
+
+
+def band_value(instrument: str, channel: int) -> tuple[float | None, str]:
+    """返回 (数值, 单位)，单位是 "um" 或 "GHz"。"""
+    um = band_wavelength(instrument, channel)
+    if um is not None:
+        return um, "um"
+    ghz = band_frequency(instrument, channel)
+    if ghz is not None:
+        return ghz, "GHz"
+    return None, ""
+
+
+def in_file_info(instrument: str) -> dict:
+    """该仪器在文件内的通道存放方式（bands.yml 的 in_file 段）。"""
+    return (instruments().get(instrument) or {}).get("in_file") or {}
+
+
+def quantity_of(instrument: str) -> str:
+    return str((instruments().get(instrument) or {}).get("quantity", "wavelength_um"))
 
 
 # ---------------- 仪器识别 ----------------
@@ -86,8 +112,13 @@ def instrument_of(ds) -> str | None:
         return "ghi"
     if "AGRI" in text or "NOMCHANNEL15" in joined:
         return "agri"
-    if "AVHRR" in text:
-        return "avhrr"
+    if "AVHRR" in text or "MVISR" in text:
+        # FY-1D 的十通道扫描辐射计在文件名里也标 AVHRR_HRPT，
+        # 但它有 CH1..CH10，与 NOAA 的 5 通道 AVHRR/3 不是同一张表。
+        chans = [n for n in names if re.fullmatch(r"CH\d{1,2}", str(n))]
+        return "fy1_mvisr" if len(chans) >= 8 else "avhrr_noaa"
+    if "MWRI" in text:
+        return "mwri"
     if any(k in text for k in ("VISSR", "FDI", "S-VISSR")) or "NOMCHANNELIR1" in joined:
         return "vissr"
     if re.search(r"\bFY-?2", text):
@@ -152,6 +183,8 @@ def _locate_named(ds, channel: int) -> tuple[str, int] | None:
     return (got, 0) if got else None
 
 
+ALIASES = {"avhrr": "avhrr_noaa"}
+
 _LOCATORS = {
     "band_name": _locate_by_band_name,
     "nomchannel": _locate_nomchannel,
@@ -208,6 +241,7 @@ def composites_for(ds, instrument: str | None = None) -> list[Composite]:
     inst = instrument or instrument_of(ds)
     if not inst:
         return []
+    inst = ALIASES.get(inst, inst)
     raw = (_composites().get("composites") or {}).get(inst) or []
     out: list[Composite] = []
     for item in raw:

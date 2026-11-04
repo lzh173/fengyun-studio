@@ -21,12 +21,12 @@ from fysat import composites
 
 def test_all_instruments_present():
     inst = composites.instruments()
-    for key in ("mersi", "agri", "ghi", "vissr", "avhrr"):
+    for key in ("mersi", "agri", "ghi", "vissr", "avhrr_noaa"):
         assert key in inst, f"缺少仪器 {key}"
 
 
 @pytest.mark.parametrize("inst,count", [
-    ("mersi", 25), ("agri", 15), ("ghi", 6), ("vissr", 5), ("avhrr", 6),
+    ("mersi", 25), ("agri", 15), ("ghi", 6), ("vissr", 5), ("avhrr_noaa", 6),
 ])
 def test_channel_counts(inst, count):
     assert len(composites.band_table(inst)) == count
@@ -45,7 +45,7 @@ def test_documented_wavelengths(inst, ch, um):
 def test_range_only_channels_use_midpoint():
     """只给了波段范围的通道（AVHRR/FY-2）取中点作为代表波长。"""
     # AVHRR ch1 = 0.58-0.68 → 0.63
-    assert composites.band_wavelength("avhrr", 1) == pytest.approx(0.63, abs=0.01)
+    assert composites.band_wavelength("avhrr_noaa", 1) == pytest.approx(0.63, abs=0.01)
     # FY-2 IR1 = 10.3-11.3 → 10.8
     assert composites.band_wavelength("vissr", 1) == pytest.approx(10.8, abs=0.05)
 
@@ -149,7 +149,7 @@ def test_avhrr_channels_locate():
     from fysat.readers import open_file
 
     ds = open_file(f, load=False)
-    assert composites.instrument_of(ds) == "avhrr"
+    assert composites.instrument_of(ds) == "avhrr_noaa"
     ready = composites.ready_composites(ds)
     assert len(ready) >= 3, f"AVHRR 应能解析多条合成，实际 {[c.key for c in ready]}"
 

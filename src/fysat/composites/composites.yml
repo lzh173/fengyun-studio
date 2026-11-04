@@ -133,7 +133,7 @@ composites:
       channels: [5]
       cmap: gray
 
-  avhrr:
+  avhrr_noaa:
     # AVHRR 只有一个可见光通道，做不了真彩色；用近红外做伪彩。
     - key: pseudo_color
       label: 伪彩（近红外）
