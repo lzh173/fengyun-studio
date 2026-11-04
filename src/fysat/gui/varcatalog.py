@@ -27,8 +27,13 @@ class VarClass:
 
     @property
     def is_image(self) -> bool:
-        """能否直接当图像显示（二维或可拆的通道栈）。"""
-        return self.kind in ("image", "band_stack")
+        """能否直接当图像显示（二维影像 / 可拆的通道栈 / 质量码平面）。
+
+        质量码与云掩膜本质就是二维平面，能画也能导出；
+        早期把 qa 排除在外，导致 FY-3D CLM 这类"整个产品就是掩膜"
+        的数据被判成"无可成像变量"，完全用不了。
+        """
+        return self.kind in ("image", "band_stack", "qa")
 
     @property
     def is_rgb_candidate(self) -> bool:
@@ -51,8 +56,14 @@ def classify(name: str, shape: tuple[int, ...], unit: str = "",
 
     base = low.rsplit("/", 1)[-1]
 
-    # 坐标轴
-    if ndim == 1 and any(base == h or base.startswith(h) for h in coord_hint):
+    # 坐标轴 / 定位数据：**与维数无关**。
+    # 2-D 的 Latitude/Longitude 是逐像元定位场，不是可展示影像；
+    # 早期只判 ndim==1，导致"回退选一个影像来渲染"时挑到 Latitude。
+    if any(base == h or base.startswith(h) for h in coord_hint):
+        return VarClass(name, "coord", shape, unit=unit)
+    # 行列号/扫描线号也是索引数组，同理
+    if any(base.startswith(h) for h in ("columnnumber", "rownumber", "column_",
+                                        "row_", "linenumber", "pixel")):
         return VarClass(name, "coord", shape, unit=unit)
     # 质量码（必须早于 table 判定：QA_Frame_Flag 同时含 "frame" 与 "flag"，
     # 而它本质是质量码，不是标定表）

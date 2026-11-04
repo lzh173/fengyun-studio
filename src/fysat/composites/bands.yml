@@ -1,0 +1,107 @@
+# 各仪器「通道号 → 中心波长/波段范围」查找表
+#
+# 数据来源逐个标注，**不臆造**：
+#   - MERSI: 文件全局属性 Effect_Center_WaveLength（25 个）+ 各数据集 band_name 属性
+#            文档：FY-3D_L1_Data_Instruction_MERSI-II_1KM.md / _250M.md
+#   - AGRI : FY4B_AGRI_DISK_L1_4KM_HDF_V1.0.md 表1（SDS1..SDS15）
+#            FY4A_AGRI_L1_4KM_V3.0.md 同表
+#   - GHI  : FY-4B_REGX_GHI_0500M.md 表1（SDS1..SDS6）
+#   - VISSR: VISSR_AVHRR_Distribution_Format_AWX2.1.md（IR1 10.3-11.3、IR2 水汽 6.3-7.6）
+#            + FY-2 业务通道定义；IR4 的波长未在本次查阅的文档中直接给出 → 标 unverified
+#   - AVHRR: noaa_1b_format.md 表5.2「AVHRR 光谱通道特征」
+#
+# 字段说明：
+#   um       中心波长（µm）；range 为波段范围时用 [lo, hi]
+#   type     reflective（太阳反射）/ thermal（热发射）/ pan（全色）
+#   verified 该数值是否在文档中直接读到
+#
+version: 1
+
+instruments:
+
+  mersi:
+    label: FY-3 MERSI（中分辨率光谱成像仪）
+    doc: "FY-3D_L1_Data_Instruction_MERSI-II_1KM.md；数值取自文件属性 Effect_Center_WaveLength"
+    locate: band_name        # 通道分散在多个多通道堆栈里，靠 band_name 属性定位
+    channels:
+      1:  {um: 0.470, type: reflective, name: 蓝,   verified: true}
+      2:  {um: 0.550, type: reflective, name: 绿,   verified: true}
+      3:  {um: 0.650, type: reflective, name: 红,   verified: true}
+      4:  {um: 0.865, type: reflective, name: 近红外, verified: true}
+      5:  {um: 1.380, type: reflective, name: 卷云, verified: true}
+      6:  {um: 1.640, type: reflective, name: 短波红外, verified: true}
+      7:  {um: 2.130, type: reflective, name: 短波红外, verified: true}
+      8:  {um: 0.412, type: reflective, name: 紫,   verified: true}
+      9:  {um: 0.444, type: reflective, name: 蓝紫, verified: true}
+      10: {um: 0.490, type: reflective, name: 蓝绿, verified: true}
+      11: {um: 0.556, type: reflective, name: 绿,   verified: true}
+      12: {um: 0.671, type: reflective, name: 红,   verified: true}
+      13: {um: 0.708, type: reflective, name: 红边, verified: true}
+      14: {um: 0.746, type: reflective, name: 红边, verified: true}
+      15: {um: 0.865, type: reflective, name: 近红外, verified: true}
+      16: {um: 0.906, type: reflective, name: 水汽, verified: true}
+      17: {um: 0.936, type: reflective, name: 水汽, verified: true}
+      18: {um: 0.938, type: reflective, name: 水汽, verified: true}
+      19: {um: 1.029, type: reflective, name: 近红外, verified: true}
+      20: {um: 3.796, type: thermal,    name: 中红外, verified: true}
+      21: {um: 4.051, type: thermal,    name: 中红外, verified: true}
+      22: {um: 7.215, type: thermal,    name: 水汽, verified: true}
+      23: {um: 8.553, type: thermal,    name: 长波红外, verified: true}
+      24: {um: 10.714, type: thermal,   name: 窗区,  verified: true}
+      25: {um: 11.963, type: thermal,   name: 分裂窗, verified: true}
+
+  agri:
+    label: FY-4A/B AGRI（先进静止轨道辐射成像仪）
+    doc: "FY4B_AGRI_DISK_L1_4KM_HDF_V1.0.md 表1 SDS1-SDS15"
+    locate: nomchannel        # Data/NOMChannelNN
+    channels:
+      1:  {um: 0.47,  type: reflective, name: 蓝,   verified: true}
+      2:  {um: 0.65,  type: reflective, name: 红,   verified: true}
+      3:  {um: 0.825, type: reflective, name: 近红外, verified: true}
+      4:  {um: 1.379, type: reflective, name: 卷云, verified: true}
+      5:  {um: 1.61,  type: reflective, name: 短波红外, verified: true}
+      6:  {um: 2.225, type: reflective, name: 短波红外, verified: true}
+      7:  {um: 3.75,  type: thermal,    name: 中红外(高增益), verified: true}
+      8:  {um: 3.75,  type: thermal,    name: 中红外(低增益), verified: true}
+      9:  {um: 6.25,  type: thermal,    name: 水汽, verified: true}
+      10: {um: 6.95,  type: thermal,    name: 水汽, verified: true}
+      11: {um: 7.42,  type: thermal,    name: 水汽, verified: true}
+      12: {um: 8.55,  type: thermal,    name: 长波红外, verified: true}
+      13: {um: 10.80, type: thermal,    name: 窗区,  verified: true}
+      14: {um: 12.00, type: thermal,    name: 分裂窗, verified: true}
+      15: {um: 13.3,  type: thermal,    name: 二氧化碳, verified: true}
+
+  ghi:
+    label: FY-4B GHI（快速成像仪）
+    doc: "FY-4B_REGX_GHI_0500M.md 表1 SDS1-SDS6"
+    locate: nomchannel
+    channels:
+      1: {um: 0.65,   type: pan,        name: 全色,  verified: false, note: "文档写 Full color channel，未给波长，按 0.65µm 记待核对"}
+      2: {um: 0.47,   type: reflective, name: 蓝,   verified: true}
+      3: {um: 0.545,  type: reflective, name: 绿,   verified: true}
+      4: {um: 0.645,  type: reflective, name: 红,   verified: true}
+      5: {um: 1.3785, type: reflective, name: 卷云, verified: true}
+      6: {um: 1.61,   type: reflective, name: 短波红外, verified: true}
+
+  vissr:
+    label: FY-2 S-VISSR / FDI
+    doc: "VISSR_AVHRR_Distribution_Format_AWX2.1.md（IR1 红外 10.3-11.3、IR2 水汽 6.3-7.6）"
+    locate: named            # NOMChannelIR1 / IR1 / VS1 ...
+    channels:
+      1: {range: [10.3, 11.3], type: thermal, name: IR1 窗区, verified: true}
+      2: {range: [6.3, 7.6],   type: thermal, name: IR2 水汽, verified: true}
+      3: {range: [11.5, 12.5], type: thermal, name: IR3 分裂窗, verified: false, note: "FY-2 业务定义，本次查阅文档未直接列出"}
+      4: {range: [3.5, 4.0],   type: thermal, name: IR4 中红外, verified: false, note: "同上，待核对"}
+      5: {range: [0.55, 0.90], type: reflective, name: VIS 可见光, verified: false, note: "同上，待核对"}
+
+  avhrr:
+    label: NOAA / FY-1 AVHRR
+    doc: "noaa_1b_format.md 表5.2「AVHRR 光谱通道特征」"
+    locate: named            # CH1..CH5
+    channels:
+      1: {range: [0.58, 0.68],  type: reflective, name: 可见光, verified: true}
+      2: {range: [0.725, 1.00], type: reflective, name: 近红外, verified: true}
+      3: {range: [1.58, 1.64],  type: reflective, name: 3A 短波红外, verified: true}
+      4: {range: [3.55, 3.93],  type: thermal,    name: 3B 中红外, verified: true}
+      5: {range: [10.30, 11.30], type: thermal,   name: 窗区,  verified: true}
+      6: {range: [11.50, 12.50], type: thermal,   name: 分裂窗, verified: true}

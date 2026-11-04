@@ -34,8 +34,8 @@ from fysat.render import band_of, display_band, n_bands
     ("Calibration/BB_DN_average", (25, 200), "table"),
     ("NOMObs/NOMObsTime", (10992, 2), "table"),
     ("QA/QA_Frame_Flag", (200,), "qa"),
-    ("Geolocation/Latitude", (400, 410), "image"),
-    ("Geolocation/Longitude", (400, 410), "image"),
+    ("Geolocation/Latitude", (400, 410), "coord"),   # 逐像元定位场，不是影像
+    ("Geolocation/Longitude", (400, 410), "coord"),  # 同上
 ])
 def test_classify_rules(name, shape, expect):
     assert classify(name, shape).kind == expect

@@ -1,0 +1,162 @@
+# 各仪器可用的合成产品（组合配方）
+#
+# 设计原则：
+#   * 只用 bands.yml 里存在的通道；
+#   * 仪器没有对应通道的合成**不写进来**，而不是写一条跑不通的；
+#   * kind: rgb 需要三个通道；kind: single 是单通道伪彩。
+#
+# 通道号一律指 bands.yml 里该仪器的「通道号」，解析成实际数据集/下标
+# 由 composites/__init__.py 的定位器负责（MERSI 靠 band_name 属性，
+# AGRI/GHI 靠 Data/NOMChannelNN，FY-2/AVHRR 靠变量名）。
+#
+version: 1
+
+composites:
+
+  mersi:
+    - key: true_color
+      label: 真彩色
+      desc: R=0.65µm(b3) G=0.55µm(b2) B=0.47µm(b1)
+      kind: rgb
+      channels: [3, 2, 1]
+    - key: natural_nir
+      label: 自然色+近红外
+      desc: R=0.865µm(b4) G=0.65µm(b3) B=0.55µm(b2)，植被偏红
+      kind: rgb
+      channels: [4, 3, 2]
+    - key: window_ir
+      label: 红外窗区 10.7µm
+      desc: 单通道亮温，云顶/地表温度
+      kind: single
+      channels: [24]
+      cmap: turbo
+    - key: wv_ir
+      label: 水汽 7.2µm
+      kind: single
+      channels: [22]
+      cmap: plasma
+    - key: split_window
+      label: 分裂窗 12.0µm
+      kind: single
+      channels: [25]
+      cmap: turbo
+    - key: fire
+      label: 火点
+      desc: R=3.8µm(b20) G=0.865µm(b4) B=10.7µm(b24)
+      kind: rgb
+      channels: [20, 4, 24]
+    - key: cloud_phase
+      label: 云相态
+      desc: R=8.6µm(b23) G=10.7µm(b24) B=12.0µm(b25)
+      kind: rgb
+      channels: [23, 24, 25]
+
+  agri:
+    # AGRI 没有 0.55µm 绿色通道（1=0.47 蓝、2=0.65 红、3=0.825 近红外），
+    # 所以做不了严格真彩色；用近红外伪彩代替，并如实标注。
+    - key: pseudo_color
+      label: 伪彩（近红外）
+      desc: R=0.825µm(ch3) G=0.65µm(ch2) B=0.47µm(ch1)，植被显红
+      kind: rgb
+      channels: [3, 2, 1]
+    - key: window_ir
+      label: 红外窗区 10.8µm
+      desc: 云顶/地表温度
+      kind: single
+      channels: [13]
+      cmap: turbo
+    - key: wv_ir
+      label: 水汽 6.25µm
+      kind: single
+      channels: [9]
+      cmap: plasma
+    - key: split_window
+      label: 分裂窗 12.0µm
+      kind: single
+      channels: [14]
+      cmap: turbo
+    - key: co2_ir
+      label: CO₂ 13.3µm
+      kind: single
+      channels: [15]
+      cmap: inferno
+    - key: fire
+      label: 火点
+      desc: R=3.75µm(ch7) G=0.65µm(ch2) B=10.8µm(ch13)
+      kind: rgb
+      channels: [7, 2, 13]
+
+  ghi:
+    # GHI 六个通道里有 0.47/0.545/0.645，可以出**严格真彩色**
+    - key: true_color
+      label: 真彩色
+      desc: R=0.645µm(ch4) G=0.545µm(ch3) B=0.47µm(ch2)
+      kind: rgb
+      channels: [4, 3, 2]
+    - key: pan
+      label: 全色
+      kind: single
+      channels: [1]
+      cmap: gray
+    - key: cirrus
+      label: 卷云 1.3785µm
+      kind: single
+      channels: [5]
+      cmap: gray
+
+  vissr:
+    - key: window_ir
+      label: 红外窗区 IR1
+      desc: 10.3~11.3µm，云顶/地表温度
+      kind: single
+      channels: [1]
+      cmap: turbo
+    - key: wv_ir
+      label: 水汽 IR2
+      desc: 6.3~7.6µm，中高层水汽
+      kind: single
+      channels: [2]
+      cmap: plasma
+    - key: split_window
+      label: 分裂窗 IR3
+      kind: single
+      channels: [3]
+      cmap: turbo
+    - key: mid_ir
+      label: 中红外 IR4
+      kind: single
+      channels: [4]
+      cmap: inferno
+    - key: visible
+      label: 可见光
+      kind: single
+      channels: [5]
+      cmap: gray
+
+  avhrr:
+    # AVHRR 只有一个可见光通道，做不了真彩色；用近红外做伪彩。
+    - key: pseudo_color
+      label: 伪彩（近红外）
+      desc: R=0.725~1.0µm(ch2) G=可见光(ch1) B=可见光(ch1)
+      kind: rgb
+      channels: [2, 1, 1]
+    - key: visible
+      label: 可见光 0.58~0.68µm
+      kind: single
+      channels: [1]
+      cmap: gray
+    - key: window_ir
+      label: 红外窗区 10.3~11.3µm
+      kind: single
+      channels: [5]
+      cmap: turbo
+    - key: split_window
+      label: 分裂窗 11.5~12.5µm
+      kind: single
+      channels: [6]
+      cmap: turbo
+    - key: night_ir
+      label: 中红外 3.55~3.93µm
+      kind: single
+      channels: [4]
+      cmap: inferno
