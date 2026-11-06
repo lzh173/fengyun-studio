@@ -310,3 +310,154 @@ def reflectance_from_lut(dn, lut, *, percent: bool = True, **kwargs) -> np.ndarr
     if percent:
         out *= np.float32(100.0)
     return out
+
+
+# ======================= FY-4 AGRI / GHI 定标 =======================
+#
+# 依据 FY4B_AGRI_DISK_L1_4KM_HDF_V1.0.md 第 3 章「相关物理量转换方法」：
+#
+#   3.1 太阳反射波段（NOMChannel01-06）
+#       (1) 反射率   rho = DN * SCALE + OFFSET        （CALIBRATION_COEF）
+#           或查表  CALChannelNN 为 DN→反射率 的查找表
+#       (2) 辐亮度   L = rho * ESUN / pi               （ESUN 为通道平均太阳辐照度）
+#       (3) 表观反射率 rho_TOA = rho * d / cos(theta)  （d 见全局属性，theta 见 GEO 文件）
+#
+#   3.2 热红外波段（NOMChannel07-15）
+#       (1) 亮温     CALChannelNN 为 DN→亮温(K) 的查找表
+#       (2) 辐亮度   L = DN * SCALE + OFFSET          （单位 W/(m2·sr·µm)）
+#
+# 实测（FY-4B AGRI 4000M）：
+#   CALChannel01      0 → 1.143            → 反射率是 0~1.14 的小数，**不是百分数**
+#   CALChannel07    405 → 200 (K)          → 热通道 LUT 直接是亮温
+#   COEF[6] = scale -0.00296, offset 12.118 → 热通道 COEF 给的是辐亮度
+#   填充值：65534 = 地球内无效，65535 = 地球外无效
+
+AGRI_COEF_PATHS = (
+    "Calibration/CALIBRATION_COEF(SCALE+OFFSET)",
+    "Calibration/CALIBRATION_COEF",
+    "CALIBRATION_COEF(SCALE+OFFSET)",
+)
+AGRI_FILL_VALUES = (65534, 65535)
+
+
+def agri_calibration(ds) -> dict | None:
+    """判断是不是 FY-4 AGRI / GHI 这类「CALChannel + CALIBRATION_COEF」产品。
+
+    返回 {"coef": ndarray(C,2), "esun": ndarray(C,) | None}，不是则 None。
+    """
+    if ds is None:
+        return None
+    names = list(getattr(ds, "variables", {}) or {})
+
+    coef_name = next((p for p in AGRI_COEF_PATHS if p in names), None)
+    if coef_name is None:
+        return None
+    # 必须有 CALChannelNN 才算（避免把别的产品误判）
+    if not any(n.startswith("Calibration/CALChannel") or n.startswith("CALChannel")
+               for n in names):
+        return None
+
+    import numpy as np
+
+    coef = np.asarray(ds.load(coef_name).data, dtype=np.float64)
+    if coef.ndim != 2 or coef.shape[1] != 2:
+        return None
+    esun = None
+    for p in ("Calibration/ESUN", "ESUN"):
+        if p in names:
+            esun = np.asarray(ds.load(p).data, dtype=np.float64).ravel()
+            break
+    return {"coef": coef, "esun": esun}
+
+
+def agri_channel_table(ds, channel: int):
+    """取该通道的 DN→物理量 查找表（4096 点）；没有则 None。"""
+    import numpy as np
+
+    for p in (f"Calibration/CALChannel{channel:02d}", f"CALChannel{channel:02d}"):
+        if p in (getattr(ds, "variables", {}) or {}):
+            return np.asarray(ds.load(p).data, dtype=np.float64).ravel()
+    return None
+
+
+def _agri_mask(dn, valid_range=None):
+    import numpy as np
+
+    bad = ~np.isfinite(dn)
+    for f in AGRI_FILL_VALUES:
+        bad |= dn == f
+    if valid_range is not None:
+        lo, hi = valid_range
+        bad |= (dn < lo) | (dn > hi)
+    return bad
+
+
+def agri_reflectance(ds, dn, channel: int, valid_range=None):
+    """太阳反射波段：rho = DN*SCALE + OFFSET，返回 0~1 量级的小数反射率。
+
+    文档 3.1(1) 的公式法。查找表法（CALChannelNN）可用 agri_lut_lookup 取。
+    """
+    import numpy as np
+
+    cal = agri_calibration(ds)
+    if cal is None:
+        raise ValueError("该数据集不含 FY-4 AGRI/GHI 定标系数")
+    coef = cal["coef"]
+    if channel < 1 or channel > coef.shape[0]:
+        raise ValueError(f"通道 {channel} 超出定标系数范围 1~{coef.shape[0]}")
+
+    scale, offset = float(coef[channel - 1, 0]), float(coef[channel - 1, 1])
+    rho = np.asarray(dn, dtype=np.float64) * scale + offset
+    bad = _agri_mask(np.asarray(dn, dtype=np.float64), valid_range)
+    return np.where(bad, np.nan, rho).astype(np.float32)
+
+
+def agri_lut_lookup(ds, dn, channel: int, valid_range=None):
+    """用 CALChannelNN 查找表把 DN 换成物理量。
+
+    反射通道得到反射率（0~1 量级），热通道得到**亮温 K**。
+    """
+    import numpy as np
+
+    lut = agri_channel_table(ds, channel)
+    if lut is None:
+        return None
+    d = np.asarray(dn, dtype=np.float64)
+    idx = np.clip(d, 0, lut.size - 1)
+    out = np.interp(idx, np.arange(lut.size), lut)
+    bad = _agri_mask(d, valid_range) | (d > lut.size - 1)
+    return np.where(bad, np.nan, out).astype(np.float32)
+
+
+def agri_bt(ds, dn, channel: int, valid_range=None):
+    """热红外通道亮温（K）：查 CALChannelNN（文档 3.2(1)）。"""
+    out = agri_lut_lookup(ds, dn, channel, valid_range)
+    if out is None:
+        raise ValueError(f"通道 {channel} 缺 CALChannel 查找表，无法换算亮温")
+    return out
+
+
+def agri_radiance(ds, dn, channel: int, valid_range=None):
+    """热红外通道辐亮度 W/(m2·sr·µm)：L = DN*SCALE + OFFSET（文档 3.2(2)）。"""
+    import numpy as np
+
+    cal = agri_calibration(ds)
+    if cal is None:
+        raise ValueError("该数据集不含 FY-4 AGRI/GHI 定标系数")
+    coef = cal["coef"]
+    if channel < 1 or channel > coef.shape[0]:
+        raise ValueError(f"通道 {channel} 超出定标系数范围")
+    scale, offset = float(coef[channel - 1, 0]), float(coef[channel - 1, 1])
+    d = np.asarray(dn, dtype=np.float64)
+    out = d * scale + offset
+    bad = _agri_mask(d, valid_range)
+    return np.where(bad, np.nan, out).astype(np.float32)
+
+
+def agri_solar_irradiance(ds, channel: int) -> float | None:
+    """通道平均太阳辐照度 ESUN（W/(m2·µm)），用于反射率→辐亮度。"""
+    cal = agri_calibration(ds)
+    if not cal or cal.get("esun") is None:
+        return None
+    esun = cal["esun"]
+    return float(esun[channel - 1]) if 0 < channel <= esun.size else None

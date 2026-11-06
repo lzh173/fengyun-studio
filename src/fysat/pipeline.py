@@ -13,6 +13,8 @@
 """
 from __future__ import annotations
 
+import re
+
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -161,6 +163,13 @@ def _slope_of(var, band: int) -> float:
     return float(arr[min(band, arr.size - 1)])
 
 
+
+def _nomchannel_of(var_name: str) -> int | None:
+    """从变量名解析 AGRI/GHI 的通道号，如 Data/NOMChannel13 → 13。"""
+    m = re.search(r"NOMChannel(\d{1,2})\b", str(var_name), re.IGNORECASE)
+    return int(m.group(1)) if m else None
+
+
 def thermal_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
     """取红外通道亮温（K），严格按 FY-3 MERSI 文档的定标链。
 
@@ -173,6 +182,21 @@ def thermal_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
 
     var = ds.load(var_name)
     dn = _band_slice(var, band).astype(np.float64)
+
+    # FY-4 AGRI / GHI：热通道的 CALChannelNN 就是 DN→亮温(K) 的查找表
+    #（FY4B AGRI 文档 3.2(1)）。这类产品没有 MERSI 的 Slope/普朗克系数，
+    # 走不到下面的链路，必须在这里先分派。
+    try:
+        from .calib import agri_bt, agri_calibration
+
+        if agri_calibration(ds) is not None:
+            ch = _nomchannel_of(var_name)
+            if ch is not None:
+                bt = agri_bt(ds, dn, ch, var.valid_range)
+                if bt is not None:
+                    return bt, "K"
+    except Exception:                           # noqa: BLE001
+        pass
 
     # 无效值（文档：65535=数据丢失，65533=探元坏损）
     bad = np.zeros(dn.shape, dtype=bool)
@@ -471,6 +495,20 @@ def visible_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
         if cand in ds.variables:
             coeff = ds.load(cand).data
             break
+
+    # FY-4 AGRI / GHI：没有 VIS_Cal_Coeff，但有 CALIBRATION_COEF + CALChannelNN。
+    # 公式 rho = DN*SCALE + OFFSET（FY4B AGRI 文档 3.1(1)），结果是 0~1.14 的小数。
+    if coeff is None:
+        try:
+            from .calib import agri_calibration, agri_reflectance
+
+            if agri_calibration(ds) is not None:
+                ch = _nomchannel_of(var_name)
+                if ch is not None:
+                    rho = agri_reflectance(ds, dn, ch, var.valid_range)
+                    return np.where(bad, np.nan, rho).astype(np.float32), "1"
+        except Exception:                       # noqa: BLE001
+            pass
 
     refl = None
     if coeff is not None and band < coeff.shape[0]:
