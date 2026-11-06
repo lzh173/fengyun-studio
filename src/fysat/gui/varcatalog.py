@@ -142,3 +142,55 @@ def describe_class(c: VarClass) -> str:
         "qa": "质量码",
         "other": "其他",
     }.get(c.kind, c.kind)
+
+# ---------------- 物理量判定（给变量表显示） ----------------
+
+def physical_label(ds, name: str) -> str:
+    """这个变量做定标后得到什么物理量？
+
+    返回简短标签，给界面上的变量表用：
+        反射率 / 反射率% / 亮温 K / 辐亮度 / DN / DN(无定标)
+    判定依据与实际定标链路一致（pipeline.visible_data / thermal_data）。
+    """
+    import re as _re
+
+    var = (getattr(ds, "variables", {}) or {}).get(name)
+    if var is None:
+        return ""
+    base = str(name).rsplit("/", 1)[-1]
+    low = str(name).lower()
+    attrs = getattr(var, "attrs", {}) or {}
+
+    # AVHRR：数据集自带 band_type / physical_unit
+    bt = str(attrs.get("band_type") or "").lower()
+    unit = str(attrs.get("physical_unit") or "")
+    if bt in ("visible", "near-infrared"):
+        return "反射率%" if unit == "%" else "反射率"
+    if bt == "infrared":
+        return "亮温 K（待定标）"
+
+    # MERSI：反射栈 vs 发射栈
+    if "refsb" in low or "refs" in low:
+        return "反射率"
+    if "emissive" in low:
+        return "亮温 K"
+
+    # AGRI / GHI：NOMChannel01-06 反射，07-15 热
+    m = _re.search(r"NOMChannel(\d{2})\b", base, _re.IGNORECASE)
+    if m:
+        ch = int(m.group(1))
+        if _re.search(r"CALChannel(\d{2})", " ".join(getattr(ds, "variables", {}))):
+            return "反射率" if ch <= 6 else "亮温 K"
+        return "反射率" if ch <= 6 else "亮温 K"
+
+    # FY-2：IRn / VIS
+    if _re.match(r"(NOMChannel)?IR[1-4]$", base, _re.IGNORECASE):
+        has_lut = any(n.endswith(f"CALChannelIR{base[-1]}") for n in getattr(ds, "variables", {}))
+        return "亮温 K" if has_lut else "DN(无定标)"
+    if _re.match(r"(NOMChannel)?(VIS\d*|VS\d)$", base, _re.IGNORECASE):
+        has_lut = any("CALChannelVIS" in n for n in getattr(ds, "variables", {}))
+        return "反射率%" if has_lut else "DN(无定标)"
+
+    return "DN"
+
+

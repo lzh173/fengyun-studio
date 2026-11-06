@@ -461,3 +461,128 @@ def agri_solar_irradiance(ds, channel: int) -> float | None:
         return None
     esun = cal["esun"]
     return float(esun[channel - 1]) if 0 < channel <= esun.size else None
+
+
+# ======================= FY-2 FDI 定标（查找表）=======================
+#
+# FY-2 FDI 产品每个通道自带一张 DN→物理量 的查找表：
+#   Calibration/CALChannelIR1..IR4   DN(0..1023) → 亮温 K
+#   Calibration/CALChannelVIS        DN(0..63)   → 反射率 %
+#
+# 实测（FY-2G FDI）：
+#   CALChannelIR1  1024 点，333.5 K → 119.6 K（随 DN 递减）
+#   CALChannelIR2  1024 点，336.9 K → 112.8 K
+#   CALChannelVIS    64 点，0 → 118.4（百分数）
+#   对应 DN 分布：NOMChannelIR1 323~992，NOMChannelVIS 0~63
+#
+# 注意：FY-2 CSV 容器**没有**定标表（reader 里 calibration_tables_present=False），
+# 只能出 DN，这里不硬造。
+
+FY2_FILL_VALUES = (65535, 65534)
+
+
+def fy2_lut(ds, channel: str):
+    """取 FY-2 某通道的定标查找表；没有则 None。channel 形如 "IR1"/"VIS"。"""
+    import numpy as np
+
+    names = list(getattr(ds, "variables", {}) or {})
+    for p in (f"Calibration/CALChannel{channel}", f"CALChannel{channel}",
+              f"Calibration/CALChannel{channel.upper()}"):
+        if p in names:
+            return np.asarray(ds.load(p).data, dtype=np.float64).ravel()
+    return None
+
+
+def fy2_lookup(ds, dn, channel: str, valid_range=None):
+    """用 FY-2 的 CALChannelNN 查找表把 DN 换成物理量。
+
+    IR 通道得到亮温 K，VIS 通道得到反射率百分数。
+    找不到查找表返回 None（调用方应降级为 DN 并标注）。
+    """
+    import numpy as np
+
+    lut = fy2_lut(ds, channel)
+    if lut is None:
+        return None
+    d = np.asarray(dn, dtype=np.float64)
+    # FY-2 的 DN 有 10bit(IR)/6bit(VIS)，直接用 DN 作下标
+    idx = np.clip(d, 0, lut.size - 1)
+    out = np.interp(idx, np.arange(lut.size), lut)
+    bad = ~np.isfinite(d) | (d > lut.size - 1)
+    for f in FY2_FILL_VALUES:
+        bad |= d == f
+    if valid_range is not None:
+        lo, hi = valid_range
+        bad |= (d < lo) | (d > hi)
+    return np.where(bad, np.nan, out).astype(np.float32)
+
+
+def fy2_channel_kind(ds, channel: str) -> str:
+    """返回 "K"（亮温）或 "%"（反射率百分数），由查找表值域判断。
+
+    实测依据：IR 表 119.6~333.5（K），VIS 表 0~118.4（%）。
+    以 150 为界：上限 > 150 且下限 > 50 视为亮温，否则视为百分数。
+    """
+    import numpy as np
+
+    lut = fy2_lut(ds, channel)
+    if lut is None:
+        return ""
+    lo, hi = float(np.nanmin(lut)), float(np.nanmax(lut))
+    return "K" if (hi > 150 and lo > 50) else "%"
+
+
+# ======================= NOAA AVHRR 可见光定标 =======================
+#
+# NOAA 1B 的可见光/近红外通道用**两段线性**定标（CH1/CH2）：
+#   属性 calibration_groups['operational'] =
+#       {slope1, intercept1, slope2, intercept2, crossover_counts}
+#   DN <= crossover:  rho = DN*slope1 + intercept1
+#   DN >  crossover:  rho = DN*slope2 + intercept2
+# 结果单位是百分数（physical_unit = "%"）。
+#
+# 实测（NOAA-18）：slope1=0.054, intercept1=-2.13, crossover=501,
+#                  slope2=0.161, intercept2=-55.37
+#
+# 热通道（CH3/CH4/CH5）的 1B 系数是 [?, slope, intercept]，文档只写了
+# 「斜率 2^-30，截距 2^-22」的缩放却没有给完整公式，**本模块暂不实现**，
+# 以免像早期"亮温当辐亮度"那样给出错误物理量。
+
+AVHRR_FILL_VALUES = (65535, 65534, 1023, 1022)
+
+
+def avhrr_calibration_group(var, which: str = "operational") -> dict | None:
+    """从 AVHRR 通道数据集的 calibration_groups 属性里取一段定标系数。"""
+    groups = var.attrs.get("calibration_groups")
+    if not isinstance(groups, dict):
+        return None
+    got = groups.get(which) or groups.get("operational")
+    return got if isinstance(got, dict) else None
+
+
+def avhrr_reflectance(var, dn):
+    """NOAA AVHRR 可见光/近红外反射率（百分数），两段线性。
+
+    返回 (values, unit)；没有定标系数时返回 (None, "")。
+    """
+    import numpy as np
+
+    g = avhrr_calibration_group(var)
+    if not g or "slope1" not in g:
+        return None, ""
+
+    s1, i1 = float(g["slope1"]), float(g["intercept1"])
+    s2 = float(g.get("slope2", s1))
+    i2 = float(g.get("intercept2", i1))
+    xover = float(g.get("crossover_counts", 0))
+
+    d = np.asarray(dn, dtype=np.float64)
+    lo_part = d * s1 + i1
+    hi_part = d * s2 + i2
+    out = np.where(d <= xover, lo_part, hi_part)
+
+    bad = ~np.isfinite(d)
+    for f in AVHRR_FILL_VALUES:
+        bad |= d == f
+    unit = str(var.attrs.get("physical_unit") or "%")
+    return np.where(bad, np.nan, out).astype(np.float32), unit

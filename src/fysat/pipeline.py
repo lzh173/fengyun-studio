@@ -164,6 +164,17 @@ def _slope_of(var, band: int) -> float:
 
 
 
+
+def _fy2_tag_of(var_name: str) -> str | None:
+    """从变量名取 FY-2 的通道标签，如 NOMChannelIR1 → IR1、IR1 → IR1、NOMChannelVIS → VIS。"""
+    s = str(var_name).rsplit("/", 1)[-1]
+    m = re.search(r"(?:NOMChannel)?(IR[1-4]|VIS\d*|VS[1-4])\b", s, re.IGNORECASE)
+    if not m:
+        return None
+    tag = m.group(1).upper()
+    return "VIS" if tag.startswith("VIS") else tag
+
+
 def _nomchannel_of(var_name: str) -> int | None:
     """从变量名解析 AGRI/GHI 的通道号，如 Data/NOMChannel13 → 13。"""
     m = re.search(r"NOMChannel(\d{1,2})\b", str(var_name), re.IGNORECASE)
@@ -186,6 +197,19 @@ def thermal_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
     # FY-4 AGRI / GHI：热通道的 CALChannelNN 就是 DN→亮温(K) 的查找表
     #（FY4B AGRI 文档 3.2(1)）。这类产品没有 MERSI 的 Slope/普朗克系数，
     # 走不到下面的链路，必须在这里先分派。
+    # FY-2 FDI：CALChannelIR1..IR4 是 DN→亮温(K) 的查找表
+    tag = _fy2_tag_of(var_name)
+    if tag and tag.startswith("IR"):
+        try:
+            from .calib import fy2_channel_kind, fy2_lookup
+
+            if fy2_channel_kind(ds, tag) == "K":
+                got = fy2_lookup(ds, dn, tag, var.valid_range)
+                if got is not None:
+                    return got, "K"
+        except Exception:                       # noqa: BLE001
+            pass
+
     try:
         from .calib import agri_bt, agri_calibration
 
@@ -507,6 +531,30 @@ def visible_data(ds, var_name: str, band: int = 0) -> tuple[np.ndarray, str]:
                 if ch is not None:
                     rho = agri_reflectance(ds, dn, ch, var.valid_range)
                     return np.where(bad, np.nan, rho).astype(np.float32), "1"
+        except Exception:                       # noqa: BLE001
+            pass
+
+    # FY-2 FDI：CALChannelVIS 是 DN→反射率(%) 的查找表
+    tag = _fy2_tag_of(var_name)
+    if tag and coeff is None:
+        try:
+            from .calib import fy2_lookup
+
+            got = fy2_lookup(ds, dn, tag, var.valid_range)
+            if got is not None:
+                # 统一成 0~1（与 MERSI/AGRI 口径一致）
+                return np.where(bad, np.nan, got / 100.0).astype(np.float32), "1"
+        except Exception:                       # noqa: BLE001
+            pass
+
+    # NOAA AVHRR：CH1/CH2 用两段线性，结果是百分数
+    if coeff is None and re.fullmatch(r"CH[12]", str(var_name).rsplit("/", 1)[-1]):
+        try:
+            from .calib import avhrr_reflectance
+
+            got, _unit = avhrr_reflectance(var, dn)
+            if got is not None:
+                return np.where(bad, np.nan, got / 100.0).astype(np.float32), "1"
         except Exception:                       # noqa: BLE001
             pass
 

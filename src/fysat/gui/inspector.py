@@ -11,7 +11,7 @@ from PySide6 import QtCore, QtGui, QtWidgets
 
 from ..render import COLORMAPS, PRESETS
 from .bandindex import band_labels, resolve_preset
-from .varcatalog import classify_dataset, describe_class, rgb_choices
+from .varcatalog import classify_dataset, describe_class, physical_label, rgb_choices
 
 STRETCH_PRESETS = [
     ("2% – 98%（推荐）", (2.0, 98.0)),
@@ -83,7 +83,7 @@ class Inspector(QtWidgets.QWidget):
         lay.addWidget(self.var_hint)
 
         self.var_table = QtWidgets.QTableWidget(0, 4)
-        self.var_table.setHorizontalHeaderLabels(["变量", "形状", "类型"])
+        self.var_table.setHorizontalHeaderLabels(["变量", "形状", "类型", "物理量"])
         self.var_table.setColumnWidth(0, 190)
         self.var_table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
         self.var_table.horizontalHeader().setStretchLastSection(True)
@@ -126,7 +126,7 @@ class Inspector(QtWidgets.QWidget):
         lay.addWidget(hint)
 
         self.aux_table = QtWidgets.QTableWidget(0, 4)
-        self.aux_table.setHorizontalHeaderLabels(["变量", "形状", "类型"])
+        self.aux_table.setHorizontalHeaderLabels(["变量", "形状", "类型", "物理量"])
         self.aux_table.setColumnWidth(0, 190)
         self.aux_table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.Interactive)
         self.aux_table.horizontalHeader().setStretchLastSection(True)
@@ -261,6 +261,11 @@ class Inspector(QtWidgets.QWidget):
             self.var_table.setItem(i, 0, item)
             self.var_table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(c.shape)))
             self.var_table.setItem(i, 2, QtWidgets.QTableWidgetItem(describe_class(c)))
+            phys = QtWidgets.QTableWidgetItem(physical_label(ds, n))
+            if "无定标" in phys.text():
+                phys.setForeground(QtGui.QColor("#f59e0b"))
+                phys.setToolTip("该产品没有定标表，显示与导出的是原始 DN，不是物理量")
+            self.var_table.setItem(i, 3, phys)
 
         n_img = len(names)
         self.var_hint.setText(
