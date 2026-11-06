@@ -1,9 +1,31 @@
-# FY-Sat Studio
+# FY-Sat Studio · 风云卫星解码工作台
+
+[![CI](https://github.com/lzh173/fengyun-studio/actions/workflows/ci.yml/badge.svg)](https://github.com/lzh173/fengyun-studio/actions/workflows/ci.yml)
+[![Build](https://github.com/lzh173/fengyun-studio/actions/workflows/build.yml/badge.svg)](https://github.com/lzh173/fengyun-studio/actions/workflows/build.yml)
+[![License: AGPL-3.0](https://img.shields.io/badge/license-AGPL--3.0-blue.svg)](LICENSE)
+[![Python](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](pyproject.toml)
 
 风云卫星**官方数据**解码 · 分析 · 制图。
 不处理射频接收链路（CADU/LRIT/Viterbi/DES），只处理 NSMC 分发产品。
 
-> 计划与范围：[PLAN.md](PLAN.md) ｜ 当前进度见本文件「实现状态」
+```bash
+git clone https://github.com/lzh173/fengyun-studio
+cd fengyun-studio
+pip install -e ".[gui]"
+python -m fysat.gui.app
+```
+
+> **计划与范围**：[PLAN.md](PLAN.md) ｜ 运行说明：[RUNNING.md](RUNNING.md) ｜ 当前进度见本文件「实现状态」
+>
+> **命名说明**：发行名（仓库 / PyPI）是 `fengyun-studio`，Python 导入名是 `fysat`。
+> 这属于常见做法（如 `Pillow` → `import PIL`），改导入名要动全部 `from fysat.` 引用，收益不抵风险。
+>
+> **与本项目无关的相似名字**：Unidata netCDF-Java 的 CDM 文件类型 `FYSAT`（指 FY-2 AWX 格式数据）
+> 和 CMA 的算法试验平台 `FYSAT-S`，都是各自独立的既有名称，与本项目没有关系。
+>
+> **免责**：本项目为第三方开源工具，**与国家卫星气象中心（NSMC）/ 中国气象局（CMA）
+> 无隶属、无授权、无背书关系**。"风云 / FengYun / FY" 是其卫星系列名称，此处仅作描述性使用。
+> 数据版权与使用条款由数据提供方决定，本项目不附带任何卫星数据。
 
 ---
 

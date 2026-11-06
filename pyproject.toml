@@ -3,7 +3,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "fysat"
+name = "fengyun-studio"
 version = "0.1.0"
 description = "风云卫星官方数据解码 · 分析 · 制图"
 readme = "README.md"
@@ -33,12 +33,12 @@ dependencies = [
     "scipy>=1.10",          # nc3 读取器（NetCDF-3，scipy.io.netcdf_file）
 ]
 
-# TODO(发布前)：把下面的 <org> 换成实际组织/用户名
 [project.urls]
-Homepage = "https://github.com/<org>/fysat"
-Documentation = "https://github.com/<org>/fysat/blob/main/README.md"
-Issues = "https://github.com/<org>/fysat/issues"
-Changelog = "https://github.com/<org>/fysat/blob/main/PLAN.md"
+Homepage = "https://github.com/lzh173/fengyun-studio"
+Documentation = "https://github.com/lzh173/fengyun-studio/blob/main/README.md"
+Issues = "https://github.com/lzh173/fengyun-studio/issues"
+Changelog = "https://github.com/lzh173/fengyun-studio/blob/main/PLAN.md"
+Source = "https://github.com/lzh173/fengyun-studio"
 
 [project.optional-dependencies]
 # 许可证：PySide6 元包会连带安装 PySide6-Addons，
@@ -64,6 +64,9 @@ fysat = "fysat.cli:main"
 [tool.setuptools]
 license-files = ["LICENSE", "LICENSES.md", "THIRD_PARTY_NOTICES.md"]
 
+# 发行名是 fengyun-studio，但 **import 名保持 fysat**。
+# 这是常见做法（Pillow → import PIL、beautifulsoup4 → import bs4），
+# 改导入名要动 src 下所有 from fysat. 引用，收益不抵风险。
 [tool.setuptools.package-data]
 # 这些 YAML/GeoJSON 是运行时必需数据（产品定义、合成配方、海岸线），
 # 不声明的话 pip 装出来的包会缺文件，程序启动即报找不到产品定义。
