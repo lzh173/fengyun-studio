@@ -24,7 +24,7 @@
 #   - L265-L269 LandSeaMask   char [2000,2048] FillValue 255
 #
 # 真实样本
-#   Y:\download-data\**\FY3[HCDEF]_MERSI_*_L1_*GEO*.HDF
+#   FY3[HCDEF]_MERSI_*_L1_*GEO*.HDF
 #   （PLAN.md §1.4 记录：FY-3H MERSI L1 GEOQK 2 个，0.91 GB）
 #
 # 本定义**未通过真实文件回归**（见 pending_verification）

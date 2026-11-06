@@ -1,10 +1,35 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
+SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
+
+
+def _require_sample_root() -> Path:
+    """开发脚本必须显式指定样本目录，避免把某台机器的路径写进仓库。"""
+    if not str(SAMPLE_ROOT) or not SAMPLE_ROOT.is_dir():
+        raise SystemExit(
+            "请先设置环境变量 FYSAT_SAMPLE_ROOT 指向 NSMC 产品目录\n"
+            "  PowerShell:  $env:FYSAT_SAMPLE_ROOT = \"D:\\samples\"\n"
+            "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
+    return SAMPLE_ROOT
+
+_OUT = Path(__file__).resolve().parents[1] / "out"
+
+
+def _sample(rel: str) -> Path:
+    return SAMPLE_ROOT / rel
+
+
 # -*- coding: utf-8 -*-
-"""探测 Y:\download-data 中每个数据族的真实容器格式（忽略 .enp）。"""
+"""探测样本目录中每个数据族的真实容器格式（忽略 .enp）。"""
 import os
 
 import h5py
 
-ROOT = r"Y:\download-data"
+ROOT = SAMPLE_ROOT
 SKIP = {".enp", ".db", ".png", ".jpg", ".json", ".xml", ".txt", ".csv", ".npy", ".npz", ".cbor"}
 
 

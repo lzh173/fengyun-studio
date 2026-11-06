@@ -1,145 +1,130 @@
-# 启动说明
+# 启动与运行说明
 
-## 最快的方式
+## 一、先配置样本目录（可选但建议）
 
-双击或命令行运行：
-
-```powershell
-E:\CODEX-NOworkspaces\fysat\bin\fysat-gui.cmd
-```
-
-无控制台窗口，直接弹出图形界面。
-
-带文件直接打开：
+程序**不随包分发**卫星数据。要把界面数据树和回归测试接到你自己的产品目录：
 
 ```powershell
-E:\CODEX-NOworkspaces\fysat\bin\fysat-gui.cmd "Y:\download-data\FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_20261027120000_20261027121459_4000M_V0001.HDF"
+# PowerShell
+$env:FYSAT_SAMPLE_ROOT = "D:\samples"
+$env:FYSAT_SOURCE_DIRS = "E:\more-data"     # 可选，多个用分号分隔
 ```
+
+```bash
+# bash / zsh
+export FYSAT_SAMPLE_ROOT=/data/samples
+```
+
+不配置也能启动，只是数据树为空；需要真实样本的测试会自动 skip。
 
 ---
 
-## 三种启动方式
+## 二、启动方式
 
 ### 1. 图形界面
 
 | 命令 | 用途 |
 |---|---|
-| `bin\fysat-gui.cmd` | 正常启动，无控制台窗口 |
-| `bin\fysat-gui-debug.cmd` | 带控制台，出问题看日志（启动失败时用这个） |
-| `bin\fysat.cmd gui` | 命令行方式启动 GUI |
+| `bin\fysat-gui.cmd` | Windows 正常启动，无控制台窗口 |
+| `bin\fysat-gui-debug.cmd` | Windows 带控制台，启动失败时用它看 traceback |
+| `python -m fysat.gui.app` | 任意平台通用 |
+| `python -m fysat.cli gui` | 与上一行等价 |
+
+带文件直接打开：
+
+```powershell
+bin\fysat-gui.cmd "D:\samples\FY4B-...4000M_V0001.HDF"
+bin\fysat-gui.cmd "D:\samples"                    # 打开整个目录
+```
 
 ### 2. 命令行
 
 ```powershell
 bin\fysat.cmd --version
-bin\fysat.cmd info <文件>              # 文件概况：卫星/仪器/变量/定位
-bin\fysat.cmd ls <文件>                # 内部结构
-bin\fysat.cmd vars <文件> --only2d     # 可导出的二维变量
-bin\fysat.cmd export ...               # 导出（见下）
-bin\fysat.cmd formats                  # 三种导出形式说明
+bin\fysat.cmd info   <文件>              # 卫星 / 仪器 / 变量 / 定位方式
+bin\fysat.cmd ls     <文件>              # 内部结构树
+bin\fysat.cmd vars   <文件> --only2d     # 可导出的二维变量
+bin\fysat.cmd export <文件> <变量> --kind tiff --out a.tif
+bin\fysat.cmd formats                    # 三种导出形式说明
+bin\fysat.cmd products                   # 已内置的产品定义
+bin\fysat.cmd product  <文件>            # 该文件匹配到哪个产品定义
+bin\fysat.cmd batch    <目录> --out out\batch --kind png_compressed
 ```
 
-### 3. 直接用 Python（不依赖 .cmd）
+启动脚本的解释器查找顺序：`%FYSAT_PYTHON%` → PATH 上的 `python` / `pythonw`。
+用虚拟环境时把它指过去即可，不必改脚本：
 
 ```powershell
-E:\venv\fysat\Scripts\python.exe -m fysat.cli --version
-E:\venv\fysat\Scripts\python.exe -m fysat.gui.app
-```
-
-> 若不用 `bin\*.cmd`，需先设 `PYTHONPATH=E:\CODEX-NOworkspaces\fysat\src`。
-> 当前环境已通过 `fysat_src.pth` 把 `src` 挂进 venv，所以 `python -c "import fysat"` 直接可用。
-
----
-
-## 把 `fysat` 加成全局命令（可选）
-
-把 bin 目录加进用户 PATH，之后任意目录都能直接敲 `fysat`：
-
-```powershell
-[Environment]::SetEnvironmentVariable(
-  "Path",
-  [Environment]::GetEnvironmentVariable("Path", "User") + ";E:\CODEX-NOworkspaces\fysat\bin",
-  "User"
-)
-```
-
-新开一个终端生效，然后：
-
-```powershell
-fysat info "Y:\download-data\xxx.HDF"
-fysat-gui
+$env:FYSAT_PYTHON = "C:\venvs\fysat\Scripts\python.exe"
 ```
 
 ---
 
-## 导出示例
+## 三、导出
+
+只有三种形式（这是刻意的设计，不做更多选项）：
+
+| `--kind` | 内容 | 适用 |
+|---|---|---|
+| `tiff` | 全画质无损，保留原始位深与波段数，可选 LZW/Deflate | 存档、再分析 |
+| `png_full` | 全分辨率 PNG | 看图、分享 |
+| `png_compressed` | 指定缩放与压缩级别 | 网页、文档 |
+
+所有导出默认嵌入**溯源元数据**（软件名/版本/许可证/源码地址/是否修改/commit/generated_at）：
 
 ```powershell
-# TIFF 全画质（保留原始 16 位 DN）
-bin\fysat.cmd export "Y:\...\FY4B-...1000M_V0001.HDF" Data/NOMChannel02 `
-    --kind tiff --out D:\out\ch02.tif
-
-# PNG 全画质（16 位无损，原始分辨率）
-bin\fysat.cmd export "..." Data/NOMChannel02 --kind png_full --out D:\out\ch02.png
-
-# PNG 压缩强度可调（8 位，可缩放）
-bin\fysat.cmd export "..." Data/NOMChannel02 --kind png_compressed `
-    --out D:\out\ch02_s.png --level 9 --scale 0.25 --cmap turbo
-
-# 物理量（先定标再导出）
-bin\fysat.cmd export "..." Data/NOMChannel02 --physical --kind png_full --out a.png
-
-# 通配符批量
-bin\fysat.cmd export "..." "Data/NOMChannel0*" --kind png_compressed --out D:\out\batch.png
-```
-
-导出的 TIFF/PNG 会自动带溯源元数据（软件名、版本、AGPL 许可、是否修改、git commit、生成时间）：
-
-```powershell
-E:\venv\fysat\Scripts\python.exe -c "import sys; sys.path.insert(0,'E:\CODEX-NOworkspaces\fysat\src'); from fysat.provenance import read_png_provenance; print(read_png_provenance(r'D:\out\ch02_s.png'))"
+python -c "from fysat.provenance import read_png_provenance; print(read_png_provenance('a.png'))"
 ```
 
 ---
 
-## GUI 操作
+## 四、无显示环境（服务器 / CI）
 
-| 操作 | 说明 |
-|---|---|
-| `Ctrl+O` | 打开单个产品文件 |
-| `Ctrl+Shift+O` / 左栏「打开目录」 | 打开目录，按容器类型分组列出 |
-| 双击文件 / 双击变量 | 打开产品 / 显示变量 |
-| 滚轮 | 缩放（0.01x – 80x） |
-| 拖动 | 平移 |
-| `F` 或 `0` | 适应窗口 |
-| `1` | 1:1 原始像素 |
-| 工具栏「框选」 | 拖拽选区，`Esc` 退出 |
-| `Ctrl+E` | 导出（三种形式） |
-| 鼠标移动 | 状态栏显示像素坐标、值、缩放比例、经纬度范围 |
-
-右侧三个标签页：
-
-- **属性** — 卫星/仪器/层级/时间/定位范围 + 完整全局属性表
-- **变量** — 所有变量及形状、类型、单位
-- **显示** — 色标、拉伸区间、伽马、RGB 三通道合成
+```bash
+export QT_QPA_PLATFORM=offscreen
+python -m pytest tests -q
+```
 
 ---
 
-## 常见问题
+## 五、测试
 
-**启动没反应 / 闪退**
-用 `bin\fysat-gui-debug.cmd` 启动，会保留控制台并打印错误。
-
-**中文显示成方框**
-`theme.ensure_cjk_font()` 会自动注册微软雅黑。若仍异常，检查 `C:\Windows\Fonts\msyh.ttc` 是否存在。
-
-**`ImportError: No module named PySide6`**
-```powershell
-E:\venv\fysat\Scripts\python.exe -m pip install PySide6-Essentials==6.12.0
+```bash
+python -m pytest tests -q                     # 全量
+python -m pytest tests -q -k "not gui"        # 跳过 GUI
+FYSAT_SAMPLE_ROOT=/data/samples python -m pytest tests -q   # 带真实样本
 ```
-注意**不要**装裸 `PySide6`——会拉入含 GPL-only 模块的 Addons，违反本项目的 LGPLv3 合规约束。
 
-**磁盘空间**
-C: 已满。pip 缓存与临时目录请指向 E:：
-```powershell
-$env:PIP_CACHE_DIR='E:\pipcache'; $env:TMP='E:\tmp'; $env:TEMP='E:\tmp'
+没有 `FYSAT_SAMPLE_ROOT` 时，依赖卫星产品的用例会 skip，其余全部可跑通。
+
+两个审查脚本用于验证"功能是否真能用"，不依赖肉眼：
+
+```bash
+python scripts/audit_gui.py            # 主界面 13 项功能探针
+python scripts/audit_benches.py        # 三个工作台 9 项深度探针
+python scripts/audit_all_products.py   # 对样本目录里每类产品跑完整链路
 ```
+
+---
+
+## 六、常见问题
+
+**界面中文显示成方块**
+系统缺少中文字体。程序会尝试注册 `msyh`（微软雅黑）等常见字体；
+Linux 上装一个中文字体即可：`apt install fonts-noto-cjk`。
+
+**`Cannot find font directory ... PySide6/lib/fonts`**
+Qt 6 不再随包提供字体，属正常提示，不影响运行。
+
+**启动报 `No module named fysat`**
+没走启动脚本时，需要 `pip install -e .` 或把 `src` 加进 `PYTHONPATH`。
+
+**GUI 起来但数据树为空**
+没配 `FYSAT_SAMPLE_ROOT`，或该目录里没有可识别的产品文件。
+用 `bin\fysat.cmd info <文件>` 先确认单个文件能被识别。
+
+**想用 satpy 后端**
+`pip install -e ".[satpy]"`。satpy 会带来约 370 MB 依赖，
+且需要与数据同目录的 **GEO 定位文件**才能得到经纬度；
+没有 GEO 时程序会标 `geo_missing=True` 并降级为无定位读取。
+详见 [analysis/satpy_evaluation.md](analysis/satpy_evaluation.md)。

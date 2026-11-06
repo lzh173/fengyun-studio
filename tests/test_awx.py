@@ -1,5 +1,6 @@
 """AWX 2.1 读取器测试：合成文件（定标表全覆盖）+ 真实样本回归（无样本时跳过）。"""
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import struct
 from datetime import datetime
@@ -13,7 +14,7 @@ from fysat.detect import sniff
 from fysat.model import SatDataset
 from fysat.readers import awx, open_file
 
-SAMPLE_DIR = Path(r"Y:\download-data\A202610310424037331")
+SAMPLE_DIR = SAMPLE_ROOT / r"A202610310424037331"
 SAMPLE_AWX = SAMPLE_DIR / "MST2_SEC_VIS_LCN_20151204_0032.AWX"
 SAMPLE_AWX2 = SAMPLE_DIR / "MST2_SEC_VIS_LCN_20151204_0101.AWX"
 

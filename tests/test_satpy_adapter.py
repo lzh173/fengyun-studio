@@ -14,6 +14,7 @@
 - 有 GEO 时拿得到经纬度，没 GEO 时 `attrs["geo_missing"] is True` 且数据仍可读。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import glob
 import importlib.util
@@ -29,7 +30,7 @@ from fysat.readers import satpy_adapter as SA
 
 # 隔离安装目录（验收环境把 satpy 装在这里，主环境不装）。
 SATPY_PATH = Path(r"E:\tmp\satpytest")
-SAMPLE_ROOT = Path(r"Y:\download-data")
+SAMPLE_ROOT = SAMPLE_ROOT
 
 
 def _ensure_satpy() -> bool:

@@ -1,4 +1,28 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
+SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
+
+
+def _require_sample_root() -> Path:
+    """开发脚本必须显式指定样本目录，避免把某台机器的路径写进仓库。"""
+    if not str(SAMPLE_ROOT) or not SAMPLE_ROOT.is_dir():
+        raise SystemExit(
+            "请先设置环境变量 FYSAT_SAMPLE_ROOT 指向 NSMC 产品目录\n"
+            "  PowerShell:  $env:FYSAT_SAMPLE_ROOT = \"D:\\samples\"\n"
+            "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
+    return SAMPLE_ROOT
+
+_OUT = Path(__file__).resolve().parents[1] / "out"
+
+
+def _sample(rel: str) -> Path:
+    return SAMPLE_ROOT / rel
+
+
 """GUI 功能可执行性审查：逐项调用既有功能，记录"能不能用"。
 
 不靠肉眼点，而是程序化触发每个入口，把失败原因抓下来。
@@ -69,7 +93,7 @@ def main() -> int:
     sample = None
     for pat in ("FY3D_MERSI_GBAL_L1_*1000M_MS.HDF",
                 "FY3H_MERSI_GRAN_L1_*1000M*.HDF"):
-        hits = sorted(Path(r"Y:\download-data").rglob(pat))
+        hits = sorted(SAMPLE_ROOT.rglob(pat))
         hits = [h for h in hits if h.stat().st_size > 10_000_000]
         if hits:
             sample = hits[0]
@@ -163,7 +187,7 @@ def main() -> int:
             from fysat.render import display_band
             var = win._ds.load(win._current_var)
             data = display_band(var, win._current_band, physical=True)
-            out = Path(r"E:\CODEX-NOworkspaces\fysat\out\audit") / f"a_{kind}.png"
+            out = OUT_ROOT / r"audit" / f"a_{kind}.png"
             out.parent.mkdir(parents=True, exist_ok=True)
             opts = ExportOptions(kind=kind, path=out, scale=0.2 if kind == "png_compressed" else 1.0)
             opts.provenance = build_provenance(win._ds, variable=win._current_var)
@@ -176,7 +200,7 @@ def main() -> int:
     def t_science():
         from fysat.gui.figdialog import ScienceFigureDialog
         dlg = ScienceFigureDialog(win, ds=win._ds, region_px=win._selection)
-        out = dlg._render(Path(r"E:\CODEX-NOworkspaces\fysat\out\audit\science.png"))
+        out = dlg._render(OUT_ROOT / r"audit\science.png")
         if not out.exists() or out.stat().st_size < 5000:
             raise RuntimeError("科学图输出异常")
         dlg.close()

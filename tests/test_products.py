@@ -13,6 +13,7 @@
 所以每个 verified: true 的定义都必须有一条对应的真实样本测试。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import glob
 from pathlib import Path
@@ -29,7 +30,7 @@ from fysat.products import (
 )
 from fysat.products.schema import FieldDef, ProductDefError
 
-SAMPLE_ROOT = Path(r"Y:\download-data")
+SAMPLE_ROOT = SAMPLE_ROOT
 
 
 # ---------------------------------------------------------------- 工具

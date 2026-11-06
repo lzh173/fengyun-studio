@@ -77,7 +77,7 @@
 
 **v1.0 不涉及**：HDF4（FY-3A/B）、微波定标、超光谱（GIIRS/HIRAS）、广播链路（LRIT/HRIT）。
 
-### 1.4 样本盘点（`Y:\download-data` 实测，已忽略 `.enp` 与 GK-2A）
+### 1.4 样本盘点（`<样本目录>` 实测，已忽略 `.enp` 与 GK-2A）
 
 共 **511 个文件 / 18.8 GB**（排除 ENVI 临时文件 `.enp`、缩略图库 `Thumbs.db`、以及非 NSMC 的 GK-2A 快视图）。
 
@@ -361,7 +361,7 @@ tests/golden/*.json     （回归基线：首像元值、行列均值、BT 范�
 
 | 组件 | 选型 | 版本 | 说明 |
 |---|---|---|---|
-| 语言/运行时 | Python | 3.10（`D:\py310`，已装） | 生态最全，团队可控 |
+| 语言/运行时 | Python | 3.10（`<python>`，已装） | 生态最全，团队可控 |
 | GUI | **PySide6** | 6.8+ | Qt6，QGraphicsView 做大幅面影像，LGPL |
 | 数值 | numpy / scipy | 已装 | 全部重活 |
 | HDF5 | h5py | 已装 | **HDF5 与 NetCDF-4 同一个库**，省一个依赖 |
@@ -391,8 +391,8 @@ C: 0 MB、D: 197 MB 可用 → **全部装 E:**：
 ```powershell
 setx PIP_CACHE_DIR  E:\pipcache
 setx TMP            E:\tmp
-python -m venv E:\venv\fysat
-E:\venv\fysat\Scripts\pip install PySide6 netCDF4 pyproj PyYAML tifffile
+python -m venv <venv>
+<venv>\Scripts\pip install PySide6 netCDF4 pyproj PyYAML tifffile
 ```
 
 ---
@@ -408,7 +408,7 @@ E:\venv\fysat\Scripts\pip install PySide6 netCDF4 pyproj PyYAML tifffile
 
 设计语言：深色、青色主色（`#22d3ee`）、中文界面、四屏共用工具条与状态栏。
 
-> 渲染稿：`E:\CODEX-NOworkspaces\ui-mockup\01_main.png` ~ `04_figure.png`
+> 渲染稿：`docs/mockups/01_main.png` ~ `04_figure.png`（设计稿，未随仓库分发）
 
 ---
 
@@ -484,7 +484,7 @@ E:\venv\fysat\Scripts\pip install PySide6 netCDF4 pyproj PyYAML tifffile
 | `samples/fy3h_mersi_l1_figure.png` | 真实 FY-3H 数据、真实定标、双面板制图样板 |
 | `samples/make_sample_figure.py` | 上述样板图的可复现脚本（约 130 行） |
 | `analysis/corpus_inventory.json` | 265 篇文档的格式/族/层级盘点 |
-| `analysis/sample_matrix.md` | `Y:\download-data` 的样本盘点表（511 文件 / 18.8 GB） |
+| `analysis/sample_matrix.md` | `<样本目录>` 的样本盘点表（511 文件 / 18.8 GB） |
 | `analysis/inspect_formats.py` · `inspect_raw_formats.py` | 容器魔数探测脚本（HDF5/HDF4/NC3/1B/AWX） |\n| `analysis/probe_samples.py` | 真实样本结构探针（FY-4B/FY-3F/FY-3G/FY-2G） |\n| `analysis/instrument_gap.md` | 仪器维度缺口分析（补哪个文件救回多少篇） |
 | `assets/ne_110m_coastline.geojson` | Natural Earth 110m 海岸线（公有领域） |
 | `ui-mockup/01_main.png` … `04_figure.png` | 四屏 UI 渲染稿 |

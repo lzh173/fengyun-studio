@@ -1,4 +1,28 @@
-# -*- coding: utf-8 -*-
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
+SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
+
+
+def _require_sample_root() -> Path:
+    """开发脚本必须显式指定样本目录，避免把某台机器的路径写进仓库。"""
+    if not str(SAMPLE_ROOT) or not SAMPLE_ROOT.is_dir():
+        raise SystemExit(
+            "请先设置环境变量 FYSAT_SAMPLE_ROOT 指向 NSMC 产品目录\n"
+            "  PowerShell:  $env:FYSAT_SAMPLE_ROOT = \"D:\\samples\"\n"
+            "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
+    return SAMPLE_ROOT
+
+_OUT = Path(__file__).resolve().parents[1] / "out"
+
+
+def _sample(rel: str) -> Path:
+    return SAMPLE_ROOT / rel
+
+
 """三个工作台的深度审查：不只看"有画面"，而是验证每个交互入口真的生效。
 
 02 分析工作台：视口数量 / LUT 点击换色标 / 统计数值 / 直方图数据
@@ -56,7 +80,7 @@ def main() -> int:
 
     sample = None
     for pat in ("FY3D_MERSI_GBAL_L1_*1000M_MS.HDF", "FY3H_MERSI_GRAN_L1_*1000M*.HDF"):
-        hits = [h for h in sorted(Path(r"Y:\download-data").rglob(pat))
+        hits = [h for h in sorted(SAMPLE_ROOT.rglob(pat))
                 if h.stat().st_size > 10_000_000]
         if hits:
             sample = hits[0]
@@ -195,7 +219,7 @@ def main() -> int:
         # export() 会弹 QFileDialog，无法脚本化；必须有 export_to(path)
         if not hasattr(fb, "export_to"):
             raise RuntimeError("缺少 export_to(path)：导出只能弹对话框，批量与自动化都做不了")
-        out = fb.export_to(Path(r"E:\CODEX-NOworkspaces\fysat\out\audit\bench_export.png"))
+        out = fb.export_to(OUT_ROOT / r"audit\bench_export.png")
         if not Path(out).exists() or Path(out).stat().st_size < 5000:
             raise RuntimeError("导出文件异常")
     _()

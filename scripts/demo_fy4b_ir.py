@@ -1,3 +1,28 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
+SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
+
+
+def _require_sample_root() -> Path:
+    """开发脚本必须显式指定样本目录，避免把某台机器的路径写进仓库。"""
+    if not str(SAMPLE_ROOT) or not SAMPLE_ROOT.is_dir():
+        raise SystemExit(
+            "请先设置环境变量 FYSAT_SAMPLE_ROOT 指向 NSMC 产品目录\n"
+            "  PowerShell:  $env:FYSAT_SAMPLE_ROOT = \"D:\\samples\"\n"
+            "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
+    return SAMPLE_ROOT
+
+_OUT = Path(__file__).resolve().parents[1] / "out"
+
+
+def _sample(rel: str) -> Path:
+    return SAMPLE_ROOT / rel
+
+
 """端到端验证 D：FY-4B 红外通道 → LUT 定标 → 标称投影 → 重采样 → 出图。
 
 用 4000M（2748²，含 15 通道）而不是 1000M，因为 1000M 只有 3 个可见光通道，
@@ -24,7 +49,7 @@ OUT = Path(__file__).resolve().parents[1] / "out"
 
 
 def pick_4000m() -> Path:
-    hits = glob.glob(r"Y:\download-data\**\FY4B-*4000M*.HDF", recursive=True)
+    hits = glob.glob(str(SAMPLE_ROOT / "**" / r"FY4B-*4000M*.HDF"), recursive=True)
     if not hits:
         raise SystemExit("找不到 FY-4B 4000M 样本")
     return Path(hits[0])

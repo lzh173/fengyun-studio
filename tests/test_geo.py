@@ -10,6 +10,7 @@
 ``!= 65535`` 的掩膜必须几乎逐像元一致（FY-2G 99.7%，FY-4B 99.9%）。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 from pathlib import Path
 
@@ -19,12 +20,12 @@ import pytest
 from fysat import calib, geo
 from fysat.readers import open_file
 
-FY3H = Path(r"Y:\download-data\FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf")
-FY4B = Path(
-    r"Y:\download-data\FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_"
+FY3H = SAMPLE_ROOT / r"FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf"
+FY4B = SAMPLE_ROOT / (
+    r"FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_"
     r"20261030154500_20261030155959_1000M_V0001.HDF"
 )
-FY2G = Path(r"Y:\download-data\C202610181401129865\FY2G_FDI_ALL_NOM_20261018_1300.hdf")
+FY2G = SAMPLE_ROOT / r"C202610181401129865\FY2G_FDI_ALL_NOM_20261018_1300.hdf"
 
 # FY-4B 全局属性
 FY4B_SUB_LON, FY4B_SUB_LAT, FY4B_HEIGHT = 105.0, 0.0, 35786000.0

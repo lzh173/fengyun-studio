@@ -9,6 +9,20 @@ description = "风云卫星官方数据解码 · 分析 · 制图"
 readme = "README.md"
 requires-python = ">=3.10"
 license = { text = "AGPL-3.0-only" }
+keywords = ["fy", "fengyun", "satellite", "remote-sensing", "nsmc", "mersi", "agri", "geospatial"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: GNU Affero General Public License v3",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Atmospheric Science",
+    "Topic :: Scientific/Engineering :: GIS",
+    "Topic :: Scientific/Engineering :: Visualization",
+]
 dependencies = [
     "numpy>=1.24",
     "h5py>=3.8",
@@ -18,6 +32,13 @@ dependencies = [
     "pyyaml>=6",
     "scipy>=1.10",          # nc3 读取器（NetCDF-3，scipy.io.netcdf_file）
 ]
+
+# TODO(发布前)：把下面的 <org> 换成实际组织/用户名
+[project.urls]
+Homepage = "https://github.com/<org>/fysat"
+Documentation = "https://github.com/<org>/fysat/blob/main/README.md"
+Issues = "https://github.com/<org>/fysat/issues"
+Changelog = "https://github.com/<org>/fysat/blob/main/PLAN.md"
 
 [project.optional-dependencies]
 # 许可证：PySide6 元包会连带安装 PySide6-Addons，
@@ -34,9 +55,14 @@ nc3 = ["netCDF4>=1.6"]
 # 所以**绝不进主依赖**；没装时项目一切照旧。
 satpy = ["satpy>=0.50", "pyspectral"]
 dev = ["pytest>=7", "ruff>=0.4"]
+# 一次性装齐（GUI + satpy）
+all = ["PySide6-Essentials==6.12.0", "satpy>=0.50", "pyspectral"]
 
 [project.scripts]
 fysat = "fysat.cli:main"
+
+[tool.setuptools]
+license-files = ["LICENSE", "LICENSES.md", "THIRD_PARTY_NOTICES.md"]
 
 [tool.setuptools.packages.find]
 where = ["src"]
@@ -44,3 +70,12 @@ where = ["src"]
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 addopts = "-q"
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = [".git", "out", "build", "dist", "analysis"]
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "UP", "B"]
+ignore = ["E501"]        # 行宽由 formatter 处理，注释里有长链接

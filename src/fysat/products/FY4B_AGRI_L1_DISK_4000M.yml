@@ -16,7 +16,7 @@
 #   - L686         地球内无效像素填 65534，地球外无效像素填 65535
 #
 # 真实样本
-#   Y:\download-data\**\FY4B-*_4000M_V0001.HDF（12 个，1.11 GB）
+#   FY4B-*_4000M_V0001.HDF（12 个，1.11 GB）
 #
 # 已通过的真实样本回归（tests/test_fy4b_family.py / test_calib.py）
 #   test_4000m_has_15_channels                      Data/NOMChannel* 恰好 15 个

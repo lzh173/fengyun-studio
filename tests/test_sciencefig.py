@@ -7,6 +7,7 @@
    实际上它在配套 GEO 文件的 Geolocation/SolarZenith。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 from pathlib import Path
@@ -47,7 +48,7 @@ def test_coastline_segments_are_2d_arrays():
 
 @pytest.fixture(scope="module")
 def geo_file():
-    hits = glob.glob(r"Y:\download-data\**\FY3H_MERSI_GRAN_L1_*GEO1K*.hdf", recursive=True)
+    hits = glob_samples(r"FY3H_MERSI_GRAN_L1_*GEO1K*.hdf")
     if not hits:
         pytest.skip("缺 MERSI GEO 文件")
     return hits[0]
@@ -129,7 +130,7 @@ def test_reflectance_toa_uses_cosine_correction():
 
 def test_visible_data_returns_normalized_reflectance():
     """反射率应是 0~1 归一化值（乘过 0.01），不是百分数。"""
-    hits = glob.glob(r"Y:\download-data\**\FY3H_MERSI_GRAN_L1_*1000M*.HDF", recursive=True)
+    hits = glob_samples(r"FY3H_MERSI_GRAN_L1_*1000M*.HDF")
     if not hits:
         pytest.skip("缺 MERSI 样本")
     from fysat.readers import open_file
@@ -151,7 +152,7 @@ def test_visible_data_returns_normalized_reflectance():
 
 def test_true_color_bands_not_from_1km_varsb():
     """真彩色绝不能取 EV_1KM_RefSB（b5-b19 全在短波红外，会得到黄绿错误图）。"""
-    hits = glob.glob(r"Y:\download-data\**\FY3H_MERSI_GRAN_L1_*1000M*.HDF", recursive=True)
+    hits = glob_samples(r"FY3H_MERSI_GRAN_L1_*1000M*.HDF")
     if not hits:
         pytest.skip("缺 MERSI 样本")
     from fysat.readers import open_file

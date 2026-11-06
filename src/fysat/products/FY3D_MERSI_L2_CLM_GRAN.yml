@@ -15,7 +15,7 @@
 #   - L127-L128  数据行数 2000、数据列数 2048
 #
 # 真实样本
-#   Y:\download-data\C202611011426140096\FY3D_MERSI_ORBT_L2_CLM_*.HDF（7 个）
+#   FY3D_MERSI_ORBT_L2_CLM_*.HDF（7 个）
 #
 # 注意：本定义**未通过真实文件回归**（见 pending_verification 第 1 条）
 # ---------------------------------------------------------------
@@ -25,7 +25,7 @@
 # 必须改成 band_axis: 0，否则取出来的通道是错的。
 # 这是本产品定义最关键的待核对项。
 # 真实样本
-#   Y:\download-data\C202611011426140096\FY3D_MERSI_ORBT_L2_CLM_*.HDF
+#   FY3D_MERSI_ORBT_L2_CLM_*.HDF
 #   实测样本：FY3D_MERSI_ORBT_L2_CLM_MLT_NUL_20260810_0000_1000M_MS.HDF（7 个）
 #
 # 文档与实测的冲突（已用真实文件仲裁）

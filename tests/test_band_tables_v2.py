@@ -12,6 +12,7 @@
 3. 未验证项必须显式标注，不能假装确定
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 import os
@@ -91,7 +92,7 @@ def test_mainstream_instruments_covered():
 # ---------------- 2. 用真实文件校验数值 ----------------
 
 def _find(pat, min_mb=0.5):
-    hits = [h for h in glob.glob(rf"Y:\download-data\**\{pat}", recursive=True)
+    hits = [h for h in glob_samples(pat)
             if os.path.getsize(h) > min_mb * 1e6]
     return hits[0] if hits else None
 

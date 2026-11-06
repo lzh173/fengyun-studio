@@ -8,6 +8,7 @@
 3. set_dataset 从不填充 RGB 下拉，刚打开文件时三个下拉都是空的。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 
@@ -120,8 +121,7 @@ def test_band_labels_show_band_number_and_wavelength():
 # ---------------- 真实文件 ----------------
 
 def _real_file():
-    hits = [h for h in glob.glob(r"Y:\download-data\**\FY3D_MERSI_GBAL_L1_*1000M_MS.HDF",
-                                 recursive=True)]
+    hits = [h for h in glob_samples(r"FY3D_MERSI_GBAL_L1_*1000M_MS.HDF")]
     hits = [h for h in hits if __import__("os").path.getsize(h) > 10_000_000]
     return hits[0] if hits else None
 

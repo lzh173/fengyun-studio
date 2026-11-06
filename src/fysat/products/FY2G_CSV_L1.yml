@@ -26,7 +26,7 @@
 #   2293 + 4×2866 + 4×6875 = 41257 ✓（文档 Table 4.19/4.21/4.22/4.23 一致）
 #
 # 真实样本
-#   Y:\download-data\**\FY2G_CSV_MLT_NUL_*.DAT（28 个，103 MB/个）
+#   FY2G_CSV_MLT_NUL_*.DAT（28 个，103 MB/个）
 #
 # 已通过的真实样本回归（tests/test_fy2_csv.py）
 #   test_sample_container_geometry     size == 103_191_260，2501 条记录

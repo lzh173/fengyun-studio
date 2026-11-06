@@ -6,6 +6,7 @@
 3. 400 万像素直接 pcolormesh 慢到不可用
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 
@@ -122,7 +123,7 @@ def test_slope_is_per_channel():
 
 @pytest.fixture(scope="module")
 def fy3h_file():
-    hits = glob.glob(r"Y:\download-data\**\FY3H_MERSI_GRAN_L1_*1000M*.hdf", recursive=True)
+    hits = glob_samples(r"FY3H_MERSI_GRAN_L1_*1000M*.hdf")
     if not hits:
         pytest.skip("缺 FY-3H 样本")
     return hits[0]

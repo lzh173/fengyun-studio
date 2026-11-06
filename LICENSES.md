@@ -1,7 +1,7 @@
 # FY-Sat Studio 许可证与合规说明（LICENSES.md）
 
 > 适用项目：**FY-Sat Studio / `fysat`**（风云气象卫星官方数据解码 · 分析 · 制图）
-> 文档版本：**1.2（定稿）** ｜ 审计日期：2026-11-02（1.2 补充 2026-11-04） ｜ 审计范围：`pyproject.toml` 声明的运行时依赖 + 实际安装环境 `E:\venv\fysat`（Python 3.10.6）中已安装的包 + Qt 6 / PySide6 模块授权
+> 文档版本：**1.2（定稿）** ｜ 审计日期：2026-11-02（1.2 补充 2026-11-04） ｜ 审计范围：`pyproject.toml` 声明的运行时依赖 + 实际安装环境 `<venv>`（Python 3.10.6）中已安装的包 + Qt 6 / PySide6 模块授权
 >
 > **1.2 修订（2026-11-04）**：新增 §5.5「借鉴第三方实现（SatDump 等）的合规政策」——结论：AGPLv3 §13 ↔ GPLv3 §13 双向授权，参考/合并 GPLv3 的 SatDump 合法；仅借鉴算法/原理不触发任何 GPL 义务；**红线是 SatDump `resources/` 下的第三方 LUT/色表资产**（独立授权链）。摘要表新增第 11 条。
 > 适用场景：**对外分发**（含安装包、绿色版、容器镜像、以及任何把 Python 包/二进制一并交付给第三方的形式）
@@ -152,11 +152,11 @@
 
 ### 2.1 运行时直接依赖（随软件分发）
 
-版本取自实际安装环境 `E:\venv\fysat`（`importlib.metadata` 探测，2026-11-02）；证据列为安装目录内的许可证文件或包元数据。
+版本取自实际安装环境 `<venv>`（`importlib.metadata` 探测，2026-11-02）；证据列为安装目录内的许可证文件或包元数据。
 
 | 组件 | 版本 | 许可证 | Copyleft？ | 分发义务（摘要） | 证据来源（本地文件/元数据） |
 |---|---|---|---|---|---|
-| **NumPy** | 2.2.4 | BSD-3-Clause（含捆绑 OpenBLAS 等第三方许可） | 否 | 保留版权声明与许可文本；不得用作者名背书 | `D:\py310\Lib\site-packages\numpy-2.2.4.dist-info\LICENSE.txt`；`Classifier: License :: OSI Approved :: BSD License` |
+| **NumPy** | 2.2.4 | BSD-3-Clause（含捆绑 OpenBLAS 等第三方许可） | 否 | 保留版权声明与许可文本；不得用作者名背书 | `<python>\Lib\site-packages\numpy-2.2.4.dist-info\LICENSE.txt`；`Classifier: License :: OSI Approved :: BSD License` |
 | **h5py** | 3.16.0 | BSD-3-Clause（捆绑 HDF5、lzf、zlib） | 否 | 保留版权与许可文本；HDF5 单独声明 | `h5py-3.16.0.dist-info\licenses\LICENSE`；`License-Expression: BSD-3-Clause` |
 | **Matplotlib** | 3.10.1 | Matplotlib License（PSF 系，BSD 兼容）+ 捆绑字体 DejaVu（Bitstream Vera）、STIX（SIL OFL 1.1） | 否 | 保留许可与字体许可文本；不得用 MDT 名背书 | `matplotlib-3.10.1.dist-info\LICENSE`；`mpl-data\fonts\ttf\LICENSE_DEJAVU`、`LICENSE_STIX` |
 | **Pillow** | 11.1.0 | MIT-CMU（LICENSE 同时收录捆绑的 libjpeg-turbo、zlib、libtiff、freetype、OpenJPEG、lcms2、libwebp 等许可） | 否 | 保留版权+许可文本；捆绑库的声明见其 LICENSE | `pillow-11.1.0.dist-info\LICENSE`（56 KB 合集）；`License: MIT-CMU` |
@@ -166,7 +166,7 @@
 | **PySide6_Essentials** | 6.12.0 | **LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only** → 本项目选 **LGPLv3** | **是（弱 copyleft，仅 Qt 自身）** | 动态链接可替换；随附 LGPLv3+GPLv3 全文；显著声明使用了 Qt/LGPLv3；保留 Qt 版权声明 | `pyside6_essentials-6.12.0.dist-info\METADATA` 第 6 行 `License:`；实测 Qt 6.12.0 |
 | **shiboken6** | 6.12.0 | 同上（LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only） | 是（弱） | 同 PySide6（随附声明与全文） | `shiboken6-6.12.0.dist-info\METADATA` 第 6 行 |
 
-> 说明：以上「安装位置」中 numpy/h5py/matplotlib/pillow/scipy/pyyaml 实际位于基础解释器 `D:\py310\Lib\site-packages`（venv 为 system-site-packages 形态），PySide6/shiboken6/tifffile 位于 venv。分发时应以**打包产物实际包含的版本**复核一遍（检查清单 C-08）。
+> 说明：以上「安装位置」中 numpy/h5py/matplotlib/pillow/scipy/pyyaml 实际位于基础解释器 `<python>\Lib\site-packages`（venv 为 system-site-packages 形态），PySide6/shiboken6/tifffile 位于 venv。分发时应以**打包产物实际包含的版本**复核一遍（检查清单 C-08）。
 
 ### 2.2 构建/开发期依赖（**不随软件分发**，但打包工具产物会进安装包）
 
@@ -217,7 +217,7 @@
 | STIX 字体 | matplotlib | SIL OFL 1.1 | `components/matplotlib-LICENSE_STIX.txt` |
 | Mesa 软件 OpenGL（`opengl32sw.dll`） | PySide6 wheel | MIT（Mesa 惯例许可，随 wheel 未附文本） | ⚠️ 待确认：从 Qt 安装目录/源码补齐 Mesa 版权声明（§7-Q6） |
 | libyaml（PyYAML `_yaml` 扩展） | PyYAML | MIT | PyYAML LICENSE 已覆盖（同一作者 MIT） |
-| CPython 运行时（若打包解释器） | D:\py310 | PSF-2.0 | `docs/licenses/runtime/python-PSF-LICENSE.txt` |
+| CPython 运行时（若打包解释器） | <python> | PSF-2.0 | `docs/licenses/runtime/python-PSF-LICENSE.txt` |
 | OpenSSL / libffi / zlib / liblzma / SQLite 等 CPython 捆绑库 | 打包后的 Python 运行时 | Apache-2.0 / MIT / zlib / public-domain / public-domain | 打包时用 `pip-licenses` 或 PyInstaller `--collect` 清单复核并补入（检查清单 C-09） |
 
 ### 2.5 数据与底图
@@ -336,7 +336,7 @@
 
 审计中发现，虽然 `PySide6-Essentials` 的 METADATA 声明整体为 `LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only`，但 wheel 里**实际捆绑了 GPLv3-only 模块的二进制与 QML 插件**。原样打包 = 分发 GPLv3 代码。
 
-| 类 | 实测文件（`E:\venv\fysat\Lib\site-packages\PySide6\`） | 许可证 | 是否被我们的代码使用 |
+| 类 | 实测文件（`<venv>\Lib\site-packages\PySide6\`） | 许可证 | 是否被我们的代码使用 |
 |---|---|---|---|
 | Qt Lottie Animation | `Qt6Lottie.dll`、`Qt6LottieVectorImageGenerator.dll`、`Qt6LottieVectorImageHelpers.dll` | **GPLv3-only** | 否（无 Python 绑定，无 import） |
 | Qt Quick Timeline | `Qt6QuickTimeline.dll`、`Qt6QuickTimelineBlendTrees.dll`、`qml\QtQuick\Timeline\qtquicktimelineplugin.dll`、`...timelineblendtreesplugin.dll` | **GPLv3-only** | 否 |
@@ -451,7 +451,7 @@
 | `test_runtime_has_no_gpl_qt_module_loaded` | 运行时未加载 GPL-only Qt 模块 | ✅ 通过 |
 | `test_app_forces_pyside6_matplotlib_backend` | `app.py` 强制 `QT_API=pyside6` | ✅ 通过 |
 
-> 运行方式：`E:\venv\fysat\Scripts\python.exe -m pytest tests/test_license_compliance.py -q`。
+> 运行方式：`<venv>\Scripts\python.exe -m pytest tests/test_license_compliance.py -q`。
 > 2026-11-02 实测结果：`tests/test_license_compliance.py` + `tests/test_provenance.py` 共 **21 项全部通过**（此前的测试正则缺陷已由 Lead 修复）。
 
 ---
@@ -509,13 +509,13 @@
 
 | 证据 | 位置/命令 |
 |---|---|
-| 依赖版本与 License 元数据 | `E:\venv\fysat\Scripts\python.exe` + `importlib.metadata`（`License`、`License-Expression`、`Classifier` 字段） |
+| 依赖版本与 License 元数据 | `<venv>\Scripts\python.exe` + `importlib.metadata`（`License`、`License-Expression`、`Classifier` 字段） |
 | 各包许可证原文 | numpy：`numpy-2.2.4.dist-info\LICENSE.txt`；h5py：`h5py-3.16.0.dist-info\licenses\*`；matplotlib：`matplotlib-3.10.1.dist-info\LICENSE` + `mpl-data\fonts\ttf\LICENSE_*`；pillow：`pillow-11.1.0.dist-info\LICENSE`；scipy：`scipy-1.15.2.dist-info\LICENSE.txt`；tifffile：`tifffile-2025.5.10.dist-info\licenses\LICENSE`；PyYAML：`PyYAML-6.0.2.dist-info\LICENSE` |
 | PySide6/shiboken6 许可元数据 | `pyside6_essentials-6.12.0.dist-info\METADATA` L6：`License: LGPL-3.0-only OR GPL-2.0-only OR GPL-3.0-only`；`shiboken6-6.12.0.dist-info\METADATA` L6 同 |
 | Qt 实际版本 | `PySide6.QtCore.qVersion()` → `6.12.0`；`PySide6.__version__` → `6.12.0`；`Qt6Core.dll` VersionInfo → `6.12.0.0`，`LegalCopyright: Copyright (C) The Qt Company Ltd. and other contributors.` |
-| Qt 动态库形态 | `E:\venv\fysat\Lib\site-packages\PySide6\Qt6*.dll` 共 76 个独立 DLL（另含 13 个非 Qt 前缀 DLL，合计 89 个；含 Core/Gui/Widgets/Network/Svg/Sql/Xml 等） |
+| Qt 动态库形态 | `<venv>\Lib\site-packages\PySide6\Qt6*.dll` 共 76 个独立 DLL（另含 13 个非 Qt 前缀 DLL，合计 89 个；含 Core/Gui/Widgets/Network/Svg/Sql/Xml 等） |
 | GPL-only 构件 | 同上目录实测：`Qt6Lottie*.dll`、`Qt6QuickTimeline*.dll`、`qml\QtQuick\Timeline\*`、`qml\QtQuick\VirtualKeyboard\**`、`Qt6QmlCompiler.dll`、14 个 Qt 工具 exe |
-| matplotlib 后端选择逻辑 | `D:\py310\Lib\site-packages\matplotlib\backends\qt_compat.py` L34–63 |
+| matplotlib 后端选择逻辑 | `<python>\Lib\site-packages\matplotlib\backends\qt_compat.py` L34–63 |
 | 源码扫描 | 全仓库 `grep -ri "PyQt\|pyqt\|sip"` → 0；`grep "PySide6"` → 仅 QtCore/QtGui/QtWidgets |
 | PyInstaller 许可 | `pyinstaller-6.21.0.dist-info\METADATA`：`License: GPLv2-or-later with a special exception...`；全文 `licenses\COPYING.txt` |
 | Natural Earth 条款 | https://www.naturalearthdata.com/about/terms-of-use/ （公有领域，无需署名，建议 "Made with Natural Earth"） |
@@ -544,16 +544,16 @@
 
 ```powershell
 # 依赖许可证元数据
-& E:\venv\fysat\Scripts\python.exe -c "import importlib.metadata as m; [print(n, m.version(n), (m.metadata(n).get('License-Expression') or m.metadata(n).get('License') or '')[:60]) for n in ['numpy','h5py','matplotlib','pillow','scipy','tifffile','PyYAML','PySide6','shiboken6']]"
+& <venv>\Scripts\python.exe -c "import importlib.metadata as m; [print(n, m.version(n), (m.metadata(n).get('License-Expression') or m.metadata(n).get('License') or '')[:60]) for n in ['numpy','h5py','matplotlib','pillow','scipy','tifffile','PyYAML','PySide6','shiboken6']]"
 # Qt 版本与 DLL 数量
-& E:\venv\fysat\Scripts\python.exe -c "from PySide6.QtCore import qVersion; print('Qt', qVersion())"
-(Get-ChildItem 'E:\venv\fysat\Lib\site-packages\PySide6\Qt6*.dll').Count
+& <venv>\Scripts\python.exe -c "from PySide6.QtCore import qVersion; print('Qt', qVersion())"
+(Get-ChildItem '<venv>\Lib\site-packages\PySide6\Qt6*.dll').Count
 # GPL-only 构件是否存在
-Get-ChildItem 'E:\venv\fysat\Lib\site-packages\PySide6' -Recurse -File | Where-Object { $_.Name -match '(?i)(lottie|quicktimeline|virtualkeyboard|qtvkb|qmlcompiler)' }
+Get-ChildItem '<venv>\Lib\site-packages\PySide6' -Recurse -File | Where-Object { $_.Name -match '(?i)(lottie|quicktimeline|virtualkeyboard|qtvkb|qmlcompiler)' }
 # matplotlib 绑定解析
-& E:\venv\fysat\Scripts\python.exe -c "import matplotlib; print(matplotlib.get_backend()); from matplotlib.backends import qt_compat; print(qt_compat.QT_API)"
+& <venv>\Scripts\python.exe -c "import matplotlib; print(matplotlib.get_backend()); from matplotlib.backends import qt_compat; print(qt_compat.QT_API)"
 # 自动化合规测试（1.1 新增）
-& E:\venv\fysat\Scripts\python.exe -m pytest tests/test_license_compliance.py -q
+& <venv>\Scripts\python.exe -m pytest tests/test_license_compliance.py -q
 # 校验 LICENSE 含 AGPL 全文（1.1 新增）
 $lic = Get-Content LICENSE -Raw; $agpl = Get-Content docs/licenses/AGPL-3.0.txt -Raw; if ($lic.Contains($agpl.Trim())) { "AGPL full text OK" } else { "AGPL full text MISSING" }
 # 校验 pyproject 不再声明裸 PySide6（1.1 新增）

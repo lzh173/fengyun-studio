@@ -4,6 +4,7 @@
     set QT_QPA_PLATFORM=offscreen
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import os
 from pathlib import Path
@@ -123,7 +124,7 @@ def test_ndarray_to_qimage_float_fallback():
 def real_file():
     import glob
 
-    hits = glob.glob(r"Y:\download-data\**\FY3F_MERSI_GRAN_L1_*.HDF", recursive=True)
+    hits = glob_samples(r"FY3F_MERSI_GRAN_L1_*.HDF")
     if not hits:
         pytest.skip("缺真实样本")
     return hits[0]

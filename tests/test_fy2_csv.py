@@ -8,6 +8,7 @@
    整圆盘结构、逐行元信息与元数据记录语义。样本缺失时自动跳过。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import glob
 from datetime import datetime
@@ -19,7 +20,7 @@ import pytest
 from fysat.detect import sniff
 from fysat.readers import fy2_csv
 
-SAMPLE_GLOB = r"Y:\download-data\**\FY2G_CSV_MLT_NUL_*.DAT"
+SAMPLE_GLOB = str(SAMPLE_ROOT / r"**\FY2G_CSV_MLT_NUL_*.DAT")
 
 
 # ---------------------------------------------------------------- 合成容器

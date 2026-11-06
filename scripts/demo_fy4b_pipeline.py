@@ -1,3 +1,28 @@
+from __future__ import annotations
+
+import os
+from pathlib import Path
+
+# 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
+SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
+
+
+def _require_sample_root() -> Path:
+    """开发脚本必须显式指定样本目录，避免把某台机器的路径写进仓库。"""
+    if not str(SAMPLE_ROOT) or not SAMPLE_ROOT.is_dir():
+        raise SystemExit(
+            "请先设置环境变量 FYSAT_SAMPLE_ROOT 指向 NSMC 产品目录\n"
+            "  PowerShell:  $env:FYSAT_SAMPLE_ROOT = \"D:\\samples\"\n"
+            "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
+    return SAMPLE_ROOT
+
+_OUT = Path(__file__).resolve().parents[1] / "out"
+
+
+def _sample(rel: str) -> Path:
+    return SAMPLE_ROOT / rel
+
+
 """端到端验证 C：定标 → 标称投影定位 → 等经纬网格重采样 → 三格式导出。
 
 这条链路把 reader / calib / geo / export 串起来，是 GUI 之前最重要的一次集成验证。
@@ -19,7 +44,7 @@ from fysat.palettes import bt_to_rgb  # noqa: E402
 from fysat.readers import open_file  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "out"
-FY4B = Path(r"Y:\download-data\FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_20261030154500_20261030155959_1000M_V0001.HDF")
+FY4B = _sample(r"FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_20261030154500_20261030155959_1000M_V0001.HDF")
 
 
 def main() -> int:

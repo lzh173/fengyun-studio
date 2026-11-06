@@ -1,7 +1,7 @@
 # satpy 作为可选读取后端的评估（结论页）
 
-> 评估对象：**satpy 0.59.0**（隔离安装在 `E:\tmp\satpytest`，主环境 `E:\venv\fysat` 不装）
-> 实测日期：2026-11-03　实测样本：Y:\download-data 下的真实 NSMC 文件（见 §2）
+> 评估对象：**satpy 0.59.0**（隔离安装在 `E:\tmp\satpytest`，主环境 `<venv>` 不装）
+> 实测日期：2026-11-03　实测样本：<样本目录> 下的真实 NSMC 文件（见 §2）
 > 落地代码：[`src/fysat/readers/satpy_adapter.py`](../src/fysat/readers/satpy_adapter.py)、
 > 测试 [`tests/test_satpy_adapter.py`](../tests/test_satpy_adapter.py)（36 条：24 条零依赖 + 12 条需 satpy/真实样本）
 
@@ -116,19 +116,19 @@ open_file(path, kind="satpy")                       # 走注册表（open_file �
 
 ```powershell
 $env:TMP='E:\tmp'; $env:TEMP='E:\tmp'
-cd E:\CODEX-NOworkspaces\fysat
+cd <repo>
 
 # 1) 有 satpy（测试自动把 E:\tmp\satpytest 加进 sys.path）：应 36 passed
-E:\venv\fysat\Scripts\python.exe -m pytest tests/test_satpy_adapter.py -v -rs
+<venv>\Scripts\python.exe -m pytest tests/test_satpy_adapter.py -v -rs
 
 # 2) 模拟"没装 satpy"（拦截器让 import satpy 失败）：应 24 passed / 12 skipped
 #    拦截器是 scratch 文件：E:\tmp\nosatpy\sitecustomize.py（不在仓库里）
 $env:PYTHONPATH='E:\tmp\nosatpy'
-E:\venv\fysat\Scripts\python.exe -m pytest tests/test_satpy_adapter.py -v -rs
+<venv>\Scripts\python.exe -m pytest tests/test_satpy_adapter.py -v -rs
 Remove-Item Env:PYTHONPATH
 
 # 3) 原有读取器不回归
-E:\venv\fysat\Scripts\python.exe -m pytest tests/test_pipeline.py tests/test_cli.py tests/test_geo.py `
+<venv>\Scripts\python.exe -m pytest tests/test_pipeline.py tests/test_cli.py tests/test_geo.py `
     tests/test_awx.py tests/test_oneb.py tests/test_fy2_csv.py tests/test_nc3.py tests/test_export.py tests/test_batch.py -q
 ```
 

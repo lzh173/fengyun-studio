@@ -15,6 +15,7 @@
 """
 from __future__ import annotations
 
+import os
 import sys
 from pathlib import Path
 
@@ -404,10 +405,16 @@ class MainWindow(QtWidgets.QMainWindow):
         except Exception:                       # noqa: BLE001
             last = ""
         candidates = [last] if last else []
-        candidates += [
-            r"Y:\download-data",
-            r"E:\CODEX-NOworkspaces\fy2_decoder",
-        ]
+        # 开源版不写死任何人的本地路径：
+        #   FYSAT_SAMPLE_ROOT  指向你自己的卫星产品目录（可选）
+        #   FYSAT_SOURCE_DIRS  额外目录，多个用分号/冒号分隔（可选）
+        env_root = os.environ.get("FYSAT_SAMPLE_ROOT", "").strip()
+        if env_root:
+            candidates.append(env_root)
+        for extra in os.environ.get("FYSAT_SOURCE_DIRS", "").replace(";", os.pathsep).split(os.pathsep):
+            extra = extra.strip()
+            if extra:
+                candidates.append(extra)
         for c in candidates:
             if c and Path(c).exists() and self.datatree is not None:
                 self.datatree.add_source(Path(c))

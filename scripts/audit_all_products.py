@@ -30,7 +30,9 @@ import numpy as np                                   # noqa: E402
 from fysat import composites, detect                 # noqa: E402
 from fysat.readers import open_file                  # noqa: E402
 
-DATA = Path(r"Y:\download-data")
+DATA = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
+if not str(DATA) or not DATA.is_dir():
+    raise SystemExit("请先设置环境变量 FYSAT_SAMPLE_ROOT 指向 NSMC 产品目录")
 SKIP_EXT = {".enp", ".jpg", ".png", ".txt", ".xml", ".csv", ".db", ".json",
             ".npz", ".npy", ".cbor", ".raw"}
 

@@ -14,7 +14,7 @@
 #   注意      "Orbit Point Latitute" 是文件里原样的拼写错误（Latitute）
 #
 # 真实样本
-#   Y:\download-data\**\FY3H_GNOSO_*.NC（14 个）
+#   FY3H_GNOSO_*.NC（14 个）
 #   优先样本 FY3H_GNOSO_ORBT_L1_20261019_0000_ANC31*.NC
 #
 # 已通过的真实样本回归（tests/test_nc3.py）

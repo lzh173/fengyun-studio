@@ -7,6 +7,7 @@
 - 红外 LUT 值域是 110~405 K
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import glob
 from pathlib import Path
@@ -16,7 +17,7 @@ import pytest
 from fysat.calib import lookup_table
 from fysat.readers import open_file
 
-ROOT = r"Y:\download-data"
+ROOT = SAMPLE_ROOT
 
 
 def find(pattern: str) -> Path | None:

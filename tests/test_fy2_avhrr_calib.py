@@ -11,6 +11,7 @@
   热通道（CH3/CH4/CH5）的 1B 系数缩放在文档里表述不完整 → 暂不定标，界面标"待定标"
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 import os
@@ -23,7 +24,7 @@ from fysat.gui.varcatalog import physical_label
 
 
 def _find(pat, min_mb=0.005):
-    hits = [h for h in glob.glob(rf"Y:\download-data\**\{pat}", recursive=True)
+    hits = [h for h in glob_samples(pat)
             if os.path.getsize(h) > min_mb * 1e6]
     return hits[0] if hits else None
 

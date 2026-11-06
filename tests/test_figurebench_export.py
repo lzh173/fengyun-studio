@@ -20,6 +20,7 @@
     E:\\venv\\fysat\\Scripts\\python.exe -m pytest tests/test_figurebench_export.py -q
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import os
 from pathlib import Path
@@ -43,8 +44,8 @@ from fysat.gui.figurebench import (                               # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "out" / "gui" / "export"
 SAMPLES = [
-    r"Y:\download-data\C202611011426140096\FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF",
-    r"Y:\download-data\0-IDM-download\FY3H_MERSI_GRAN_L1_20261030_0300_1000M_V0.hdf",
+    str(SAMPLE_ROOT / r"C202611011426140096\FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF"),
+    str(SAMPLE_ROOT / r"0-IDM-download\FY3H_MERSI_GRAN_L1_20261030_0300_1000M_V0.hdf"),
 ]
 
 # 测试用低 DPI：断言的是"版式与开关是否改变成图"，不是印刷质量

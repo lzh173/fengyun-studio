@@ -1,8 +1,9 @@
 """四屏 GUI 截图脚本（offscreen）：构建每一屏 → 载入真实样本 → 保存 PNG。
 
 用法：
-    $env:TMP='E:\tmp'; $env:TEMP='E:\tmp'; $env:QT_QPA_PLATFORM='offscreen'
-    & 'E:\venv\fysat\Scripts\python.exe' scripts\shoot_gui.py [screen ...]
+    export QT_QPA_PLATFORM=offscreen
+    export FYSAT_SAMPLE_ROOT=/data/samples
+    python scripts/shoot_gui.py [screen ...]
 
 它会输出 out/gui/02_workspace.png 等文件，并在 stdout 里报告每屏的
 关键控件状态，方便判断"是不是真的画出东西了"（而不是一片空白）。
@@ -10,6 +11,20 @@
 from __future__ import annotations
 
 import os
+from pathlib import Path
+
+SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
+
+
+def _require_sample_root() -> Path:
+    """开发脚本必须显式指定样本目录，避免把某台机器的路径写进仓库。"""
+    if not str(SAMPLE_ROOT) or not SAMPLE_ROOT.is_dir():
+        raise SystemExit(
+            "请先设置环境变量 FYSAT_SAMPLE_ROOT 指向 NSMC 产品目录\n"
+            "  PowerShell:  $env:FYSAT_SAMPLE_ROOT = \"D:\\samples\"\n"
+            "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
+    return SAMPLE_ROOT
+
 import sys
 import time
 from pathlib import Path
@@ -30,8 +45,8 @@ from fysat.readers import open_file                          # noqa: E402
 OUT = ROOT / "out" / "gui"
 
 SAMPLES = {
-    "fy3d": r"Y:\download-data\C202611011426140096\FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF",
-    "fy3h": r"Y:\download-data\FY3H_MERSI_GRAN_L1_20261023_0520_1000M_V0.hdf",
+    "fy3d": str(SAMPLE_ROOT / r"C202611011426140096\FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF"),
+    "fy3h": str(SAMPLE_ROOT / r"FY3H_MERSI_GRAN_L1_20261023_0520_1000M_V0.hdf"),
 }
 
 

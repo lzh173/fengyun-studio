@@ -14,9 +14,9 @@
 #   - L76 IR_Cal_Coeff、L75 VIS_Cal_Coeff
 #
 # 真实样本（均已存在）
-#   Y:\download-data\**\FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF（206 MB，15 变量）
-#   Y:\download-data\FY3H_MERSI_GRAN_L1_20261023_0520_1000M_V0.hdf
-#   Y:\download-data\0-IDM-download\FY3F_MERSI_GRAN_L1_*.hdf（注意：部分为夜间景，反射通道全 0）
+#   FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF（206 MB，15 变量）
+#   FY3H_MERSI_GRAN_L1_20261023_0520_1000M_V0.hdf
+#   FY3F_MERSI_GRAN_L1_*.hdf（注意：部分为夜间景，反射通道全 0）
 #
 # 已通过的真实样本回归（tests/）
 #   test_pipeline.py::test_real_brightness_temperature_is_physical  亮温 150~350 K

@@ -14,7 +14,7 @@
 #   - 每个反射通道 Slope=1.0 valid_range=[0,4095] units="none"
 #
 # 真实样本
-#   Y:\download-data\FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf
+#   FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf
 #   （tests/test_calib.py 用它断言 EV_250_Emissive_b24 的 Slope=0.01、
 #     FillValue=65535、valid_range=(0,25000)、波长 10.7342 µm，亮温实测 187.28~311.78 K）
 #

@@ -6,6 +6,7 @@
 3. 变量列表把校准表/坐标/质量码与真影像混在一起
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 
@@ -163,7 +164,7 @@ def test_describe_class_is_chinese():
 
 @pytest.fixture(scope="module")
 def fy3d_file():
-    hits = glob.glob(r"Y:\download-data\**\FY3D_MERSI_GBAL_L1_*.HDF", recursive=True)
+    hits = glob_samples(r"FY3D_MERSI_GBAL_L1_*.HDF")
     if not hits:
         pytest.skip("缺 FY-3D 样本")
     return hits[0]

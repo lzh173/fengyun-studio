@@ -2,7 +2,7 @@
 
 ## Git 提交规范
 
-仓库：`E:\CODEX-NOworkspaces\fysat`（本地初始化，主分支 `main`）
+仓库：`<repo>`（本地初始化，主分支 `main`）
 
 ### 提交信息格式
 
@@ -73,8 +73,8 @@ git log --oneline --graph       # 查看历史
 
 | 项 | 位置 |
 |---|---|
-| Python | `E:\venv\fysat\Scripts\python.exe`（system-site-packages，复用 D:\py310 的库） |
-| 源码挂载 | `E:\venv\fysat\Lib\site-packages\fysat_src.pth` → `src/` |
+| Python | `<venv>\Scripts\python.exe`（system-site-packages，复用 <python> 的库） |
+| 源码挂载 | `<venv>\Lib\site-packages\fysat_src.pth` → `src/` |
 | 临时目录 | `E:\tmp`（C: 已满，务必用 E:） |
 | 依赖缓存 | `E:\pipcache` |
 

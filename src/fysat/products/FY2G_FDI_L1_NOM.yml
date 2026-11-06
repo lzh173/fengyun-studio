@@ -19,7 +19,7 @@
 #   - L158-171 云分类取值定义（255=无效）
 #
 # 真实样本
-#   Y:\download-data\C202610181401129865\FY2G_FDI_ALL_NOM_20261018_1300.hdf
+#   FY2G_FDI_ALL_NOM_20261018_1300.hdf
 #
 # 已通过的真实样本回归（tests/test_calib.py）
 #   test_fy2g_ir_lut_brightness_temperature

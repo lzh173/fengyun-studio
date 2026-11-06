@@ -9,6 +9,7 @@
    三栏固定宽度合计恰等于窗口宽度，窗口略窄或有 DPI 缩放时右栏被挤出屏幕。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 import os
@@ -25,8 +26,7 @@ def fb_width(window) -> int:
 
 
 def _sample():
-    hits = [h for h in glob.glob(r"Y:\download-data\**\FY3D_MERSI_GBAL_L1_*1000M_MS.HDF",
-                                 recursive=True)
+    hits = [h for h in glob_samples(r"FY3D_MERSI_GBAL_L1_*1000M_MS.HDF")
             if os.path.getsize(h) > 10_000_000]
     return hits[0] if hits else None
 

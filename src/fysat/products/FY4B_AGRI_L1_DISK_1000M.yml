@@ -18,7 +18,7 @@
 #   - L686  地球内无效像素 65534，地球外 65535
 #
 # 真实样本
-#   Y:\download-data\FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_
+#   FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_
 #       20261030154500_20261030155959_1000M_V0001.HDF（11 个）
 #
 # 已通过的真实样本回归（tests/test_fy4b_family.py）

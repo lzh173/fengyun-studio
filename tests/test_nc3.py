@@ -7,6 +7,7 @@
    CDF-1 全局属性、29 个变量的单位／有效范围／填充值、物理量量级与单点定位。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import glob
 from datetime import datetime
@@ -18,7 +19,7 @@ import pytest
 from fysat.detect import sniff
 from fysat.readers import nc3
 
-SAMPLE_GLOB = r"Y:\download-data\**\FY3H_GNOSO_*.NC"
+SAMPLE_GLOB = str(SAMPLE_ROOT / r"**\FY3H_GNOSO_*.NC")
 
 
 # ---------------------------------------------------------------- 合成文件

@@ -14,8 +14,8 @@ import numpy as np
 from matplotlib.colors import LinearSegmentedColormap
 
 SRC = r"E:\QQ_DW\FY3H_MERSI_GRAN_L1_20261101_0405_0250M_V0.HDF"
-GEOJSON = r"E:\CODEX-NOworkspaces\fysat\assets\ne_110m_coastline.geojson"
-OUT = r"E:\CODEX-NOworkspaces\fysat\samples\fy3h_mersi_l1_figure.png"
+GEOJSON = r"<repo>\assets\ne_110m_coastline.geojson"
+OUT = r"<repo>\samples\fy3h_mersi_l1_figure.png"
 
 # 普朗克反演常数（L 单位 mW/(m2 sr cm-1)）
 C1 = 1.1910427e-5

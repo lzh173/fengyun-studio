@@ -7,48 +7,92 @@
 
 ---
 
+## 环境要求
+
+| 项 | 要求 |
+|---|---|
+| Python | 3.10 及以上 |
+| 运行时依赖 | `numpy` `h5py` `scipy` `matplotlib` `Pillow` `tifffile` `PyYAML` `PySide6-Essentials` |
+| 可选依赖 | `satpy`（可选读取后端，见下） |
+| 操作系统 | Windows / Linux / macOS（GUI 需 Qt 支持，无显示环境可用 `QT_QPA_PLATFORM=offscreen`） |
+
+```bash
+pip install -e ".[gui]"          # 含图形界面（推荐）
+pip install -e ".[gui,all]"      # 再加 satpy 后端
+pip install -e .                 # 只要命令行
+```
+
+> `PySide6-Essentials` 是刻意的选择：完整的 `PySide6` 会拉入 GPL-only 的 Addons 模块，
+> 与本项目的 AGPL-3.0-only 分发策略不匹配。详见 [LICENSES.md](LICENSES.md)。
+
+---
+
 ## 快速开始
 
-**图形界面**（双击即可）：
+**图形界面**：
 
 ```powershell
-E:\CODEX-NOworkspaces\fysat\bin\fysat-gui.cmd
+bin\fysat-gui.cmd                 # Windows
+```
+
+```bash
+python -m fysat.gui.app           # 任意平台
 ```
 
 **命令行**：
 
 ```powershell
-E:\CODEX-NOworkspaces\fysat\bin\fysat.cmd --version
-E:\CODEX-NOworkspaces\fysat\bin\fysat.cmd info "Y:\download-data\xxx.HDF"
+bin\fysat.cmd --version
+bin\fysat.cmd info  "D:\samples\FY4B-...1000M_V0001.HDF"
+bin\fysat.cmd batch "D:\samples" --out out\batch --kind png_compressed
 ```
+
+启动脚本按以下顺序找解释器：`%FYSAT_PYTHON%`（可选）→ PATH 上的 `python` / `pythonw`。
+不需要修改脚本内容；虚拟环境里把 `FYSAT_PYTHON` 指过去即可。
 
 完整启动说明见 [RUNNING.md](RUNNING.md)。
 
 ---
 
-以下是直接用 Python 的方式（等价）：
+## 样本数据
+
+本项目**不随包分发**任何卫星产品数据。要用真实数据跑通界面与回归测试，
+请自行从 [国家卫星气象中心（NSMC）](https://www.nsmc.org.cn/) 下载，
+然后把目录告诉程序：
 
 ```powershell
-# 解释器（已内置 numpy/h5py/matplotlib/PIL/scipy/tifffile/pyyaml）
-E:\venv\fysat\Scripts\python.exe
-
-# 查看文件概况
-python -m fysat.cli info "Y:\download-data\FY4B-...1000M_V0001.HDF"
-
-# 列出内部结构
-python -m fysat.cli ls <文件> --limit 40
-
-# 导出（三种形式）
-python -m fysat.cli export <文件> Data/NOMChannel02 --kind tiff          --out a.tif
-python -m fysat.cli export <文件> Data/NOMChannel02 --kind png_full      --out a.png
-python -m fysat.cli export <文件> Data/NOMChannel02 --kind png_compressed --out a.png --level 9 --scale 0.25 --cmap gray
-
-# 全部导出形式说明
-python -m fysat.cli formats
+# PowerShell
+$env:FYSAT_SAMPLE_ROOT = "D:\samples"      # 测试与界面默认打开的位置
+$env:FYSAT_SOURCE_DIRS = "E:\more-data"    # 可选：额外的数据源目录（分号分隔）
 ```
 
-> 源码目录已通过 `E:\venv\fysat\Lib\site-packages\fysat_src.pth` 挂到 `sys.path`，
-> 因此无需安装即可 `import fysat`。
+```bash
+# bash / zsh
+export FYSAT_SAMPLE_ROOT=/data/samples
+```
+
+不配置也能启动：界面照常打开（只是数据树为空），
+需要真实样本的测试会自动 **skip** 而不是失败。
+
+---
+
+以下是直接用 Python 的方式（与启动脚本等价）：
+
+```powershell
+python -m fysat.cli info "D:\samples\FY4B-...1000M_V0001.HDF"
+python -m fysat.cli ls <文件> --limit 40
+
+# 导出（三种形式，见下节）
+python -m fysat.cli export <文件> Data/NOMChannel02 --kind tiff           --out a.tif
+python -m fysat.cli export <文件> Data/NOMChannel02 --kind png_full       --out a.png
+python -m fysat.cli export <文件> Data/NOMChannel02 --kind png_compressed --out a.png --level 9 --scale 0.25 --cmap gray
+
+python -m fysat.cli formats        # 全部导出形式说明
+python -m fysat.cli products       # 已内置的产品定义
+```
+
+> 源码在 `src/` 下，`pip install -e .` 后可直接 `import fysat`；
+> 不安装时把 `src` 加进 `PYTHONPATH` 亦可。
 
 ---
 
@@ -126,7 +170,7 @@ fysat/
 ## 全样本回归
 
 ```powershell
-python scripts/regress_samples.py              # 扫描 Y:\download-data 全部产品文件
+python scripts/audit_all_products.py           # 扫描 $FYSAT_SAMPLE_ROOT 下每类产品跑完整链路
 ```
 
 最近一次结果（2026-11-01）：**202 个样本全部解析通过**
@@ -178,4 +222,5 @@ python scripts/regress_samples.py              # 扫描 Y:\download-data 全部�
 - 中文界面与文档；代码注释可为中文
 - 只提交能跑通的代码，随代码附测试
 - 大数组一律向量化，禁止 Python 双循环遍历像素
-- 新增依赖必须先确认（磁盘 C: 已满，所有安装走 `E:\venv\fysat`）
+- 新增依赖必须先确认许可证与体积（见 [LICENSES.md](LICENSES.md)）
+- 不在源码里写死任何人的本地路径；需要外部目录时用环境变量

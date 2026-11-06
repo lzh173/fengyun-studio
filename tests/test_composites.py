@@ -8,6 +8,7 @@
 - AVHRR: noaa_1b_format.md 表5.2
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 import os
@@ -93,7 +94,7 @@ def test_ghi_has_true_color_and_agri_does_not_fake_it():
 # ---------------- 真实文件上的定位 ----------------
 
 def _find(pat):
-    hits = [h for h in glob.glob(rf"Y:\download-data\**\{pat}", recursive=True)
+    hits = [h for h in glob_samples(pat)
             if os.path.getsize(h) > 1_000_000]
     return hits[0] if hits else None
 

@@ -20,6 +20,7 @@ GUI 最容易出「构建成功但一片空白」的问题：控件建了、信�
 所以除了断言对象存在，还必须抓图并检查像素多样性。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import os
 import time
@@ -39,8 +40,8 @@ from fysat.readers import open_file                           # noqa: E402
 OUT = Path(__file__).resolve().parents[1] / "out" / "gui"
 
 SAMPLES = [
-    r"Y:\download-data\C202611011426140096\FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF",
-    r"Y:\download-data\FY3H_MERSI_GRAN_L1_20261023_0520_1000M_V0.hdf",
+    str(SAMPLE_ROOT / r"C202611011426140096\FY3D_MERSI_GBAL_L1_20260810_0635_1000M_MS.HDF"),
+    str(SAMPLE_ROOT / r"FY3H_MERSI_GRAN_L1_20261023_0520_1000M_V0.hdf"),
 ]
 
 

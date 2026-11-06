@@ -11,6 +11,7 @@
 而不是 mock —— mock 掉读取器就测不到「错误隔离」这个核心目标了。
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import glob
 from pathlib import Path
@@ -23,7 +24,7 @@ from fysat.batch import BatchResult, FileResult, preview, run, scan
 from fysat.export import KINDS
 from fysat.products import ProductRegistry
 
-SAMPLE_ROOT = Path(r"Y:\download-data")
+SAMPLE_ROOT = SAMPLE_ROOT
 
 # 一个只认 TEST_*.HDF 的测试产品定义（避免依赖内置定义的行为变化）
 TEST_YAML = """\

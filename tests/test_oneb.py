@@ -1,5 +1,6 @@
 """1B 读取器测试：合成文件做字节级往返验证 + 真实样本回归（无样本时自动跳过）。"""
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 import struct
 from datetime import datetime
@@ -16,9 +17,9 @@ from fysat.readers import oneb, open_file
 FY1D_REC = 28400
 NA18_REC = 22016
 
-SAMPLE_FY1D = Path(r"Y:\download-data\FY1D_AVHRR_HRPT_L1_ORB_MLT_NUL_20120329_0743_1100M_PJ.L1B")
+SAMPLE_FY1D = SAMPLE_ROOT / r"FY1D_AVHRR_HRPT_L1_ORB_MLT_NUL_20120329_0743_1100M_PJ.L1B"
 SAMPLE_NA18 = Path(
-    r"Y:\download-data\A202607300042001850\NA18_AVHRR_HRPT_L1_ORB_MLT_NUL_20180308_0054_1100M_PJ.L1B")
+    str(SAMPLE_ROOT / r"A202607300042001850\NA18_AVHRR_HRPT_L1_ORB_MLT_NUL_20180308_0054_1100M_PJ.L1B"))
 
 need_fy1d = pytest.mark.skipif(not SAMPLE_FY1D.is_file(), reason="缺少 FY-1D 1B 样本")
 need_na18 = pytest.mark.skipif(not SAMPLE_NA18.is_file(), reason="缺少 NOAA-18 1B 样本")

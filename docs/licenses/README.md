@@ -74,7 +74,7 @@
 | `components/pillow-LICENSE.txt` | 56662 | `63a9bb147f7b8d43d211f06000fe40606739ad93fbd5cb1f844bc740f8bc51ec` | `pillow-11.1.0.dist-info\LICENSE` | 总是 |
 | `components/tifffile-LICENSE.txt` | 1559 | `c309a8540535da0e25ae5f60097d939551c8fcad7465c584353f151ac6a954e3` | `tifffile-2025.5.10.dist-info\licenses\LICENSE` | 总是 |
 | `components/pyyaml-LICENSE.txt` | 1101 | `8d3928f9dc4490fd635707cb88eb26bd764102a7282954307d3e5167a577e8a4` | `PyYAML-6.0.2.dist-info\LICENSE` | 总是 |
-| `runtime/python-PSF-LICENSE.txt` | 32763 | `ff4591f6dec4dc7ebe86e0c1c0eef1f2c7b651ee3ba45e5b4ccb35f2607bdd43` | `D:\py310\LICENSE.txt`（CPython 3.10.6） | 附带解释器时 |
+| `runtime/python-PSF-LICENSE.txt` | 32763 | `ff4591f6dec4dc7ebe86e0c1c0eef1f2c7b651ee3ba45e5b4ccb35f2607bdd43` | `<python>\LICENSE.txt`（CPython 3.10.6） | 附带解释器时 |
 | `build/pyinstaller-GPLv2-with-exception-COPYING.txt` | 32138 | `dcf75fdb959db1e3b41c0f8505069d2ece781b5ec6b3d0a4d30975cfc6580245` | `pyinstaller-6.21.0.dist-info\licenses\COPYING.txt` | 使用 PyInstaller 打包时 |
 
 > 说明：`LGPL-3.0.txt` 采用 FSF 官方短文本（LGPLv3 通过引用并入 GPLv3 条款），因此同时提供独立 `GPL-3.0.txt` 以满足 LGPLv3 §4(b)。
@@ -97,7 +97,7 @@
 
 ```powershell
 # 重新提取各依赖包内的许可证文件（版本升级后执行）
-$sp = 'E:\venv\fysat\Lib\site-packages'
+$sp = '<venv>\Lib\site-packages'
 Copy-Item "$sp\numpy-2.2.4.dist-info\LICENSE.txt"        docs/licenses/components/numpy-LICENSE.txt
 Copy-Item "$sp\h5py-3.16.0.dist-info\licenses\LICENSE"   docs/licenses/components/h5py-LICENSE.txt
 # ...（其余见 LICENSES.md §8.3）
@@ -112,7 +112,7 @@ Get-ChildItem docs/licenses -Recurse -File |
   ForEach-Object { "{0}  {1}" -f (Get-FileHash $_.FullName -Algorithm SHA256).Hash.ToLower(), $_.FullName }
 
 # 合规测试
-& E:\venv\fysat\Scripts\python.exe -m pytest tests/test_license_compliance.py -q
+& <venv>\Scripts\python.exe -m pytest tests/test_license_compliance.py -q
 ```
 
 ---

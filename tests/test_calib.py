@@ -8,6 +8,7 @@
 * FY-2G FDI L1          ``Y:\\download-data\\C202610181401129865\\FY2G_FDI_ALL_NOM_20261018_1300.hdf``
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT
 
 from pathlib import Path
 
@@ -17,12 +18,12 @@ import pytest
 from fysat import calib
 from fysat.readers import open_file
 
-FY3H = Path(r"Y:\download-data\FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf")
-FY4B = Path(
-    r"Y:\download-data\FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_"
+FY3H = SAMPLE_ROOT / r"FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf"
+FY4B = SAMPLE_ROOT / (
+    r"FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_"
     r"20261030154500_20261030155959_1000M_V0001.HDF"
 )
-FY2G = Path(r"Y:\download-data\C202610181401129865\FY2G_FDI_ALL_NOM_20261018_1300.hdf")
+FY2G = SAMPLE_ROOT / r"C202610181401129865\FY2G_FDI_ALL_NOM_20261018_1300.hdf"
 
 # MERSI-II 第 24 通道等效中心波长（文件全局属性 Effect_Center_WaveLength 第 24 项）
 FY3H_B24_WAVELENGTH = 10.7342

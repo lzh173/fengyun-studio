@@ -17,6 +17,7 @@
   填充值 65534 = 地球内无效，65535 = 地球外无效
 """
 from __future__ import annotations
+from _sample_root import SAMPLE_ROOT, glob_samples
 
 import glob
 import os
@@ -28,7 +29,7 @@ from fysat import calib, pipeline
 
 
 def _find(pat, min_mb=0.5):
-    hits = [h for h in glob.glob(rf"Y:\download-data\**\{pat}", recursive=True)
+    hits = [h for h in glob_samples(pat)
             if os.path.getsize(h) > min_mb * 1e6]
     return hits[0] if hits else None
 
