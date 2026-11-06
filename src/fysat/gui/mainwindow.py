@@ -160,16 +160,15 @@ class MainWindow(QtWidgets.QMainWindow):
         ll.addWidget(self._nav)
 
         # 数据源：新的三层数据树（目录 → 卫星/仪器 → 文件）。
-        # 旧的 explorer 保留为「按容器类型」视角的下方折叠区，
-        # 既保证既有测试对 win.explorer 的断言继续成立，也给用户两种看法。
+        # 旧的 explorer 只保留**对象**（act_opendir 与既有测试仍要用到它），
+        # 不再放进布局：它和 DataTree 各带一套"打开目录/刷新/过滤"，
+        # 上下叠在一起会显示成两块重复的"数据源"面板。
         try:
             from .datatree import DataTree
 
             self.datatree = DataTree()
             self.datatree.fileActivated.connect(self.load_file)
-            ll.addWidget(self.datatree, 3)
-            self.explorer.setMaximumHeight(150)
-            ll.addWidget(self.explorer, 1)
+            ll.addWidget(self.datatree, 1)
         except Exception:                       # noqa: BLE001
             self.datatree = None
             ll.addWidget(self.explorer, 1)
@@ -180,13 +179,17 @@ class MainWindow(QtWidgets.QMainWindow):
 
         dock_left = QtWidgets.QDockWidget("数据源", self)
         dock_left.setWidget(left)
-        dock_left.setMinimumWidth(320)
+        # 左右两侧最小宽度 320+340=660，加上中央 stack 的 943，
+        # 会把窗口最小宽度顶到 1615px —— 1366/1280 屏幕或系统有 DPI
+        # 缩放时，右侧"导出"区域被挤出屏幕（用户反馈"找不到导出按钮"）。
+        # 收窄到 200/240，内容靠各自滚动条自适应。
+        dock_left.setMinimumWidth(200)
         dock_left.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable
                               | QtWidgets.QDockWidget.DockWidgetFloatable)
 
         dock_right = QtWidgets.QDockWidget("属性", self)
         dock_right.setWidget(self.inspector)
-        dock_right.setMinimumWidth(340)
+        dock_right.setMinimumWidth(240)
         dock_right.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable
                                | QtWidgets.QDockWidget.DockWidgetFloatable)
 
@@ -346,6 +349,13 @@ class MainWindow(QtWidgets.QMainWindow):
         tb = QtWidgets.QToolBar("主工具栏")
         tb.setMovable(False)
         tb.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
+        # 工具栏有 13 个动作，按最小尺寸算会把**整个窗口**的最小宽度撑到
+        # 1600px 以上；1366/1280 的屏幕或系统有 DPI 缩放时，右侧面板会被
+        # 挤出屏幕（用户就"找不到导出按钮"）。这里允许它收缩，
+        # Qt 会自动把放不下的动作折叠进 "»" 溢出菜单。
+        tb.setSizePolicy(QtWidgets.QSizePolicy.Ignored,
+                         QtWidgets.QSizePolicy.Fixed)
+        tb.setMinimumWidth(240)
         tb.addAction(self.act_open)
         tb.addAction(self.act_opendir)
         tb.addSeparator()

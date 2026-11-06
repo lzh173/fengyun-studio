@@ -120,7 +120,7 @@ class ViewportPane(QtWidgets.QFrame):
         bl.setSpacing(0)
         bl.addWidget(self.canvas, 1)
         self.colorbar = cw.ColorBarWidget()
-        self.colorbar.setFixedWidth(84)
+        self.colorbar.setFixedWidth(64)
         self.colorbar.hide()                  # 有数据后才显示
         bl.addWidget(self.colorbar)
         lay.addWidget(body, 1)
@@ -155,14 +155,14 @@ class ViewportPane(QtWidgets.QFrame):
         self.lbl_title = QtWidgets.QLabel("—")
         self.lbl_title.setStyleSheet("color:#e2e8f0;font-size:10px;font-weight:600;"
                                      "background:transparent;border:none;")
-        self.lbl_title.setMinimumWidth(90)
+        self.lbl_title.setMinimumWidth(56)
         self.cmb_var = QtWidgets.QComboBox()
         self.cmb_var.setFixedHeight(19)
-        self.cmb_var.setMinimumWidth(140)
+        self.cmb_var.setMinimumWidth(96)
         self.cmb_var.setStyleSheet("font-size:9px;padding:0 3px;")
         self.spin_band = QtWidgets.QSpinBox()
         self.spin_band.setFixedHeight(19)
-        self.spin_band.setFixedWidth(52)
+        self.spin_band.setFixedWidth(44)
         self.spin_band.setRange(1, 1)
         self.spin_band.setStyleSheet("font-size:9px;padding:0 2px;")
         self.lbl_meta = QtWidgets.QLabel("")
@@ -356,7 +356,7 @@ class AnalysisWorkspace(QtWidgets.QWidget):
 
     def _build_left(self) -> QtWidgets.QWidget:
         left = QtWidgets.QWidget()
-        left.setFixedWidth(206)
+        left.setFixedWidth(184)
         left.setStyleSheet(f"background:{theme.PANEL};border-right:1px solid {theme.LINE};")
         ll = QtWidgets.QVBoxLayout(left)
         ll.setContentsMargins(0, 0, 0, 0)
@@ -430,7 +430,7 @@ class AnalysisWorkspace(QtWidgets.QWidget):
 
     def _build_right(self) -> QtWidgets.QWidget:
         right = QtWidgets.QWidget()
-        right.setFixedWidth(244)
+        right.setFixedWidth(224)
         right.setStyleSheet(f"background:{theme.PANEL};border-left:1px solid {theme.LINE};")
         rl = QtWidgets.QVBoxLayout(right)
         rl.setContentsMargins(0, 0, 0, 0)
