@@ -9,7 +9,8 @@ __pycache__/
 out/
 build/
 dist/
-*.spec
+# PyInstaller 在仓库根自动生成的临时 spec（我们的规格在 packaging/ 下，需提交）
+/*.spec
 
 # ---- 探针与临时脚本（团队约定：只进 src 与 tests）----
 scratch/
