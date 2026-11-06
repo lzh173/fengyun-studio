@@ -20,7 +20,6 @@ GUI 最容易出「构建成功但一片空白」的问题：控件建了、信�
 所以除了断言对象存在，还必须抓图并检查像素多样性。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import os
 import time
@@ -28,14 +27,15 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 pytest.importorskip("PySide6")
 
-from PySide6 import QtCore, QtGui, QtWidgets                  # noqa: E402
+from PySide6 import QtCore, QtGui, QtWidgets  # noqa: E402
 
-from fysat.readers import open_file                           # noqa: E402
+from fysat.readers import open_file  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "out" / "gui"
 
@@ -279,7 +279,11 @@ def _fake_mouse_event(pos: QtCore.QPoint) -> QtGui.QMouseEvent:
 
 def test_mainwindow_has_four_screens(app):
     from fysat.gui.mainwindow import (
-        SCREEN_ANALYSIS, SCREEN_DECODE, SCREEN_FIGURE, SCREEN_MAIN, MainWindow,
+        SCREEN_ANALYSIS,
+        SCREEN_DECODE,
+        SCREEN_FIGURE,
+        SCREEN_MAIN,
+        MainWindow,
     )
 
     w = MainWindow()

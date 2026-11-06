@@ -10,12 +10,12 @@
 ``!= 65535`` 的掩膜必须几乎逐像元一致（FY-2G 99.7%，FY-4B 99.9%）。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat import calib, geo
 from fysat.readers import open_file

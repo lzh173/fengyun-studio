@@ -1,8 +1,8 @@
 """读取器注册表：按容器类型分派。新增格式只需在此注册。"""
 from __future__ import annotations
 
+from collections.abc import Callable
 from pathlib import Path
-from typing import Callable
 
 from ..detect import sniff
 from ..model import SatDataset

@@ -86,7 +86,7 @@ def build_provenance(
     extra: dict[str, str] | None = None,
 ) -> dict[str, str]:
     """组装溯源字段。dataset 可以是 SatDataset，也可以什么都不传。"""
-    from . import __version__ as ver      # noqa: F401  (确保包已初始化)
+    from . import __version__ as ver  # noqa: F401  (确保包已初始化)
 
     prov: dict[str, str] = {
         "software": SOFTWARE_NAME,

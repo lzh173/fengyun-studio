@@ -1,7 +1,11 @@
+"""探测样本目录中每个数据族的真实容器格式（忽略 .enp）。"""
+
 from __future__ import annotations
 
 import os
 from pathlib import Path
+
+import h5py
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -24,10 +28,7 @@ def _sample(rel: str) -> Path:
 
 
 # -*- coding: utf-8 -*-
-"""探测样本目录中每个数据族的真实容器格式（忽略 .enp）。"""
-import os
 
-import h5py
 
 ROOT = SAMPLE_ROOT
 SKIP = {".enp", ".db", ".png", ".jpg", ".json", ".xml", ".txt", ".csv", ".npy", ".npz", ".cbor"}

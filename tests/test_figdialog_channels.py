@@ -9,16 +9,15 @@
    三栏固定宽度合计恰等于窗口宽度，窗口略窄或有 DPI 缩放时右栏被挤出屏幕。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
 
-import glob
 import os
 
 import pytest
+from _sample_root import glob_samples
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
-from PySide6 import QtWidgets                       # noqa: E402
+from PySide6 import QtWidgets  # noqa: E402
 
 
 def fb_width(window) -> int:

@@ -8,15 +8,12 @@
 3. set_dataset 从不填充 RGB 下拉，刚打开文件时三个下拉都是空的。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
-
-import glob
 
 import numpy as np
 import pytest
+from _sample_root import glob_samples
 
 from fysat.gui import bandindex as bi
-
 
 # ---------------- band_name 解析 ----------------
 
@@ -101,7 +98,7 @@ def test_true_color_preset_picks_three_different_bands():
     assert {r.band for r in plan.refs} == {3, 2, 1}
     assert len({r.variable for r in plan.refs}) == 1
     # 三个通道互不相同才是有效合成
-    assert len(set(zip(plan.names, plan.bands))) == 3
+    assert len(set(zip(plan.names, plan.bands, strict=False))) == 3
 
 
 def test_unavailable_presets_are_excluded_not_faked():

@@ -4,21 +4,21 @@
     set QT_QPA_PLATFORM=offscreen
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
 
 import os
 from pathlib import Path
 
 import pytest
+from _sample_root import glob_samples
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 pytest.importorskip("PySide6")
 
-from PySide6 import QtWidgets                       # noqa: E402
+from PySide6 import QtWidgets  # noqa: E402
 
-from fysat.gui import ALLOWED_QT_MODULES, theme     # noqa: E402
-from fysat.gui.imageview import ndarray_to_qimage   # noqa: E402
+from fysat.gui import ALLOWED_QT_MODULES, theme  # noqa: E402
+from fysat.gui.imageview import ndarray_to_qimage  # noqa: E402
 from fysat.gui.mainwindow import ExportDialog, MainWindow  # noqa: E402
 
 
@@ -122,7 +122,6 @@ def test_ndarray_to_qimage_float_fallback():
 
 @pytest.fixture(scope="module")
 def real_file():
-    import glob
 
     hits = glob_samples(r"FY3F_MERSI_GRAN_L1_*.HDF")
     if not hits:

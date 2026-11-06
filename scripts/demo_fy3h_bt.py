@@ -1,7 +1,22 @@
+"""端到端演示（B）：FY-3H MERSI 红外亮温 → 三种格式导出。
+
+选择红外通道是因为它不依赖光照，任何轨道时次都有信号，
+能直观验证"读 → 定标 → 渲染 → 导出"整条链路。
+"""
+
 from __future__ import annotations
 
 import os
+import sys
+import time
 from pathlib import Path
+
+import numpy as np
+
+from fysat.export import ExportOptions, export  # noqa: E402
+from fysat.palettes import bt_to_rgb  # noqa: E402
+from fysat.readers import open_file  # noqa: E402
+from fysat.render import display_array  # noqa: E402
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -23,25 +38,8 @@ def _sample(rel: str) -> Path:
     return SAMPLE_ROOT / rel
 
 
-"""端到端演示（B）：FY-3H MERSI 红外亮温 → 三种格式导出。
-
-选择红外通道是因为它不依赖光照，任何轨道时次都有信号，
-能直观验证"读 → 定标 → 渲染 → 导出"整条链路。
-"""
-from __future__ import annotations
-
-import sys
-import time
-from pathlib import Path
-
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fysat.export import ExportOptions, export  # noqa: E402
-from fysat.palettes import bt_to_rgb  # noqa: E402
-from fysat.readers import open_file  # noqa: E402
-from fysat.render import display_array  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "out"
 SRC = _sample(r"FY3H_MERSI_GRAN_L1_20261022_1810_0250M_V0.hdf")

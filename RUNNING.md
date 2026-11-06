@@ -128,3 +128,32 @@ Qt 6 不再随包提供字体，属正常提示，不影响运行。
 且需要与数据同目录的 **GEO 定位文件**才能得到经纬度；
 没有 GEO 时程序会标 `geo_missing=True` 并降级为无定位读取。
 详见 [analysis/satpy_evaluation.md](analysis/satpy_evaluation.md)。
+
+---
+
+## 七、自己构建可执行文件
+
+需要 `pyinstaller`：
+
+```bash
+pip install pyinstaller
+python packaging/build.py               # 同时产出 GUI 版与 CLI 版
+python packaging/build.py --kind gui    # 只构建图形界面版
+python packaging/build.py --kind cli    # 只构建命令行版
+```
+
+产物在 `dist/`：
+
+| 文件 | 说明 | 体积 |
+|---|---|---|
+| `FY-Sat-Studio.exe` | 图形界面，Windows 下无控制台窗口 | 约 105 MB |
+| `fysat.exe` | 命令行，带控制台 | 约 105 MB |
+
+体积主要来自 PySide6 + matplotlib + numpy + scipy + h5py，属于单文件打包的必然结果。
+
+**可选后端 satpy 被刻意排除**（打包规格里 `excludes` 显式列出）：
+它实装约 370 MB 且需要联网资源，打进单文件会让体积翻倍、启动变慢。
+需要 satpy 请用源码方式运行并 `pip install fysat[satpy]`。
+
+CI（`.github/workflows/build.yml`）会在打 tag 时自动为 Windows 与 Linux 构建并发布到 Release；
+手动触发 `workflow_dispatch` 只构建、产物在 Actions 页面下载。

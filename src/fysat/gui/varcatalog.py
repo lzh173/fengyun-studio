@@ -6,9 +6,7 @@
 """
 from __future__ import annotations
 
-from dataclasses import dataclass, field
-
-import numpy as np
+from dataclasses import dataclass
 
 # 通道维的判定：第一维较小且远小于最后一维
 _MAX_BANDS = 64

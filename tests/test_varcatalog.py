@@ -6,12 +6,10 @@
 3. 变量列表把校准表/坐标/质量码与真影像混在一起
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
-
-import glob
 
 import numpy as np
 import pytest
+from _sample_root import glob_samples
 
 from fysat.gui.varcatalog import (
     classify,
@@ -23,7 +21,6 @@ from fysat.gui.varcatalog import (
 from fysat.gui.workers import render_rgb, render_variable
 from fysat.model import SatDataset, Variable
 from fysat.render import band_of, display_band, n_bands
-
 
 # ---------------- 分类规则 ----------------
 

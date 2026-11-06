@@ -11,7 +11,14 @@
 from __future__ import annotations
 
 import os
+import sys
+import time
 from pathlib import Path
+
+import numpy as np  # noqa: E402
+from PySide6 import QtCore, QtGui, QtWidgets  # noqa: E402
+
+from fysat.readers import open_file  # noqa: E402
 
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
 
@@ -25,9 +32,6 @@ def _require_sample_root() -> Path:
             "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
     return SAMPLE_ROOT
 
-import sys
-import time
-from pathlib import Path
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 os.environ.setdefault("QT_API", "pyside6")
@@ -37,10 +41,6 @@ SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
 
-import numpy as np                                          # noqa: E402
-from PySide6 import QtCore, QtGui, QtWidgets                 # noqa: E402
-
-from fysat.readers import open_file                          # noqa: E402
 
 OUT = ROOT / "out" / "gui"
 

@@ -6,13 +6,10 @@ import json
 import sys
 from pathlib import Path
 
-import numpy as np
-
 from . import __version__
 from .detect import parse_name, sniff
 from .export import KINDS, ExportOptions, describe_kinds, export
 from .readers import open_file
-from .readers.hdf5 import list_tree
 
 
 def _parse_range(s: str) -> tuple[float, float]:
@@ -190,7 +187,7 @@ def cmd_products(args) -> int:
         pi = f"{d.platform or '?'}/{d.instrument or '?'}"
         print(f"{d.product:32s} {pi:22s} {d.level or '?':5s} "
               f"{len(d.fields):>4d} {len(d.pending_verification):>6d} "
-              f"{'✓' if d.verified else '待补'}")
+              f"{'是' if d.verified else '待补'}")
     return 0
 
 
@@ -375,7 +372,27 @@ def build_parser() -> argparse.ArgumentParser:
     return p
 
 
+def _setup_console() -> None:
+    """让控制台输出不会因为个别字符编不出来就崩掉整个命令。
+
+    Windows 控制台默认 GBK（cp936），遇到 '✓' 这类 GBK 表示不了的字符会抛
+    UnicodeEncodeError，用户看到的就是一坨 traceback。这里降级成替换字符。
+    """
+    for stream in (sys.stdout, sys.stderr):
+        try:
+            kwargs = {"errors": "replace"}
+            # 被管道/文件重定向时强制 UTF-8：
+            #   * CI 日志、重定向到文件、被父进程捕获，都按 UTF-8 最通用
+            # 直连控制台时保持系统编码（中文 Windows 控制台是 GBK，能正常显示中文）
+            if not stream.isatty():                  # type: ignore[union-attr]
+                kwargs["encoding"] = "utf-8"
+            stream.reconfigure(**kwargs)             # type: ignore[union-attr]
+        except Exception:                            # noqa: BLE001
+            pass
+
+
 def main(argv: list[str] | None = None) -> int:
+    _setup_console()
     args = build_parser().parse_args(argv)
     return args.func(args)
 

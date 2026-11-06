@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FY-2 CSV 数据集容器测试。
 
 两部分：
@@ -8,7 +7,6 @@
    整圆盘结构、逐行元信息与元数据记录语义。样本缺失时自动跳过。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import glob
 from datetime import datetime
@@ -16,6 +14,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat.detect import sniff
 from fysat.readers import fy2_csv
@@ -63,7 +62,7 @@ def _meta_record(n_data: int, first: datetime, last: datetime) -> bytes:
         "record_count": f"{n_data:04d}".encode(),
         "quality_id": b"0001",
     }
-    for name, off, length in fy2_csv.META_TEXT_FIELDS:
+    for name, off, _length in fy2_csv.META_TEXT_FIELDS:
         rec[off:off + len(fields[name])] = fields[name]
     qual = {
         "first_row_no": b"0001",
@@ -77,7 +76,7 @@ def _meta_record(n_data: int, first: datetime, last: datetime) -> bytes:
         "error_rate": b"0000",
         "file_quality": b"0001",
     }
-    for name, off, length in fy2_csv.META_QUAL_FIELDS:
+    for name, off, _length in fy2_csv.META_QUAL_FIELDS:
         rec[off:off + len(qual[name])] = qual[name]
     rec[fy2_csv.META_SDB_FLAG] = 0
     rec[fy2_csv.META_LINE_QUALITY_OFFSET:

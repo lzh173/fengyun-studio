@@ -11,13 +11,12 @@
   热通道（CH3/CH4/CH5）的 1B 系数缩放在文档里表述不完整 → 暂不定标，界面标"待定标"
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
 
-import glob
 import os
 
 import numpy as np
 import pytest
+from _sample_root import glob_samples
 
 from fysat import calib, pipeline
 from fysat.gui.varcatalog import physical_label

@@ -64,6 +64,15 @@ fysat = "fysat.cli:main"
 [tool.setuptools]
 license-files = ["LICENSE", "LICENSES.md", "THIRD_PARTY_NOTICES.md"]
 
+[tool.setuptools.package-data]
+# 这些 YAML/GeoJSON 是运行时必需数据（产品定义、合成配方、海岸线），
+# 不声明的话 pip 装出来的包会缺文件，程序启动即报找不到产品定义。
+fysat = [
+    "products/*.yml",
+    "composites/*.yml",
+    "assets/*.geojson",
+]
+
 [tool.setuptools.packages.find]
 where = ["src"]
 
@@ -79,3 +88,10 @@ exclude = [".git", "out", "build", "dist", "analysis"]
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
 ignore = ["E501"]        # 行宽由 formatter 处理，注释里有长链接
+
+[tool.ruff.lint.per-file-ignores]
+# 开发脚本要在 sys.path 注入之后才能 import fysat，所以 E402 是必然的；
+# 其余几条是内部工具的写法习惯，不影响发行代码质量。
+"scripts/*" = ["E402", "E702", "B007", "UP031", "B904"]
+"analysis/*" = ["E402", "E702", "B007", "UP031", "B904"]
+"tests/*" = ["E402", "B007"]

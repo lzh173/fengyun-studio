@@ -1,7 +1,19 @@
+"""端到端演示：读真实产品 → 合成 RGB / 定标亮温 → 三种格式导出。
+
+用法:
+    python scripts/demo_pipeline.py
+"""
+
 from __future__ import annotations
 
 import os
+import sys
+import time
 from pathlib import Path
+
+from fysat.export import ExportOptions, export  # noqa: E402
+from fysat.readers import open_file  # noqa: E402
+from fysat.render import Stretch, composite, display_array  # noqa: E402
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -23,24 +35,8 @@ def _sample(rel: str) -> Path:
     return SAMPLE_ROOT / rel
 
 
-"""端到端演示：读真实产品 → 合成 RGB / 定标亮温 → 三种格式导出。
-
-用法:
-    python scripts/demo_pipeline.py
-"""
-from __future__ import annotations
-
-import sys
-import time
-from pathlib import Path
-
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fysat.export import ExportOptions, export  # noqa: E402
-from fysat.readers import open_file  # noqa: E402
-from fysat.render import Stretch, composite, display_array  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "out"
 FY4B = _sample(r"FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_20261030154500_20261030155959_1000M_V0001.HDF")

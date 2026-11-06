@@ -20,23 +20,23 @@
     E:\\venv\\fysat\\Scripts\\python.exe -m pytest tests/test_figurebench_export.py -q
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import os
 from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 
 pytest.importorskip("PySide6")
 pytest.importorskip("PIL.Image")
 
-from PIL import Image                                            # noqa: E402
-from PySide6 import QtCore, QtWidgets                             # noqa: E402
+from PIL import Image  # noqa: E402
+from PySide6 import QtCore, QtWidgets  # noqa: E402
 
-from fysat.gui.figurebench import (                               # noqa: E402
+from fysat.gui.figurebench import (  # noqa: E402
     TEMPLATES,
     FigureBench,
     template_enabled,

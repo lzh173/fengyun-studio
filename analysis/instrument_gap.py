@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """仪器维度 × 样本可得性 → 最终支持范围与补样本建议。"""
 import collections
 import os

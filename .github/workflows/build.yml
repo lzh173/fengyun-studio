@@ -1,0 +1,155 @@
+name: Build executables
+
+# 触发方式：
+#   1) 打 tag（v*）        → 构建并发布到 Release
+#   2) 手动 workflow_dispatch → 只构建，产物在 Actions 页面下载
+#   3) 主分支改动 packaging/ → 构建一次做冒烟，确保规格没写坏
+on:
+  push:
+    tags: ["v*"]
+    paths:
+      - "packaging/**"
+      - ".github/workflows/build.yml"
+  pull_request:
+    paths:
+      - "packaging/**"
+      - ".github/workflows/build.yml"
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  # ------------------------------------------------------------ Windows
+  windows:
+    name: Windows 可执行文件
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[gui]" pyinstaller
+
+      - name: 构建 GUI 版（无控制台）
+        env:
+          FYSAT_BUILD_KIND: gui
+        run: pyinstaller packaging/fysat.spec --distpath dist --workpath build --noconfirm
+
+      - name: 构建 CLI 版（带控制台）
+        env:
+          FYSAT_BUILD_KIND: cli
+        run: pyinstaller packaging/fysat.spec --distpath dist --workpath build-cli --noconfirm
+
+      - name: 冒烟测试（CLI 必须能跑出产品列表）
+        shell: pwsh
+        run: |
+          $exe = "dist\fysat.exe"
+          if (-not (Test-Path $exe)) { throw "没有生成 $exe" }
+          $ver = & $exe --version
+          Write-Host "版本: $ver"
+          $prod = & $exe products
+          if ($LASTEXITCODE -ne 0) { throw "products 子命令失败" }
+          Write-Host ($prod | Select-Object -First 1)
+          if (-not ($prod -match "产品定义")) { throw "输出里没有产品定义信息（包内 YAML 可能没打进去）" }
+
+      - name: 收集产物
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force -Path artifacts | Out-Null
+          Copy-Item dist\FY-Sat-Studio.exe artifacts\ -ErrorAction SilentlyContinue
+          Copy-Item dist\fysat.exe artifacts\ -ErrorAction SilentlyContinue
+          Get-ChildItem artifacts | Format-Table Name, @{n="MB";e={[math]::Round($_.Length/1MB,1)}}
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FY-Sat-Studio-windows
+          path: artifacts/*
+
+  # ------------------------------------------------------------ Linux
+  linux:
+    name: Linux 可执行文件
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: 系统依赖
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libegl1 libgl1 libxkbcommon-x11-0 libdbus-1-3 \
+            libxcb-icccm4 libxcb-image0 libxcb-keysyms1 libxcb-randr0 \
+            libxcb-render-util0 libxcb-shape0 libxcb-xinerama0 libxcb-xkb1
+
+      - run: |
+          python -m pip install --upgrade pip
+          pip install -e ".[gui]" pyinstaller
+
+      - name: 构建 GUI 版
+        env:
+          FYSAT_BUILD_KIND: gui
+        run: pyinstaller packaging/fysat.spec --distpath dist --workpath build --noconfirm
+
+      - name: 构建 CLI 版
+        env:
+          FYSAT_BUILD_KIND: cli
+        run: pyinstaller packaging/fysat.spec --distpath dist --workpath build-cli --noconfirm
+
+      - name: 冒烟测试
+        run: |
+          chmod +x dist/fysat
+          ./dist/fysat --version
+          ./dist/fysat products | head -3
+          ./dist/fysat products | grep -q "产品定义" || (echo "包内 YAML 可能没打进去" && exit 1)
+
+      - name: 打包
+        run: |
+          mkdir -p artifacts
+          cp dist/FY-Sat-Studio artifacts/ 2>/dev/null || true
+          cp dist/fysat artifacts/ 2>/dev/null || true
+          cd artifacts && tar czf ../FY-Sat-Studio-linux-x86_64.tar.gz . && cd ..
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: FY-Sat-Studio-linux
+          path: FY-Sat-Studio-linux-x86_64.tar.gz
+
+  # ------------------------------------------------------------ 发布
+  release:
+    name: 发布到 Release
+    needs: [windows, linux]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - uses: softprops/action-gh-release@v2
+        with:
+          files: |
+            artifacts/FY-Sat-Studio-windows/*
+            artifacts/FY-Sat-Studio-linux/*
+          body: |
+            由 CI 自动构建的可执行文件。
+
+            - **FY-Sat-Studio.exe** — 图形界面（Windows）
+            - **fysat.exe** — 命令行（Windows）
+            - **FY-Sat-Studio-linux-x86_64.tar.gz** — Linux 版（GUI + CLI）
+
+            > 程序不包含任何卫星数据。请从 NSMC 获取产品后，
+            > 用 `FYSAT_SAMPLE_ROOT` 环境变量指向数据目录。
+
+            许可证：AGPL-3.0-only（含 §7 附加条款），详见仓库 LICENSE 与 LICENSES.md。
+          draft: false
+          prerelease: ${{ contains(github.ref, '-rc') || contains(github.ref, '-beta') }}

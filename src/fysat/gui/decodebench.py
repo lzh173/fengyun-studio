@@ -787,7 +787,7 @@ class DecodeBench(QtWidgets.QWidget):
         path = item.path
 
         def work():
-            t0 = time.perf_counter()
+            time.perf_counter()
             kind = sniff(path)
             ds = open_file(path, load=False)
             item.kind = kind

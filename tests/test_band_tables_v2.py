@@ -12,13 +12,12 @@
 3. 未验证项必须显式标注，不能假装确定
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
 
-import glob
 import os
 
 import numpy as np
 import pytest
+from _sample_root import glob_samples
 
 from fysat import composites
 

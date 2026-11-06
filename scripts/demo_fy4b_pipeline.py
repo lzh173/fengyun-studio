@@ -1,7 +1,22 @@
+"""端到端验证 C：定标 → 标称投影定位 → 等经纬网格重采样 → 三格式导出。
+
+这条链路把 reader / calib / geo / export 串起来，是 GUI 之前最重要的一次集成验证。
+"""
+
 from __future__ import annotations
 
 import os
+import sys
+import time
 from pathlib import Path
+
+import numpy as np
+
+from fysat.calib import reflectance_from_lut  # noqa: E402
+from fysat.export import ExportOptions, export  # noqa: E402
+from fysat.geo import nominal_geos_lonlat, reproject_to_grid  # noqa: E402
+from fysat.palettes import bt_to_rgb  # noqa: E402
+from fysat.readers import open_file  # noqa: E402
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -23,25 +38,8 @@ def _sample(rel: str) -> Path:
     return SAMPLE_ROOT / rel
 
 
-"""端到端验证 C：定标 → 标称投影定位 → 等经纬网格重采样 → 三格式导出。
-
-这条链路把 reader / calib / geo / export 串起来，是 GUI 之前最重要的一次集成验证。
-"""
-from __future__ import annotations
-
-import sys
-import time
-from pathlib import Path
-
-import numpy as np
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fysat.calib import reflectance_from_lut  # noqa: E402
-from fysat.export import ExportOptions, export  # noqa: E402
-from fysat.geo import nominal_geos_lonlat, reproject_to_grid  # noqa: E402
-from fysat.palettes import bt_to_rgb  # noqa: E402
-from fysat.readers import open_file  # noqa: E402
 
 OUT = Path(__file__).resolve().parents[1] / "out"
 FY4B = _sample(r"FY4B-_AGRI--_N_DISK_1050E_L1-_FDI-_MULT_NOM_20261030154500_20261030155959_1000M_V0001.HDF")

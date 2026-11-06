@@ -32,7 +32,7 @@ from . import chartwidgets as cw
 from . import theme
 from .imageview import ImageCanvas
 from .varcatalog import classify_dataset, describe_class
-from .workers import Worker, render_variable
+from .workers import Worker
 
 MAX_PREVIEW = 1400        # 视口内预览的最大边长，再大就降采样
 
@@ -58,7 +58,7 @@ def _calibrate(ds, var, name: str, band: int, cmap: str, st: Stretch):
     拿不到再退回 ``display_band``。这条链路与 `pipeline.build_layers`
     （04 制图工作台用的那条）完全一致，保证两屏数值可对照。
     """
-    from ..render import apply_cmap, display_band, stretch
+    from ..render import apply_cmap, stretch
 
     data = None
     unit = var.unit or ""
@@ -669,7 +669,7 @@ class AnalysisWorkspace(QtWidgets.QWidget):
                 ov.set_show_coast(self.chk_coast.isChecked())
                 ov.set_show_grid(self.chk_grid.isChecked())
 
-    def export_active(self) -> "QtGui.QImage | None":
+    def export_active(self) -> QtGui.QImage | None:
         """把活动视口的渲染结果存成 PNG，返回 QImage（测试可直接取用）。"""
         pane = self._panes[min(self._active, 2)]
         arr = pane.array()

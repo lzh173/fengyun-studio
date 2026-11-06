@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """NetCDF-3（经典格式，``CDF`` 魔数）读取器。
 
 只依赖 scipy（``scipy.io.netcdf_file``），不引入 netCDF4。支持的子格式：

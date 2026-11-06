@@ -235,7 +235,7 @@ class LayerList(QtWidgets.QWidget):
         p = QtGui.QPainter(self)
         p.fillRect(self.rect(), QtGui.QColor(theme.PANEL))
         y = 4
-        for key, label, vis, depth, togglable in self._layers:
+        for _key, label, vis, depth, togglable in self._layers:
             x = 8 + depth * 16
             if togglable:
                 p.setPen(QtGui.QColor("#7dd3fc" if vis else "#3f4a58"))
@@ -1112,7 +1112,7 @@ class FigureBench(QtWidgets.QWidget):
             "cmap": self.cmb_cmap.currentText(),
             "dpi": str(self.spin_dpi.value()),
             "figsize": f"{self.spin_w.value():g}x{self.spin_h.value():g}in",
-            "region_px": ("%d,%d,%d,%d" % self._region) if self._region else "full",
+            "region_px": (",".join(str(v) for v in self._region)) if self._region else "full",
             "draw_coast": "1" if self.chk_coast.isChecked() else "0",
             "draw_grid": "1" if self.chk_grid.isChecked() else "0",
             "colorbar": "1" if self.chk_colorbar.isChecked() else "0",

@@ -180,7 +180,7 @@ class DataTree(QtWidgets.QWidget):
     def _populate(self) -> None:
         self.tree.clear()
         all_entries: list[FileEntry] = []
-        for path, entries in self._sources:
+        for _path, entries in self._sources:
             all_entries.extend(entries)
 
         total_files = 0

@@ -1,7 +1,20 @@
+"""GUI 功能可执行性审查：逐项调用既有功能，记录"能不能用"。
+
+不靠肉眼点，而是程序化触发每个入口，把失败原因抓下来。
+输出一份审计表：功能 / 结果 / 原因。
+"""
+
 from __future__ import annotations
 
 import os
+import sys
+import time
 from pathlib import Path
+
+from PySide6 import QtCore, QtGui, QtWidgets  # noqa: E402
+
+from fysat.gui import theme  # noqa: E402
+from fysat.gui.mainwindow import MainWindow  # noqa: E402
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -16,34 +29,17 @@ def _require_sample_root() -> Path:
             "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
     return SAMPLE_ROOT
 
-_OUT = Path(__file__).resolve().parents[1] / "out"
+OUT_ROOT = Path(__file__).resolve().parents[1] / "out"
 
 
 def _sample(rel: str) -> Path:
     return SAMPLE_ROOT / rel
 
 
-"""GUI 功能可执行性审查：逐项调用既有功能，记录"能不能用"。
-
-不靠肉眼点，而是程序化触发每个入口，把失败原因抓下来。
-输出一份审计表：功能 / 结果 / 原因。
-"""
-from __future__ import annotations
-
-import os
-import sys
-import time
-import traceback
-from pathlib import Path
-
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from PySide6 import QtCore, QtGui, QtWidgets      # noqa: E402
-
-from fysat.gui import theme                        # noqa: E402
-from fysat.gui.mainwindow import MainWindow        # noqa: E402
 
 RESULTS: list[tuple[str, bool, str]] = []
 

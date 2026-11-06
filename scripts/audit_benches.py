@@ -1,7 +1,21 @@
+"""三个工作台的深度审查：不只看"有画面"，而是验证每个交互入口真的生效。
+
+02 分析工作台：视口数量 / LUT 点击换色标 / 统计数值 / 直方图数据
+03 解码工作台：队列 / 运行流水线 / 字段表
+04 制图工作台：预览生成 / 模板切换 / 导出
+"""
+
 from __future__ import annotations
 
 import os
+import sys
+import time
 from pathlib import Path
+
+from PySide6 import QtCore, QtWidgets  # noqa: E402
+
+from fysat.gui import theme  # noqa: E402
+from fysat.gui.mainwindow import MainWindow  # noqa: E402
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -16,34 +30,17 @@ def _require_sample_root() -> Path:
             "  bash:        export FYSAT_SAMPLE_ROOT=/data/samples")
     return SAMPLE_ROOT
 
-_OUT = Path(__file__).resolve().parents[1] / "out"
+OUT_ROOT = Path(__file__).resolve().parents[1] / "out"
 
 
 def _sample(rel: str) -> Path:
     return SAMPLE_ROOT / rel
 
 
-"""三个工作台的深度审查：不只看"有画面"，而是验证每个交互入口真的生效。
-
-02 分析工作台：视口数量 / LUT 点击换色标 / 统计数值 / 直方图数据
-03 解码工作台：队列 / 运行流水线 / 字段表
-04 制图工作台：预览生成 / 模板切换 / 导出
-"""
-from __future__ import annotations
-
-import os
-import sys
-import time
-from pathlib import Path
-
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-from PySide6 import QtCore, QtWidgets                # noqa: E402
-
-from fysat.gui import theme                          # noqa: E402
-from fysat.gui.mainwindow import MainWindow          # noqa: E402
 
 R: list[tuple[str, bool, str]] = []
 
@@ -104,7 +101,7 @@ def main() -> int:
 
     @check("02 四视口存在且都有内容")
     def _():
-        vps = [w for w in ws.findChildren(QtWidgets.QWidget)
+        [w for w in ws.findChildren(QtWidgets.QWidget)
                if w.__class__.__name__ == "ViewportPane"]
         # 类名可能不同，退化为按像素检查截图
         pix = ws.grab()

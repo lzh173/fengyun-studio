@@ -28,8 +28,7 @@ LGPL_QT_MODULES = ["QtCore", "QtGui", "QtWidgets", "QtNetwork",
 
 
 def _iter_py_files():
-    for p in SRC.rglob("*.py"):
-        yield p
+    yield from SRC.rglob("*.py")
 
 
 # ---------------- 源码级检查（不依赖安装了任何东西） ----------------

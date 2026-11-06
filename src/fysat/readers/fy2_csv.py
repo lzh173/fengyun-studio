@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """FY-2 压缩 S-VISSR（CSV / ``CSVS V1.0``）数据集容器读取器。
 
 字节级结构（由 28 个真实样本反推，并与官方文档互验）
@@ -397,7 +396,7 @@ def _read_channel_arrays(path: Path, n_lines: int, wanted: set[str]) -> dict[str
     """一次顺序扫描，把需要的通道解成 (lines, pixels)。"""
     dtype = {name: np.uint16 if bits >= 9 else np.uint8 for name, _, _, bits, _ in SEGMENTS}
     out: dict[str, np.ndarray] = {}
-    for name, _, _, bits, count in SEGMENTS:
+    for name, _, _, _bits, count in SEGMENTS:
         if name in wanted:
             out[name] = np.empty((n_lines, count), dtype=dtype[name])
 

@@ -1,7 +1,12 @@
+"""对几类新样本做结构探针：确认能否用 h5py 打开、顶层结构长什么样。"""
+
 from __future__ import annotations
 
+import glob
 import os
 from pathlib import Path
+
+import h5py
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -24,11 +29,7 @@ def _sample(rel: str) -> Path:
 
 
 # -*- coding: utf-8 -*-
-"""对几类新样本做结构探针：确认能否用 h5py 打开、顶层结构长什么样。"""
-import glob
-import os
 
-import h5py
 
 ROOT = SAMPLE_ROOT
 

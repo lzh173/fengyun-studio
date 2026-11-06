@@ -255,7 +255,7 @@ def ensure_cjk_font(app=None) -> str:
     ]
 
     loaded: list[str] = []
-    for family, path in candidates:
+    for _family, path in candidates:
         if not Path(path).exists():
             continue
         fid = QtGui.QFontDatabase.addApplicationFont(path)

@@ -11,13 +11,13 @@
 而不是 mock —— mock 掉读取器就测不到「错误隔离」这个核心目标了。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import glob
 from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat import batch as batch_mod
 from fysat.batch import BatchResult, FileResult, preview, run, scan
@@ -200,7 +200,7 @@ def test_all_export_kinds_work(tmp_path, registry):
 
 
 def test_unknown_kind_rejected(tmp_path, registry):
-    src = _write_hdf(tmp_path / "TEST_ok.HDF")
+    _write_hdf(tmp_path / "TEST_ok.HDF")
     with pytest.raises(ValueError, match="未知导出类型"):
         run(tmp_path, out_dir=tmp_path / "out", kind="webp", registry=registry)
 

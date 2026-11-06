@@ -14,16 +14,16 @@
 - 有 GEO 时拿得到经纬度，没 GEO 时 `attrs["geo_missing"] is True` 且数据仍可读。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import glob
 import importlib.util
 import sys
-from functools import lru_cache
+from functools import cache
 from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat.readers import kinds, open_file
 from fysat.readers import satpy_adapter as SA
@@ -50,7 +50,7 @@ needs_satpy = pytest.mark.skipif(
     not HAS_SATPY, reason='未安装 satpy 可选依赖（pip install "fysat[satpy]"）')
 
 
-@lru_cache(maxsize=None)
+@cache
 def find_samples(pattern: str, min_mb: float = 1.0) -> tuple[Path, ...]:
     """在样本根目录找所有匹配文件（跳过下载残件与缩略图），按路径排序。"""
     if not SAMPLE_ROOT.is_dir():

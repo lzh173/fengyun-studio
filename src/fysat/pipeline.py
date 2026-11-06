@@ -14,7 +14,6 @@
 from __future__ import annotations
 
 import re
-
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -321,7 +320,7 @@ def visible_rgb(ds, names: tuple[str, str, str], bands: tuple[int, int, int] = (
                 region_px: tuple[int, int, int, int] | None = None) -> tuple[np.ndarray, Any, Any]:
     """三通道真彩色合成，返回 (rgb, lat, lon)。"""
     chans = []
-    for n, b in zip(names, bands):
+    for n, b in zip(names, bands, strict=False):
         arr, _ = visible_data(ds, n, b)
         if region_px is not None:
             r0, r1, c0, c1 = region_px
@@ -604,7 +603,7 @@ def true_color(r: np.ndarray, g: np.ndarray, b: np.ndarray,
     means = [float(np.nanmean(c)) if np.isfinite(c).any() else 1.0 for c in chans]
     gmean = float(np.mean(means)) or 1.0
     chans = [np.clip(c * (gmean / max(m, 1e-6)), 0, 1) ** gamma
-             for c, m in zip(chans, means)]
+             for c, m in zip(chans, means, strict=False)]
 
     rgb = np.dstack(chans)
     gray = np.mean(rgb, axis=2, keepdims=True)

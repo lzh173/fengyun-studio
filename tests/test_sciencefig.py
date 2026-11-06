@@ -1,23 +1,21 @@
 """科学制图与太阳几何的回归测试。
 
 对应两个真实缺陷：
-1. 海岸线默认路径错误（src/assets → 实际在工程根 assets/），
+1. 海岸线默认路径错误（仍在仓库根 assets/ 而没进包内），
    导致海岸线**从未真正画出来过**，且不报错、静默返回 0 段。
 2. 之前误判"MERSI L1 没有太阳天顶角"，
    实际上它在配套 GEO 文件的 Geolocation/SolarZenith。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
 
-import glob
 from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import glob_samples
 
 from fysat import pipeline
 from fysat.sciencefig import FigureSpec, _load_coastlines, render_science_figure
-
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -31,7 +29,7 @@ def test_coastline_default_path_resolves():
 
 
 def test_coastline_asset_exists_at_expected_location():
-    p = ROOT / "assets" / "ne_110m_coastline.geojson"
+    p = ROOT / "src" / "fysat" / "assets" / "ne_110m_coastline.geojson"
     assert p.exists(), f"海岸线资源缺失: {p}"
     assert p.stat().st_size > 50_000
 
@@ -115,7 +113,7 @@ def test_reflectance_toa_uses_cosine_correction():
         def load(self, name):
             return self._V()
 
-    ds = FakeDS()
+    FakeDS()
     flat = np.full((4, 4), 0.0, dtype=np.float32)
     shallow = np.full((4, 4), 60.0, dtype=np.float32)
 
@@ -183,7 +181,6 @@ def test_true_color_output_is_neutral():
 
 def test_science_figure_draws_coastline(tmp_path):
     """生成一张图，确保海岸线分支不抛异常且地图有内容。"""
-    from fysat.provenance import build_provenance
 
     lon, lat = np.meshgrid(np.linspace(100, 130, 120), np.linspace(5, 35, 100))
     data = 280 + 20 * np.sin(np.linspace(0, 6, 120))[None, :] + 0 * lat

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """NetCDF-3（CDF 经典格式）读取器测试。
 
 1. 合成文件 —— 用 scipy 自己写一个 CDF-1 文件（二维经纬度 + 带定标的温度场），
@@ -7,7 +6,6 @@
    CDF-1 全局属性、29 个变量的单位／有效范围／填充值、物理量量级与单点定位。
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import glob
 from datetime import datetime
@@ -15,6 +13,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat.detect import sniff
 from fysat.readers import nc3

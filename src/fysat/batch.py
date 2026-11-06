@@ -21,9 +21,10 @@ from __future__ import annotations
 
 import fnmatch
 import traceback
+from collections.abc import Callable, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Sequence
+from typing import Any
 
 import numpy as np
 

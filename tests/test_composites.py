@@ -8,15 +8,13 @@
 - AVHRR: noaa_1b_format.md 表5.2
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
 
-import glob
 import os
 
 import pytest
+from _sample_root import glob_samples
 
 from fysat import composites
-
 
 # ---------------- 表完整性 ----------------
 

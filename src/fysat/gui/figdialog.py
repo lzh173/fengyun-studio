@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import numpy as np
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from ..sciencefig import FigureSpec, render_science_figure
@@ -332,7 +331,6 @@ class ScienceFigureDialog(QtWidgets.QDialog):
 
     def _render(self, out: Path, preview: bool = False) -> Path:
         from .. import pipeline
-        from ..provenance import build_provenance
 
         ds = self._ds
         region = self._region if self.chk_use_selection.isChecked() else None

@@ -438,7 +438,7 @@ def _read_fy1d(p: Path, *, load: bool, max_scans: int | None, geo: str) -> SatDa
          "reason": "文档标注『空』，未解析"},
     ]
     ds.attrs["notes"] = [
-        "数据头声明扫描线数 %d，文件实际数据记录 %d 条" % (declared_scans, n_records - 2),
+        f"数据头声明扫描线数 {declared_scans}，文件实际数据记录 {n_records - 2} 条",
         "10 bit 样本的 2 个填充位在高位（样本反推，文档图例一致）",
     ]
     return ds
@@ -551,7 +551,7 @@ def _read_noaa(p: Path, *, load: bool, max_scans: int | None, geo: str) -> SatDa
     sun_zen, sat_zen, rel_azi = ang[:, :, 0], ang[:, :, 1], ang[:, :, 2]
     ll = meta[:, 640:1048].copy().view(">i4").reshape(n_scans, NAV_POINTS, 2) / 1e4
     lat_nav, lon_nav = ll[:, :, 0], ll[:, :, 1]
-    times = [_dt_from(int(y), int(d), int(m)) for y, d, m in zip(years[:8], doys[:8], millis[:8])] \
+    times = [_dt_from(int(y), int(d), int(m)) for y, d, m in zip(years[:8], doys[:8], millis[:8], strict=False)] \
         if n_scans else []
 
     # ---- 通道数据（每像元一个大端 u16，像元优先交织）
@@ -698,7 +698,7 @@ def reflectance(ds: SatDataset, *, group: str = "operational") -> dict[str, np.n
     C ≤ crossover 用第 1 段，否则用第 2 段。
     """
     out: dict[str, np.ndarray] = {}
-    for c, name in enumerate(("CH1", "CH2", "CH3")):
+    for _c, name in enumerate(("CH1", "CH2", "CH3")):
         if name not in ds.variables:
             continue
         var = ds.variables[name]

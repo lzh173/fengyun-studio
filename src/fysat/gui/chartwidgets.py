@@ -23,15 +23,17 @@ from PySide6 import QtCore, QtGui, QtWidgets
 from . import theme
 
 # 项目内置的海岸线（Natural Earth 110m，公开领域）
-# __file__ = <root>/src/fysat/gui/chartwidgets.py → parents[3] 才是工程根
+# 资源现在位于包内：<root>/src/fysat/assets/ —— pip 安装与 PyInstaller 打包后
+# 都只有这一份存在，所以它必须是第一候选。
+# 后两个候选保留给老布局（仓库根 assets/）做兼容。
+PKG_ASSETS = Path(__file__).resolve().parent.parent / "assets"
 PROJECT_ROOT = Path(__file__).resolve().parents[3]
-COASTLINE_PATH = PROJECT_ROOT / "assets" / "ne_110m_coastline.geojson"
+COASTLINE_PATH = PKG_ASSETS / "ne_110m_coastline.geojson"
 
-# 依次尝试的位置，兼容「装在 site-packages 里跑」与「源码树里跑」两种情况
 _COASTLINE_CANDIDATES = (
+    PKG_ASSETS / "ne_110m_coastline.geojson",
     PROJECT_ROOT / "assets" / "ne_110m_coastline.geojson",
     Path(__file__).resolve().parents[2] / "assets" / "ne_110m_coastline.geojson",
-    PROJECT_ROOT.parent / "assets" / "ne_110m_coastline.geojson",
 )
 
 
@@ -663,7 +665,7 @@ class PanelHeader(QtWidgets.QFrame):
         lay.setSpacing(6)
         self.lbl = QtWidgets.QLabel(title)
         self.lbl.setStyleSheet(
-            f"color:#a9b4c4;font-size:11px;font-weight:600;background:transparent;")
+            "color:#a9b4c4;font-size:11px;font-weight:600;background:transparent;")
         self.badge = QtWidgets.QLabel(badge)
         self.badge.setStyleSheet(
             "color:#7fc7d8;background:#1e2a38;border-radius:8px;"
@@ -705,9 +707,9 @@ class ChipRow(QtWidgets.QWidget):
             btn.setCursor(QtCore.Qt.PointingHandCursor)
             btn.setStyleSheet(
                 "QToolButton{font-size:10px;padding:2px 8px;border-radius:9px;"
-                f"background:#1a2029;border:1px solid #2a3341;color:#a9b6c6;}}"
-                f"QToolButton:checked{{background:#10333d;border-color:#1d5f70;"
-                f"color:#9fe9f5;}}")
+                "background:#1a2029;border:1px solid #2a3341;color:#a9b6c6;}"
+                "QToolButton:checked{background:#10333d;border-color:#1d5f70;"
+                "color:#9fe9f5;}")
             btn.clicked.connect(lambda _c=False, t=text: self._on_click(t))
             self._buttons[text] = btn
             lay.addWidget(btn)
@@ -1108,7 +1110,7 @@ class CanvasOverlay(QtWidgets.QWidget):
             splits = np.flatnonzero(np.diff(idx) > 1)
             starts = np.r_[0, splits + 1]
             ends = np.r_[splits, idx.size - 1]
-            for s, e in zip(starts, ends):
+            for s, e in zip(starts, ends, strict=False):
                 if e - s < 1:
                     continue
                 sl = idx[s:e + 1]
@@ -1141,7 +1143,7 @@ class CanvasOverlay(QtWidgets.QWidget):
             if idx.size < 2:
                 return
             cuts = np.flatnonzero(np.diff(idx) > 1)
-            for a, b in zip(np.r_[0, cuts + 1], np.r_[cuts, idx.size - 1]):
+            for a, b in zip(np.r_[0, cuts + 1], np.r_[cuts, idx.size - 1], strict=False):
                 sl = idx[a:b + 1]
                 if sl.size >= 2:
                     CanvasOverlay._stroke_polyline(p, x[sl], y[sl], rect)
@@ -1159,7 +1161,7 @@ class CanvasOverlay(QtWidgets.QWidget):
 
         path = QtGui.QPainterPath()
         path.moveTo(float(x[0]), float(y[0]))
-        for xi, yi in zip(x[1:], y[1:]):
+        for xi, yi in zip(x[1:], y[1:], strict=False):
             path.lineTo(float(xi), float(yi))
         p.drawPath(path)
 

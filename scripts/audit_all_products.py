@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """对数据文件夹里**每一类产品**跑完整链路测试。
 
 链路：识别容器 → 打开 → 判定仪器 → 解析合成配方 → 选通道渲染 → 导出缩略图
@@ -21,14 +20,15 @@ import traceback
 from collections import OrderedDict
 from pathlib import Path
 
+import numpy as np  # noqa: E402
+
+from fysat import composites, detect  # noqa: E402
+from fysat.readers import open_file  # noqa: E402
+
 os.environ.setdefault("QT_QPA_PLATFORM", "offscreen")
 ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(ROOT / "src"))
 
-import numpy as np                                   # noqa: E402
-
-from fysat import composites, detect                 # noqa: E402
-from fysat.readers import open_file                  # noqa: E402
 
 DATA = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
 if not str(DATA) or not DATA.is_dir():
@@ -37,7 +37,7 @@ SKIP_EXT = {".enp", ".jpg", ".png", ".txt", ".xml", ".csv", ".db", ".json",
             ".npz", ".npy", ".cbor", ".raw"}
 
 
-def families() -> "OrderedDict[str, Path]":
+def families() -> OrderedDict[str, Path]:
     """按「容器 + 产品族」归并，每族取体积最大的代表文件。"""
     out: OrderedDict[str, Path] = OrderedDict()
     best: dict[str, int] = {}

@@ -1,6 +1,5 @@
 """1B 读取器测试：合成文件做字节级往返验证 + 真实样本回归（无样本时自动跳过）。"""
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import struct
 from datetime import datetime
@@ -8,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat import cli
 from fysat.detect import sniff
@@ -92,7 +92,7 @@ def _write_fy1d(path: Path, dn: np.ndarray, lat: np.ndarray, lon: np.ndarray) ->
 
 def _interleave(a: np.ndarray, b: np.ndarray) -> list[int]:
     out: list[int] = []
-    for x, y in zip(a.tolist(), b.tolist()):
+    for x, y in zip(a.tolist(), b.tolist(), strict=False):
         out.extend((int(x), int(y)))
     return out
 
@@ -298,13 +298,13 @@ def test_na18_calibration_helpers(na18_synthetic):
     ds = oneb.read(na18_synthetic[0], load=True)
     refl = oneb.reflectance(ds)
     assert set(refl) == {"CH1", "CH2", "CH3"}
-    for name, arr in refl.items():
+    for _name, arr in refl.items():
         assert arr.shape == (3, 2048)
         assert np.isfinite(arr).all()
         assert arr.min() > -100 and arr.max() < 400      # 反射率百分比
     bt = oneb.brightness_temperature(ds)
     assert set(bt) == {"CH3b", "CH4", "CH5"}
-    for name, arr in bt.items():
+    for _name, arr in bt.items():
         assert arr.shape == (3, 2048)
         assert np.isfinite(arr).mean() > 0.99            # 极少数无效 DN 给 NaN
         assert 100 < np.nanmedian(arr) < 400             # 亮温 K
@@ -379,7 +379,7 @@ def test_real_fy1d_info():
 @need_fy1d
 def test_real_fy1d_data_slice():
     ds = oneb.read(SAMPLE_FY1D, max_scans=40)
-    for name, var in ds.variables.items():
+    for _name, var in ds.variables.items():
         assert var.data.shape == (40, 2048)
         assert var.data.dtype == np.uint16
         assert var.data.max() <= 1023           # 10 bit

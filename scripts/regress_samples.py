@@ -1,7 +1,20 @@
+"""全样本回归：扫描下载目录，逐个文件验证"能识别 + 能读取 + 形状合理"。
+
+用法:
+    python scripts/regress_samples.py [根目录...]
+默认扫描样本根目录（环境变量 FYSAT_SAMPLE_ROOT）与指定批次目录。
+"""
+
 from __future__ import annotations
 
 import os
+import sys
+import traceback
+from collections import Counter
 from pathlib import Path
+
+from fysat.detect import sniff  # noqa: E402
+from fysat.readers import open_file  # noqa: E402
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
 SAMPLE_ROOT = Path(os.environ.get("FYSAT_SAMPLE_ROOT", ""))
@@ -23,23 +36,8 @@ def _sample(rel: str) -> Path:
     return SAMPLE_ROOT / rel
 
 
-"""全样本回归：扫描下载目录，逐个文件验证"能识别 + 能读取 + 形状合理"。
-
-用法:
-    python scripts/regress_samples.py [根目录...]
-默认扫描样本根目录（环境变量 FYSAT_SAMPLE_ROOT）与指定批次目录。
-"""
-from __future__ import annotations
-
-import sys
-import traceback
-from collections import Counter
-from pathlib import Path
-
 sys.path.insert(0, str(Path(__file__).resolve().parents[1] / "src"))
 
-from fysat.detect import sniff  # noqa: E402
-from fysat.readers import open_file  # noqa: E402
 
 ROOTS = [
     SAMPLE_ROOT,

@@ -1,4 +1,3 @@
-# -*- coding: utf-8 -*-
 """通道号 → (变量名, 数组索引, 中心波长) 的索引。
 
 为什么需要它
@@ -192,7 +191,7 @@ class RgbPlan:
 
     def summary(self) -> str:
         return "  ".join(
-            f"{ch}={r.label}" for ch, r in zip("RGB", self.refs))
+            f"{ch}={r.label}" for ch, r in zip("RGB", self.refs, strict=False))
 
 
 def resolve_preset(ds, key: str) -> RgbPlan | None:

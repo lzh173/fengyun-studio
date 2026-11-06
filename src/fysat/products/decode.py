@@ -31,8 +31,9 @@ FY-3 的系数表有几处**文档与实测不一致**，解码时严格按实�
 """
 from __future__ import annotations
 
+from collections.abc import Callable
 from dataclasses import dataclass, field
-from typing import Any, Callable
+from typing import Any
 
 import numpy as np
 

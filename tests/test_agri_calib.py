@@ -17,13 +17,12 @@
   填充值 65534 = 地球内无效，65535 = 地球外无效
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
 
-import glob
 import os
 
 import numpy as np
 import pytest
+from _sample_root import glob_samples
 
 from fysat import calib, pipeline
 

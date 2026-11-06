@@ -1,5 +1,8 @@
+"""检查 GK-2A / AWX / FY-2 DAT 的具体结构，确认格式归属。"""
+
 from __future__ import annotations
 
+import glob
 import os
 from pathlib import Path
 
@@ -24,9 +27,6 @@ def _sample(rel: str) -> Path:
 
 
 # -*- coding: utf-8 -*-
-"""检查 GK-2A / AWX / FY-2 DAT 的具体结构，确认格式归属。"""
-import glob
-import os
 
 ROOT = SAMPLE_ROOT
 

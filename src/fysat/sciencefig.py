@@ -22,8 +22,7 @@
 """
 from __future__ import annotations
 
-import os
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
 
@@ -88,14 +87,21 @@ def _load_coastlines(path: Path | str | None) -> list[np.ndarray]:
 
     if path is None:
         here = Path(__file__).resolve()
-        # 资源在工程根 assets/ 下：src/fysat/sciencefig.py → 上溯 3 层
-        for base in (here.parents[2], here.parents[1], here.parent):
-            cand = base / "assets" / "ne_110m_coastline.geojson"
+        # 查找顺序（第一种是打包/安装后的正解）：
+        #   1) src/fysat/assets/          —— 包内数据，pip 安装与 PyInstaller 都在这
+        #   2) 仓库根 assets/             —— 老布局的兼容路径
+        #   3) 上溯两层的 assets/
+        cands = [
+            here.parent / "assets" / "ne_110m_coastline.geojson",
+            here.parents[2] / "assets" / "ne_110m_coastline.geojson",
+            here.parents[1] / "assets" / "ne_110m_coastline.geojson",
+        ]
+        for cand in cands:
             if cand.exists():
                 path = cand
                 break
         else:
-            path = here.parents[2] / "assets" / "ne_110m_coastline.geojson"
+            path = cands[0]
     p = Path(path)
     if not p.exists():
         return []
@@ -263,7 +269,6 @@ def render_science_figure(
     # 本模块只往文件出图，从不需要交互后端，一律用 Agg。
     matplotlib.use("Agg", force=True)
     import matplotlib.pyplot as plt
-    from matplotlib.colors import Normalize
 
     spec = spec or FigureSpec()
     _apply_cjk_font(spec.font_family)
@@ -361,8 +366,7 @@ def figure_from_dataset(
 
     region: 像素框 (r0, r1, c0, c1)；None 表示全幅
     """
-    from .render import composite, display_band
-    from .render import Stretch
+    from .render import Stretch, composite, display_band
 
     spec = spec or FigureSpec()
 
@@ -400,7 +404,7 @@ def figure_from_dataset(
     visible = None
     if visible_vars:
         chans = [display_band(ds.load(n), b, physical=True) for n, b in
-                 zip(visible_vars, visible_bands)]
+                 zip(visible_vars, visible_bands, strict=False)]
         if region is not None:
             r0, r1, c0, c1 = region
             chans = [c[r0:r1, c0:c1] for c in chans]
@@ -408,7 +412,6 @@ def figure_from_dataset(
         visible = {"rgb": rgb, "lat": lat, "lon": lon, "label": "可见光真彩色"}
 
     if spec.footer == "" and provenance:
-        from .provenance import as_text
 
         spec.footer = "  |  ".join(
             f"{k}={v}" for k, v in provenance.items()

@@ -10,7 +10,7 @@ import numpy as np
 from PySide6 import QtCore, QtGui, QtWidgets
 
 from ..render import COLORMAPS, PRESETS
-from .bandindex import band_labels, resolve_preset
+from .bandindex import band_labels
 from .varcatalog import classify_dataset, describe_class, physical_label, rgb_choices
 
 STRETCH_PRESETS = [
@@ -432,7 +432,7 @@ class Inspector(QtWidgets.QWidget):
         if any(b is None for b in bands):
             return
         # 三个通道全指向同一数据集的同一层 → 合成必然退化成灰度，直接拦下
-        if len(set(zip(names, bands))) == 1:
+        if len(set(zip(names, bands, strict=False))) == 1:
             QtWidgets.QMessageBox.information(
                 self, "无法合成",
                 "R/G/B 三个通道指向了同一个数据集的同一个通道。\n"

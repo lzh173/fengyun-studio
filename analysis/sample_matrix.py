@@ -1,6 +1,10 @@
+"""把样本目录归并成"样本覆盖表"（markdown），供 PLAN.md 使用。"""
+
 from __future__ import annotations
 
+import collections
 import os
+import re
 from pathlib import Path
 
 # 样本目录与输出目录都走环境变量/相对路径，开源版不写死任何人的机器
@@ -24,10 +28,6 @@ def _sample(rel: str) -> Path:
 
 
 # -*- coding: utf-8 -*-
-"""把样本目录归并成"样本覆盖表"（markdown），供 PLAN.md 使用。"""
-import os
-import re
-import collections
 
 ROOT = SAMPLE_ROOT
 SKIP = {".enp", ".db", ".json", ".xml", ".txt", ".cbor", ".npy", ".npz"}

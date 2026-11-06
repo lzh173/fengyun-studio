@@ -1,12 +1,11 @@
-# -*- coding: utf-8 -*-
 """最终支持范围判定：文档 × 样本可得性。
 
 样本来源：样本根目录（环境变量 FYSAT_SAMPLE_ROOT）与用户提供的产品清单。
 规则：有样本 → 支持；无样本 → 默认不支持（按用户要求）。
 """
+import collections
 import os
 import re
-import collections
 
 DOC_ROOT = r"D:\desktop_dp\temp\nsmc-doc\md\数据格式说明"
 

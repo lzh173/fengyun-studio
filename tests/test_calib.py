@@ -8,12 +8,12 @@
 * FY-2G FDI L1          ``Y:\\download-data\\C202610181401129865\\FY2G_FDI_ALL_NOM_20261018_1300.hdf``
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat import calib
 from fysat.readers import open_file

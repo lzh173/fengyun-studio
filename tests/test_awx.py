@@ -1,6 +1,5 @@
 """AWX 2.1 读取器测试：合成文件（定标表全覆盖）+ 真实样本回归（无样本时跳过）。"""
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT
 
 import struct
 from datetime import datetime
@@ -8,6 +7,7 @@ from pathlib import Path
 
 import numpy as np
 import pytest
+from _sample_root import SAMPLE_ROOT
 
 from fysat import cli
 from fysat.detect import sniff

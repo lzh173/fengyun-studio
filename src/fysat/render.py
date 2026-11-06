@@ -170,10 +170,10 @@ def composite(r: np.ndarray, g: np.ndarray, b: np.ndarray,
         else:
             unified = st
         chans = [np.clip(stretch(arr, unified) * float(w), 0.0, 1.0)
-                 for arr, w in zip(chans_in, weights)]
+                 for arr, w in zip(chans_in, weights, strict=False)]
     else:
         chans = [np.clip(stretch(arr, st) * float(w), 0.0, 1.0)
-                 for arr, w in zip(chans_in, weights)]
+                 for arr, w in zip(chans_in, weights, strict=False)]
 
     rgb = np.dstack(chans)
     return (rgb * 255.0 + 0.5).astype(np.uint8)

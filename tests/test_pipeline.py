@@ -6,16 +6,13 @@
 3. 400 万像素直接 pcolormesh 慢到不可用
 """
 from __future__ import annotations
-from _sample_root import SAMPLE_ROOT, glob_samples
-
-import glob
 
 import numpy as np
 import pytest
+from _sample_root import glob_samples
 
 from fysat import pipeline
-from fysat.model import Geolocation, SatDataset, Variable
-
+from fysat.model import Variable
 
 # ---------------- 经纬度清理 ----------------
 

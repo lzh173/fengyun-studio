@@ -33,9 +33,10 @@ from __future__ import annotations
 import logging
 import re
 import sys
+from collections.abc import Iterable, Sequence
 from contextlib import contextmanager
 from pathlib import Path
-from typing import Any, Iterable, Sequence
+from typing import Any
 
 import numpy as np
 

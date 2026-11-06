@@ -6,12 +6,13 @@ from __future__ import annotations
 
 import sys
 import traceback
+from collections.abc import Callable
 from dataclasses import dataclass
-from typing import Any, Callable
+from typing import Any
 
 from PySide6 import QtCore
 
-from ..render import Stretch, apply_cmap, display_array, stretch
+from ..render import Stretch, apply_cmap, stretch
 
 
 class Worker(QtCore.QRunnable):
@@ -116,7 +117,7 @@ def render_rgb(loader, names: tuple[str, str, str], st: Stretch | None = None,
         from .. import pipeline
 
         chans = []
-        for name, band in zip(names, bands):
+        for name, band in zip(names, bands, strict=False):
             arr, _unit = pipeline.visible_data(ds, name, band)
             h, w = arr.shape[:2]
             step = max(1, int(np.ceil(max(h, w) / float(max_size))))
@@ -127,7 +128,7 @@ def render_rgb(loader, names: tuple[str, str, str], st: Stretch | None = None,
 
     arrs = []
     shapes = []
-    for name, band in zip(names, bands):
+    for name, band in zip(names, bands, strict=False):
         var = loader(name)
         a = display_band(var, index=band, physical=True)
         if a.ndim != 2:
@@ -142,7 +143,7 @@ def render_rgb(loader, names: tuple[str, str, str], st: Stretch | None = None,
     if len(set(shapes)) > 1:
         raise ValueError(
             "三个通道的尺寸不一致，无法合成：\n"
-            + "\n".join(f"  {n}: {s}" for n, s in zip(names, shapes))
+            + "\n".join(f"  {n}: {s}" for n, s in zip(names, shapes, strict=False))
             + "\n请选择同一产品、同一分辨率的通道。"
         )
 
