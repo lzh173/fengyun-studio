@@ -8,6 +8,9 @@ rem    1) %%FYSAT_PYTHON%%   2) python on PATH
 rem ============================================================
 setlocal
 
+rem (see README: launchers must stay ASCII-only)
+if exist "%~dp0python.local.cmd" call "%~dp0python.local.cmd"
+
 set "ROOT=%~dp0.."
 set "PYTHONPATH=%ROOT%\src;%PYTHONPATH%"
 

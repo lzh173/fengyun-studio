@@ -15,6 +15,11 @@ dist/
 # ---- 探针与临时脚本（团队约定：只进 src 与 tests）----
 scratch/
 
+# ---- 本机配置（不入库）----
+# bin\python.local.cmd 里写本机的解释器路径，换机器时改它即可
+bin/python.local.cmd
+bin/*.local.cmd
+
 # ---- 编辑器 / 系统 ----
 .vscode/
 .idea/

@@ -13,10 +13,14 @@ rem    2) pythonw on PATH, then python on PATH
 rem ============================================================
 setlocal
 
+rem (see README: launchers must stay ASCII-only)
+if exist "%~dp0python.local.cmd" call "%~dp0python.local.cmd"
+
 set "ROOT=%~dp0.."
 set "PYTHONPATH=%ROOT%\src;%PYTHONPATH%"
 
-set "PYEXE=%FYSAT_PYTHON%"
+set "PYEXE=%FYSAT_PYTHONW%"
+if "%PYEXE%"=="" set "PYEXE=%FYSAT_PYTHON%"
 if "%PYEXE%"=="" (
   where pythonw >nul 2>nul && (set "PYEXE=pythonw") || (set "PYEXE=python")
 )
