@@ -61,8 +61,18 @@ class Inspector(QtWidgets.QWidget):
         self.info_table.setAlternatingRowColors(True)
         lay.addWidget(self.info_table)
 
+        # 原始属性仍保留，但默认只展示少量常用字段；完整值可通过展开的
+        # “全部属性”按钮查看，避免 50+ 个内部字段把用户真正关心的信息冲到顶部。
+        self.attr_toggle = QtWidgets.QToolButton()
+        self.attr_toggle.setText("全部属性（展开）")
+        self.attr_toggle.setCheckable(True)
+        self.attr_toggle.setChecked(False)
+        self.attr_toggle.setToolButtonStyle(QtCore.Qt.ToolButtonTextOnly)
+        self.attr_toggle.toggled.connect(self._toggle_all_attrs)
+        lay.addWidget(self.attr_toggle)
+
         self.attr_table = QtWidgets.QTableWidget(0, 2)
-        self.attr_table.setHorizontalHeaderLabels(["全局属性", "值"])
+        self.attr_table.setHorizontalHeaderLabels(["属性", "值"])
         self.attr_table.horizontalHeader().setSectionResizeMode(0, QtWidgets.QHeaderView.ResizeToContents)
         self.attr_table.horizontalHeader().setSectionResizeMode(1, QtWidgets.QHeaderView.Stretch)
         self.attr_table.verticalHeader().setVisible(False)
@@ -241,14 +251,59 @@ class Inspector(QtWidgets.QWidget):
             self.info_table.setItem(i, 1, QtWidgets.QTableWidgetItem(str(v)))
 
         attrs = ds.attrs or {}
-        keys = sorted(attrs.keys())[:120]
-        self.attr_table.setRowCount(len(keys))
-        for i, k in enumerate(keys):
+        keys = sorted(attrs.keys())
+        self._all_attr_rows: list[tuple[str, str, str]] = []
+        for k in keys:
             v = attrs[k]
             text = np.asarray(v).reshape(-1)[:4].tolist() if isinstance(v, np.ndarray) else str(v)
-            self.attr_table.setItem(i, 0, QtWidgets.QTableWidgetItem(str(k)))
-            self.attr_table.setItem(i, 1, QtWidgets.QTableWidgetItem(
-                str(text).replace("[", "").replace("]", "")))
+            group = self._attribute_group(str(k))
+            self._all_attr_rows.append((group, str(k), str(text).replace("[", "").replace("]", "")))
+        self._render_attr_rows(expanded=False)
+
+    @staticmethod
+    def _attribute_group(key: str) -> str:
+        """给 NSMC 全局属性分组，主视图先显示产品身份和观测时间。"""
+        low = key.lower()
+        if any(token in low for token in ("satellite", "sensor", "instrument", "dataset name", "product")):
+            return "产品与仪器"
+        if any(token in low for token in ("observing", "beginning", "ending", "date", "time", "orbit number")):
+            return "观测时间与轨道"
+        if any(token in low for token in ("earthsun", "solar_irradiance", "effect_center", "wavenumber", "tbb_trans")):
+            return "定标与太阳几何"
+        if any(token in low for token in ("integrity", "quality", "count_", "flag")):
+            return "质量控制"
+        return "其他属性"
+
+    def _render_attr_rows(self, expanded: bool) -> None:
+        rows = self._all_attr_rows
+        if not expanded:
+            # 优先保留常用、解释价值高的属性；隐藏其余原始键，但不丢数据。
+            priority = {"产品与仪器": 0, "观测时间与轨道": 1, "定标与太阳几何": 2, "质量控制": 3, "其他属性": 4}
+            rows = sorted(rows, key=lambda r: (priority.get(r[0], 9), r[1]))
+            rows = rows[:16]
+        self.attr_table.setRowCount(len(rows))
+        last_group = None
+        for i, (group, key, value) in enumerate(rows):
+            label = f"{group} · {key}" if expanded else key
+            item = QtWidgets.QTableWidgetItem(label)
+            item.setToolTip(f"{group}：{key}")
+            self.attr_table.setItem(i, 0, item)
+            self.attr_table.setItem(i, 1, QtWidgets.QTableWidgetItem(value))
+            if expanded and group != last_group:
+                for col in range(2):
+                    cell = self.attr_table.item(i, col)
+                    if cell is not None:
+                        font = cell.font()
+                        font.setBold(True)
+                        cell.setFont(font)
+                last_group = group
+        count = len(self._all_attr_rows)
+        self.attr_toggle.setText(
+            f"全部属性（收起） · {count}" if expanded else f"全部属性（展开） · {count}"
+        )
+
+    def _toggle_all_attrs(self, expanded: bool) -> None:
+        self._render_attr_rows(expanded)
 
     def _fill_vars(self, ds) -> None:
         """只列可成像的变量。"""

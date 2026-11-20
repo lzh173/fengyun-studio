@@ -184,13 +184,13 @@ class MainWindow(QtWidgets.QMainWindow):
         # 会把窗口最小宽度顶到 1615px —— 1366/1280 屏幕或系统有 DPI
         # 缩放时，右侧"导出"区域被挤出屏幕（用户反馈"找不到导出按钮"）。
         # 收窄到 200/240，内容靠各自滚动条自适应。
-        dock_left.setMinimumWidth(200)
+        dock_left.setMinimumWidth(190)
         dock_left.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable
                               | QtWidgets.QDockWidget.DockWidgetFloatable)
 
         dock_right = QtWidgets.QDockWidget("属性", self)
         dock_right.setWidget(self.inspector)
-        dock_right.setMinimumWidth(240)
+        dock_right.setMinimumWidth(220)
         dock_right.setFeatures(QtWidgets.QDockWidget.DockWidgetMovable
                                | QtWidgets.QDockWidget.DockWidgetFloatable)
 
