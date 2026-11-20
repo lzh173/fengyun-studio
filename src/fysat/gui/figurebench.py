@@ -599,8 +599,26 @@ class FigureBench(QtWidgets.QWidget):
         lay.setContentsMargins(0, 0, 0, 0)
         lay.setSpacing(0)
 
+        # 导出入口固定在右栏顶部：预览区和高级参数再高，也不会把主操作推到折叠区。
+        export_action = QtWidgets.QWidget()
+        export_row = QtWidgets.QHBoxLayout(export_action)
+        export_row.setContentsMargins(10, 8, 10, 8)
+        self.btn_export_top = QtWidgets.QPushButton("导出当前制图")
+        self.btn_export_top.setObjectName("primary")
+        self.btn_export_top.setMinimumHeight(36)
+        # 保证浅色/深色主题与系统 Qt 样式下都清晰可见；
+        # 右侧高级参数很多，主导出动作必须有稳定的视觉锚点。
+        self.btn_export_top.setStyleSheet(
+            "QPushButton#primary{background:#13a8bd;color:#ffffff;"
+            "font-weight:600;border:1px solid #5de1ef;border-radius:4px;padding:7px;}"
+            "QPushButton#primary:hover{background:#20bfd4;}"
+            "QPushButton#primary:pressed{background:#0e8295;}")
+        self.btn_export_top.setToolTip("打开保存对话框，导出当前版式与图层设置")
+        self.btn_export_top.clicked.connect(self.export)
+        export_row.addWidget(self.btn_export_top)
+        lay.addWidget(export_action)
+
         # 面板 A
-        lay.addWidget(cw.PanelHeader("面板 A", "真彩色"))
         form_a = QtWidgets.QFormLayout()
         form_a.setContentsMargins(10, 6, 10, 8)
         form_a.setSpacing(3)

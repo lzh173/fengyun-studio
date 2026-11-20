@@ -371,9 +371,18 @@ class MainWindow(QtWidgets.QMainWindow):
         tb.addAction(self.act_decode)
         tb.addAction(self.act_figure)
         tb.addSeparator()
-        tb.addAction(self.act_science)
-        tb.addAction(self.act_figure_export)
-        tb.addAction(self.act_export)
+        # 导出入口合并成一个带菜单的动作，避免工具栏同时出现三个语义相近的按钮。
+        # 菜单里仍保留三个明确命令，快捷键也继续有效。
+        export_btn = QtWidgets.QToolButton(self)
+        export_btn.setText("导出")
+        export_btn.setToolTip("选择导出数据、科学制图或工作台结果")
+        export_btn.setPopupMode(QtWidgets.QToolButton.InstantPopup)
+        export_menu = QtWidgets.QMenu(export_btn)
+        export_menu.addAction(self.act_export)
+        export_menu.addAction(self.act_science)
+        export_menu.addAction(self.act_figure_export)
+        export_btn.setMenu(export_menu)
+        tb.addWidget(export_btn)
         self.addToolBar(tb)
 
     def _build_statusbar(self) -> None:

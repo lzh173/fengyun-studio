@@ -411,10 +411,20 @@ class AnalysisWorkspace(QtWidgets.QWidget):
             self._panes.append(pane)
             grid.addWidget(pane, i // 2, i % 2)
 
-        # D 视口换成分析面板（隐藏它的画布）
+        # D 视口换成分析面板（隐藏它的画布）。空状态不再只留一块黑屏，
+        # 给出明确下一步，避免用户不知道这里需要先点选变量/像元。
         self._panes[3].canvas.hide()
         self.analysis_panel = self._build_analysis_panel()
         self._panes[3].layout().insertWidget(2, self.analysis_panel, 1)
+
+        self.analysis_empty = QtWidgets.QLabel(
+            "选择一个变量或在其它视口移动鼠标\n这里会显示直方图与剖面")
+        self.analysis_empty.setAlignment(QtCore.Qt.AlignCenter)
+        self.analysis_empty.setStyleSheet(
+            "color:#64748b;background:#07090d;font-size:12px;padding:24px;")
+        self.analysis_empty.setVisible(True)
+        self.analysis_panel.layout().insertWidget(0, self.analysis_empty)
+        self._analysis_has_data = False
         return center
 
     def _build_analysis_panel(self) -> QtWidgets.QWidget:
@@ -622,6 +632,8 @@ class AnalysisWorkspace(QtWidgets.QWidget):
         self.profile.set_profile(gray[mid, :].astype(np.float64),
                                  title=f"沿第 {mid} 行剖面 · {title}",
                                  subtitle=f"样本 {gray.shape[1]}")
+        self._analysis_has_data = True
+        self.analysis_empty.setVisible(False)
 
     def _on_pixel(self, index: int, r: int, c: int, v: float) -> None:
         if index != self._active and index < 3:
